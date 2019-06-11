@@ -84,7 +84,46 @@ class VectorModel:
                 self.vectors[word] = dimensions
 
 
+    def get_most_similar_from_file(self, elem: Union[str, Word], topN: int = 10) -> List[WordSimilarity]:
+        word = elem if isinstance(elem, str) else elem.lemma
+
+        # the file was already loaded
+        if self.similarities:
+            return self.similarities[word][:topN]
+        
+        path = 'resources/{}/models/{}/{}_{}_most_similar.csv'.format(self.lang.value, self.name, self.type.name, self.lang.value)
+        if not os.path.isfile(path):
+            logger.warning('Precomputed similarities are not available!')
+            return []
+
+        # read file and populate self.similarities
+        with open(path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for row in csv_reader:
+                w = None
+                combination = ""
+                for index, column in enumerate(row):
+                    if index == 0:
+                        w = column
+                        self.similarities[w] = []
+                    elif index % 2 == 1:
+                        combination += column + ","
+                    elif index % 2 == 0:
+                        combination += column
+                        tupl = literal_eval(combination)
+                        combination = ""
+                        self.similarities[w].append((tupl[0], float(tupl[1])))
+
+        print("Result ", self.similarities[word][:topN])
+        return self.similarities[word][:topN]
+
+
     def most_similar(self, elem: Union[str, TextElement], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
+        if (isinstance(elem, str) or isinstance(elem, Word)) and topN <= 20:
+            results = self.get_most_similar_from_file(elem, topN)
+            if results:
+                return results
+        
         elem_vector = self.get_vector(elem)
 
         all_similarities = []
