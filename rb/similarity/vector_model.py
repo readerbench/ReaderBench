@@ -11,6 +11,15 @@ from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.word import Word
 
+import csv
+import os
+
+from rb.utils.rblogger import Logger
+logger = Logger.get_logger()
+
+from ast import literal_eval
+
+
 class VectorModelType(Enum):
     LSA = 0,
     LDA = 1,
@@ -28,6 +37,7 @@ class VectorModel:
         self.name = name
         self.size = size
         self.vectors = {}
+        self.similarities = {}
 
     def get_vector(self, elem: Union[str, TextElement]) -> np.array:
         if isinstance(elem, str):
