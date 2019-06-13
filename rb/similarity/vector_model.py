@@ -98,8 +98,8 @@ class VectorModel:
         word = elem if isinstance(elem, str) else elem.lemma
 
         # the file was already loaded
-        if self.similarities and word in self.similarities:
-            return self.similarities[word][:topN]
+        if self.similarities:
+            return self.similarities[word][:topN] if word in self.similarities else []
         
         path = 'resources/{}/models/{}/{}_{}_most_similar.csv'.format(self.lang.value, self.name, self.type.name, self.lang.value)
         if not os.path.isfile(path):
