@@ -7,7 +7,7 @@ from numpy.linalg import norm
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.word import Word
-
+from rb.utils.downloader import check_version, download_model
 WordSimilarity = Tuple[str, float]
 
 
@@ -31,6 +31,21 @@ class VectorModel:
         self.vectors: Dict[str, np.ndarray] = {}
         self.base_vectors: List[np.ndarray] = []
         self.word_clusters: Dict[int, List[str]] = {}
+        corpus = "resources/{}/models/{}".format(lang.value, name)
+        if check_version(lang, name):
+            if not download_model(lang, name):
+                raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
+        self.load_vectors()
+        if len(self.vectors) > 100000:
+            try:
+                self.load_clusters()
+            except:
+                self.build_clusters(8)
+                self.save_clusters()
+        
+
+    def load_vectors(self):
+        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.name, self.type.name))
 
     def get_vector(self, elem: Union[str, TextElement]) -> np.ndarray:
         if isinstance(elem, str):
@@ -77,15 +92,9 @@ class VectorModel:
             for _ in range(no_of_words):
                 line = f.readline()
                 line_split = line.split()
-                word = ""
-                dimensions = []
-                for index, value in enumerate(line_split):
-                    if index == 0:
-                        word = value
-                    else:
-                        dimensions.append(float(value))
-                self.vectors[word] = dimensions
-
+                word = line_split[0]
+                self.vectors[word] = np.array([float(x) for x in line_split[1:]])
+            
     def compute_hash(self, v: np.ndarray) -> int:
         result = 0
         for base in self.base_vectors:
@@ -130,7 +139,10 @@ class VectorModel:
                 self.word_clusters[hash].append(word) 
 
     def get_cluster(self, hash: int, vector: np.ndarray, threshold: float = None) -> List[WordSimilarity]:
-        result = self.word_clusters[hash] if hash in self.word_clusters else []
+        if len(self.base_vectors) == 0:
+            result = self.vectors.keys()
+        else:
+            result = self.word_clusters[hash] if hash in self.word_clusters else []
         result = [(word, self.similarity(self.get_vector(word), vector)) for word in result]
         if threshold is None:
             return result
@@ -145,8 +157,10 @@ class VectorModel:
         hash = self.compute_hash(elem)
         cluster = self.get_cluster(hash, elem, threshold)
         if len(cluster) < topN:
-            for i in range(len(self.base_vectors)):
+            for i in range(len(self.base_vectors) - 1):
                 new_hash = hash ^ (1 << (len(self.base_vectors) - i - 1))
-                cluster = cluster + self.get_cluster(new_hash, elem, threshold)
+                for j in range(i+1, len(self.base_vectors)):
+                    new_hash = new_hash ^ (1 << (len(self.base_vectors) - j - 1))
+                    cluster = cluster + self.get_cluster(new_hash, elem, threshold)
         return sorted(cluster, key=lambda x: x[1], reverse=True)[:topN]
         
