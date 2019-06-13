@@ -25,7 +25,6 @@ class PageRank():
 
     def run_page_rank_with_activation(self, activation_map: ActivationMap, graph: CmGraphDO) -> ActivationMap:
         iteration = 0
-        print(list(activation_map.keys()))
         current_page_rank_values = deepcopy(activation_map)
         while iteration < self.max_iter:
             r = self.calculateR(current_page_rank_values, graph)

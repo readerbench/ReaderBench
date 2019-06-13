@@ -10,6 +10,8 @@ from rb.comprehension.utils.memory.history_keeper import HistoryKeeper
 from typing import List
 Models = List[VectorModel]
 
+import time
+
 
 class ComprehensionModel:
 
@@ -41,7 +43,10 @@ class ComprehensionModel:
 
     def apply_page_rank(self, sentence_index: int) -> None:
         page_rank = PageRank()
+        t1 = time.time()
         page_rank.run_page_rank(self.current_graph)
+        t2 = time.time()
+        print("Actual page rank time is {}".format(int(t2-t1)))
         self.normalize_activation_score_map()
         self.activate_words_over_threshold()
         self.current_graph.restrict_active_nodes(self.max_active_concepts)

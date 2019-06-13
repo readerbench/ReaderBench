@@ -17,12 +17,22 @@ Nodes = List[CmNodeDO]
 Edges = List[CmEdgeDO]
 Models = List[VectorModel]
 
+import time
+
 
 class CmGraphDO:
 
     def __init__(self, node_list: Nodes, edge_list: Edges) -> None:
         self.node_list = node_list
         self.edge_list = edge_list
+        self.adjacent_edges_dict = {}
+        self.init_adjacent_edges_dict()
+
+
+    def init_adjacent_edges_dict(self) -> None:
+        for edge in self.edge_list:
+            self.adjacent_edges_dict[edge.node1] = []
+            self.adjacent_edges_dict[edge.node2] = []
 
 
     def contains_node(self, node: CmNodeDO) -> bool:
@@ -64,6 +74,7 @@ class CmGraphDO:
     def add_node_or_update(self, node: CmNodeDO) -> None:
         if not self.contains_node(node):
             self.node_list.append(node)
+            self.adjacent_edges_dict[node] = []
             return
 
         graph_node = self.get_node(node)
@@ -80,6 +91,8 @@ class CmGraphDO:
     def add_edge_or_update(self, edge: CmEdgeDO) -> None:
         if not self.contains_edge(edge):
             self.edge_list.append(edge)
+            self.adjacent_edges_dict[edge.node1].append(edge)
+            self.adjacent_edges_dict[edge.node2].append(edge)
             return
 
         graph_edge = self.get_edge(edge)
@@ -89,21 +102,12 @@ class CmGraphDO:
 
 
     def get_edges_for_node(self, node: CmNodeDO) -> Edges:
-        edges = []
-        for edge in self.edge_list:
-            if edge.node1 == node or edge.node2 == node:
-                edges.append(edge)
-        return edges
+        return self.adjacent_edges_dict[node]
 
 
     def get_activate_edges_for_node(self, node: CmNodeDO) -> Edges:
-        edges = self.get_edges_for_node(node)
-        active_edges = []
-        for edge in edges:
-            if edge.is_active():
-                active_edges.append(edge)
-        return active_edges
-
+        return [e for e in self.adjacent_edges_dict[node] if e.is_active()]
+    
 
     def restrict_active_nodes(self, max_active_concepts: int) -> None:
         self.node_list.sort(key=lambda x: x.activation_score, reverse=True)
@@ -165,6 +169,8 @@ class CmGraphDO:
 
         inferred_nodes = set()
 
+        t1 = time.time()
+
         for node in syntactic_graph.node_list:
             node.activate()
             node.increment_activation_score()
@@ -179,8 +185,9 @@ class CmGraphDO:
             similar_concepts = []
             similar_concepts.extend(synonyms)
             similar_concepts.extend(hypernyms)
+            
             for vect_model in semantic_models:
-                closest_semantic_words = vect_model.most_similar(node.get_word(), threshold=0.5)
+                closest_semantic_words = vect_model.most_similar(node.get_word(), topN=5, threshold=0.5)
                 similar_concepts.extend([x[0] for x in closest_semantic_words])
             similar_concepts = list(set(similar_concepts))
             # remove the word if that is the case
@@ -194,6 +201,7 @@ class CmGraphDO:
                 inferred_node = CmNodeDO(word, CmNodeType.Inferred)
                 inferred_node.activate()
                 inferred_nodes.add(inferred_node)
+        
         
         for edge in syntactic_graph.edge_list:
             self.add_edge_or_update(edge)
@@ -249,6 +257,9 @@ class CmGraphDO:
             if edge.score >= min_distance:
                 self.add_edge_or_update(edge)
 
+        t2 = time.time()
+        print("Graf {}".format(int(t2 - t1)))
+            
 
     def get_combined_graph(self, other_graph: 'CmGraphDO') -> 'CmGraphDO':
         new_node_list = deepcopy(self.node_list)
