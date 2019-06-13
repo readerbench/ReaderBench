@@ -14,3 +14,8 @@ class LDA(VectorModel):
             if not download_model(lang, name):
                 raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
         self.load_vectors_from_txt_file(corpus + "/LDA.model")
+        try:
+            self.load_clusters()
+        except:
+            self.build_clusters()
+            self.save_clusters()

@@ -17,3 +17,8 @@ class Word2Vec(VectorModel):
                 raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
         model = KeyedVectors.load_word2vec_format("{}/word2vec-{}.txt".format(corpus, dim), binary=False)
         self.vectors = {word: model[word] for idx, word in enumerate(model.index2word)}
+        try:
+            self.load_clusters()
+        except:
+            self.build_clusters()
+            self.save_clusters()
