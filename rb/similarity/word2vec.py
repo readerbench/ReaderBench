@@ -11,9 +11,9 @@ class Word2Vec(VectorModel):
 
     def __init__(self, name: str, lang: Lang, dim: int = 300):
         VectorModel.__init__(self, VectorModelType.WORD2VEC, name, lang, dim)  
-        corpus = "resources/{}/models/{}".format(lang.value, name)
-        if check_version(lang, name):
-            if not download_model(lang, name):
-                raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
-        model = KeyedVectors.load_word2vec_format("{}/word2vec-{}.txt".format(corpus, dim), binary=False)
+        
+
+    def load_vectors(self):
+        model = KeyedVectors.load_word2vec_format("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.name, self.size), binary=False)
         self.vectors = {word: model[word] for idx, word in enumerate(model.index2word)}
+        

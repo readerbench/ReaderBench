@@ -1,8 +1,8 @@
 # ReaderBench Python
 
 ## Install
-`pip3 install --user rbpy-rb`
-./install.sh
+1. `pip3 install --user rbpy-rb` (or clone this repo master branch)
+2. run `./install.sh`
 
 You may also need some spacy models which are downloaded through spacy.     
 You have to download these spacy models by yourself, using the command:    
@@ -10,35 +10,7 @@ You have to download these spacy models by yourself, using the command:
 The logger will also write instructions on which models you need, and how to download them.  
 
 ## Usage
-
-For tokenization, lemmatiozation, pos tagging, use:  
-```sh
-from rb.parser.spacy_parser import SpacyParser
-from rb.core.lang import Lang
-from rb.core.document import Document
-
-nlp_ro = SpacyParser.get_instance().get_model(Lang.RO)
-
-test_text_ro = "Am mers repede la magazinul frumos."
-
-# tokenize
-docs_ro = nlp_ro(test_text_ro)
-# print all attributes of token objects
-print(dir(docs_ro[0]))
-
-for token in docs_ro:
-    print(token.lemma_, token.is_stop, token.tag_, token.pos_)
-```
-
-For indices use:  
-```sh
-from rb.core.lang import Lang  
-from rb.core.document import Document  
-
-doc = Document(Lang.EN, 'This is a sample document. It can contain multiple sentences and paragraphs')
-```
-
-See `examples.py` for usage examples.
+For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py`
 
 ## Dev instructions
 

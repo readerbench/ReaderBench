@@ -1,30 +1,22 @@
+import os
 from enum import Enum
-from typing import Union
-from typing import List
-from typing import Tuple
-WordSimilarity = Tuple[str, float]
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from numpy.linalg import norm
-
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.word import Word
+from rb.utils.downloader import check_version, download_model
+WordSimilarity = Tuple[str, float]
 
-import csv
-import os
-
-from rb.utils.rblogger import Logger
-logger = Logger.get_logger()
-
-from ast import literal_eval
 
 
 class VectorModelType(Enum):
-    LSA = 0,
-    LDA = 1,
-    WORD2VEC = 2,
-    FASTTEXT = 3,
+    LSA = 0
+    LDA = 1
+    WORD2VEC = 2
+    FASTTEXT = 3
     GLOVE = 4
 
 
@@ -36,10 +28,26 @@ class VectorModel:
         self.type = type
         self.name = name
         self.size = size
-        self.vectors = {}
-        self.similarities = {}
+        self.vectors: Dict[str, np.ndarray] = {}
+        self.base_vectors: List[np.ndarray] = []
+        self.word_clusters: Dict[int, List[str]] = {}
+        corpus = "resources/{}/models/{}".format(lang.value, name)
+        if check_version(lang, name):
+            if not download_model(lang, name):
+                raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
+        self.load_vectors()
+        if len(self.vectors) > 100000:
+            try:
+                self.load_clusters()
+            except:
+                self.build_clusters(8)
+                self.save_clusters()
+        
 
-    def get_vector(self, elem: Union[str, TextElement]) -> np.array:
+    def load_vectors(self):
+        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.name, self.type.name))
+
+    def get_vector(self, elem: Union[str, TextElement]) -> np.ndarray:
         if isinstance(elem, str):
             return self.vectors[elem]
         if not self in elem.vectors:
@@ -57,7 +65,7 @@ class VectorModel:
         return elem.vectors[self]
             
     
-    def similarity(self, a: Union[TextElement, np.array], b: Union[TextElement, np.array]) -> float:
+    def similarity(self, a: Union[TextElement, np.ndarray], b: Union[TextElement, np.ndarray]) -> float:
         if isinstance(a, TextElement) and isinstance(b, TextElement) and a == b:
             return 1.0
         if isinstance(a, TextElement):
@@ -84,65 +92,75 @@ class VectorModel:
             for _ in range(no_of_words):
                 line = f.readline()
                 line_split = line.split()
-                word = ""
-                dimensions = []
-                for index, value in enumerate(line_split):
-                    if index == 0:
-                        word = value
-                    else:
-                        dimensions.append(float(value))
-                self.vectors[word] = dimensions
+                word = line_split[0]
+                self.vectors[word] = np.array([float(x) for x in line_split[1:]])
+            
+    def compute_hash(self, v: np.ndarray) -> int:
+        result = 0
+        for base in self.base_vectors:
+            result = (result << 1) + int(np.dot(base, v) >= 0)
+        return result
 
+    def build_clusters(self, n: int = 12):
+        self.base_vectors = np.random.normal(size=(n, self.size)).tolist()
+        self.word_clusters = {}
+        for w, v in self.vectors.items():
+            hash = self.compute_hash(v)
+            if hash not in self.word_clusters:
+                self.word_clusters[hash] = []
+            self.word_clusters[hash].append(w) 
 
-    def get_most_similar_from_file(self, elem: Union[str, Word], topN: int = 10) -> List[WordSimilarity]:
-        word = elem if isinstance(elem, str) else elem.lemma
+    def save_clusters(self):
+        folder = "resources/{}/models/{}".format(self.lang.value, self.name)
+        os.makedirs(folder, exist_ok=True)     
+    
+        with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
+            f.write("{}\n".format(len(self.base_vectors)))
+            for base in self.base_vectors:
+                f.write(" ".join(str(x) for x in base) + "\n")
+            f.write("{}\n".format(len(self.vectors)))
+            for hash, words in self.word_clusters.items():
+                for word in words:
+                    f.write("{} {}\n".format(word, hash))
 
-        # the file was already loaded
-        if self.similarities:
-            return self.similarities[word][:topN] if word in self.similarities else []
-        
-        path = 'resources/{}/models/{}/{}_{}_most_similar.csv'.format(self.lang.value, self.name, self.type.name, self.lang.value)
-        if not os.path.isfile(path):
-            logger.warning('Precomputed similarities are not available!')
+    def load_clusters(self):
+        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.name, self.type.name), "rt") as f:
+            n = int(f.readline())
+            for i in range(n):
+                line = f.readline()
+                self.base_vectors.append(np.array([float(x) for x in line.split(" ")]))
+            n = int(f.readline())
+            for i in range(n):
+                line = f.readline()
+                word, hash = line.split(" ")
+                hash = int(hash)
+                if hash not in self.word_clusters:
+                    self.word_clusters[hash] = []
+                self.word_clusters[hash].append(word) 
+
+    def get_cluster(self, hash: int, vector: np.ndarray, threshold: float = None) -> List[WordSimilarity]:
+        if len(self.base_vectors) == 0:
+            result = self.vectors.keys()
+        else:
+            result = self.word_clusters[hash] if hash in self.word_clusters else []
+        result = [(word, self.similarity(self.get_vector(word), vector)) for word in result]
+        if threshold is None:
+            return result
+        else:
+            return [(word, sim) for word, sim in result if sim > threshold]
+
+    def most_similar(self, elem: Union[str, TextElement, np.ndarray], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
+        if not isinstance(elem, type(np.ndarray)):
+            elem = self.get_vector(elem)
+        if elem is None:
             return []
-
-        # read file and populate self.similarities
-        with open(path) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            for row in csv_reader:
-                w = None
-                combination = ""
-                for index, column in enumerate(row):
-                    if index == 0:
-                        w = column
-                        self.similarities[w] = []
-                    elif index % 2 == 1:
-                        combination += column + ","
-                    elif index % 2 == 0:
-                        combination += column
-                        tupl = literal_eval(combination)
-                        combination = ""
-                        self.similarities[w].append((tupl[0], float(tupl[1])))
-
-        return self.similarities[word][:topN] if word in self.similarities else []
-
-
-    def most_similar(self, elem: Union[str, TextElement], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
-        if (isinstance(elem, str) or isinstance(elem, Word)) and topN <= 20:
-            results = self.get_most_similar_from_file(elem, topN)
-            if results:
-                return results
+        hash = self.compute_hash(elem)
+        cluster = self.get_cluster(hash, elem, threshold)
+        if len(cluster) < topN:
+            for i in range(len(self.base_vectors) - 1):
+                new_hash = hash ^ (1 << (len(self.base_vectors) - i - 1))
+                for j in range(i+1, len(self.base_vectors)):
+                    new_hash = new_hash ^ (1 << (len(self.base_vectors) - j - 1))
+                    cluster = cluster + self.get_cluster(new_hash, elem, threshold)
+        return sorted(cluster, key=lambda x: x[1], reverse=True)[:topN]
         
-        elem_vector = self.get_vector(elem)
-
-        all_similarities = []
-        for key, value in self.vectors.items():
-            if key == elem:
-                continue
-            similarity = self.similarity(elem_vector, value)
-            if not threshold or similarity > threshold:
-                all_similarities.append((key, similarity))
-        
-        all_similarities.sort(key=lambda tup: tup[1], reverse=True)
-
-        return all_similarities[:topN]

@@ -97,6 +97,8 @@ def convertToPenn(pos: str, lang: Lang) -> str:
 def computePOS(token: Token, lang: Lang) -> POS:
     if lang == Lang.RO: 
         pos = token.tag_.lower()
+        if pos.startswith("comma") or pos.startswith("period"):
+            return POS.PUNCT
         if pos.startswith("n"):
             return POS.NOUN
         if pos.startswith("v"):
@@ -109,6 +111,12 @@ def computePOS(token: Token, lang: Lang) -> POS:
             return POS.ADP
         if pos.startswith("c"):
             return POS.CCONJ
+        if pos.startswith("m"):
+            return POS.NUM
+        if pos.startswith("t"):
+            return POS.DET
+        if pos.startswith("d"):
+            return POS.PRON
         return POS.X
     return POS(token.pos_)
 

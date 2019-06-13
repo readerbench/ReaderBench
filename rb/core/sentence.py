@@ -20,7 +20,7 @@ class Sentence(TextElement):
 
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
-        doc = SpacyParser.get_instance().parse(text, lang.value)
+        doc = SpacyParser.get_instance().parse(text, lang)
 
         for token in doc:
             word = Word(lang, token, container=self)
