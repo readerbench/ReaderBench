@@ -1,12 +1,13 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
+import spacy
 from rb.core.lang import Lang
 from rb.core.span import Span
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.word import Word
 from rb.parser.spacy_parser import SpacyParser
-from spacy.tokens.doc import Doc
+from spacy.tokens import Doc
 
 Dependency = Tuple[Word, Word, str]
 Dependencies = List[Dependency]
@@ -14,25 +15,27 @@ Dependencies = List[Dependency]
 class Sentence(TextElement):
 
 
-    def __init__(self, lang: Lang, text: str,
+    def __init__(self, lang: Lang, text: Union[spacy.tokens.Span, str],
                  depth: int = TextElementType.SENT.value,
                  container: TextElement = None):
 
-        TextElement.__init__(self, lang=lang, text=text,
+        TextElement.__init__(self, lang=lang, text=text if isinstance(text, str) else text.text,
                              depth=depth, container=container)
-        doc = SpacyParser.get_instance().parse(text, lang)
+        if isinstance(text, str):
+            text = SpacyParser.get_instance().parse(text, lang)
 
-        for token in doc:
-            word = Word(lang, token, container=self)
-            self.components.append(word)
-        for word, token in zip(self.components, doc):
-            word.head = self.components[token.head.i]
+        words = {token.i: Word(lang, token, container=self) for token in text}
+        for word, token in zip(words.values(), text):
+            word.head = words[token.head.i]
             if word.head is not word:
                 word.head.children.append(word)
-        self.entities = [Span(lang, text=ent.text, words=[self.components[token.i] for token in ent])
-                         for ent in doc.ents]
-      
-        self.root = self.components[list(doc.sents)[0].root.i]
+        self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent])
+                         for ent in text.ents]
+        if isinstance(text, Doc):
+            self.root = words[[sent for sent in text.sents][0].root.i]
+        else:
+            self.root = words[text.root.i]
+        self.components = [word for word in words.values()]
 
     def get_dependencies(self) -> Dependencies:
         return [(word.head, word, word.dep) 
@@ -44,4 +47,3 @@ class Sentence(TextElement):
 
     def __str__(self):
         return self.text
-    

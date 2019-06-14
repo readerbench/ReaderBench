@@ -11,7 +11,7 @@ from rb.utils.downloader import check_spacy_version, download_spacy_model
 from rb.utils.rblogger import Logger
 from spacy.lang.ro import Romanian
 from spacy.language import Language
-from spacy.tokens import Token
+from spacy.tokens import Token, Doc, Span
 
 # JSON Example localhost:8081/spacy application/json
 # {
@@ -166,6 +166,13 @@ class SpacyParser:
         return doc
         # return [(token.text, token.lemma_) for token in doc]
 
+    def parse_block(self, block: str, lang: Lang) -> List[Span]:
+        if lang in custom_models:
+            return [self.parse(sent, lang) for sent in sent_tokenize(block)]
+        else:
+            doc = self.parse(block, lang)
+            return [sent for sent in doc.sents]
+
     def tokenize_sentences(self, block: str) -> List[str]:
         return sent_tokenize(block)
     
@@ -190,7 +197,7 @@ class SpacyParser:
                 self.loaded_models[lang] = spacy.load(folder)
         return self.loaded_models[lang]
 
-    def parse(self, sentence: str, lang: Lang):
+    def parse(self, sentence: str, lang: Lang) -> Doc:
         model = self.get_model(lang)
         doc = model(sentence)
         for token in doc:

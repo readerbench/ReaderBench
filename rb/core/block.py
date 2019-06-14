@@ -14,7 +14,7 @@ class Block(TextElement):
 
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
-        for sentence in SpacyParser.get_instance().tokenize_sentences(text):
+        for sentence in SpacyParser.get_instance().parse_block(text, lang):
             self.components.append(Sentence(lang, sentence, container=self))
 
     def __str__(self):
