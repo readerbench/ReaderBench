@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Dict
+
+import spacy
 
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -12,4 +14,14 @@ class Span(TextElement):
         self.words = words
 
     def get_root(self) -> Word:
-        return [word for word in self.words if word.head == word or word.head.i < self.words[0].i or word.head.i > self.words[-1].i][0]
+        return [word for word in self.words 
+                if word.head == word or 
+                   word.head.index_in_doc < self.words[0].index_in_doc or 
+                   word.head.index_in_doc > self.words[-1].index_in_doc
+            ][0]
+    
+    @classmethod
+    def from_spacy_span(cls, lang: Lang, spacy_span: spacy.tokens.Span, words: Dict[int, Word], container: TextElement) -> "Word":
+        text = spacy_span.text
+        our_words = [words[i] for i in range(spacy_span.start, spacy_span.end)]
+        return Span(lang=lang, text=text, words=our_words, container=container)
