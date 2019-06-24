@@ -11,10 +11,10 @@ from rb.core.word import Word
 class Span(TextElement):
     def __init__(self, lang: Lang, text: str, words: List[Word], depth: int = TextElementType.SPAN.value, container: TextElement=None):
         super().__init__(lang, text, depth, container=container)
-        self.words = words
+        self.components = words
 
     def get_root(self) -> Word:
-        return [word for word in self.words 
+        return [word for word in self.components 
                 if word.head == word or 
                    word.head.index_in_doc < self.words[0].index_in_doc or 
                    word.head.index_in_doc > self.words[-1].index_in_doc
