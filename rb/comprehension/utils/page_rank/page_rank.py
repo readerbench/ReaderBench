@@ -1,10 +1,10 @@
+from typing import Dict
+
 from rb.comprehension.utils.graph.cm_graph_do import CmGraphDO
 from rb.comprehension.utils.graph.cm_node_do import CmNodeDO
 
-from typing import Dict
 ActivationMap = Dict[CmNodeDO, float]
 
-from copy import deepcopy
 
 class PageRank():
 
@@ -25,7 +25,7 @@ class PageRank():
 
     def run_page_rank_with_activation(self, activation_map: ActivationMap, graph: CmGraphDO) -> ActivationMap:
         iteration = 0
-        current_page_rank_values = deepcopy(activation_map)
+        current_page_rank_values = dict(activation_map)
         while iteration < self.max_iter:
             r = self.calculateR(current_page_rank_values, graph)
             temp_page_rank_values = {}

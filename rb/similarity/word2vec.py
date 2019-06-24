@@ -4,6 +4,7 @@ from gensim.models import KeyedVectors
 
 from rb.core.lang import Lang
 from rb.similarity.vector_model import VectorModel, VectorModelType
+from rb.similarity.vector import Vector
 from rb.utils.downloader import download_model, check_version
 
 
@@ -15,5 +16,5 @@ class Word2Vec(VectorModel):
 
     def load_vectors(self):
         model = KeyedVectors.load_word2vec_format("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.name, self.size), binary=False)
-        self.vectors = {word: model[word] for idx, word in enumerate(model.index2word)}
+        self.vectors = {word: Vector(model[word]) for idx, word in enumerate(model.index2word)}
         
