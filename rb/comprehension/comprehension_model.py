@@ -7,6 +7,7 @@ from rb.comprehension.cm_word_distance_indexer import CmWordDistanceIndexer
 from rb.comprehension.utils.graph.cm_graph_do import CmGraphDO
 from rb.comprehension.utils.page_rank.page_rank import PageRank
 from rb.comprehension.utils.memory.history_keeper import HistoryKeeper
+from rb.comprehension.utils.graph.cm_dependency_graph_do import CmDependencyGraf
 from typing import List
 Models = List[VectorModel]
 
@@ -23,22 +24,34 @@ class ComprehensionModel:
         self.max_dictionary_expansion = max_dictionary_expansion
         self.text = text
         self.document = Document(lang, text)
-        self.cm_indexer = CmIndexer(text, lang, sem_models)
+        # self.cm_indexer = CmIndexer(text, lang, sem_models)
         self.current_graph = CmGraphDO([], [])
         self.semantic_models = sem_models
         self.history_keeper = HistoryKeeper()
+        then = time.time()
+        self.build_syntactic_graphs_for_each_sentence()
+        now = time.time()
+        print("Graph construction is {}".format(int(now-then)))
+
+
+    def build_syntactic_graphs_for_each_sentence(self):
+        self.sentence_graphs = []
+
+        for sentence in self.document.get_sentences():
+            dependency_graph: CmDependencyGraf = CmDependencyGraf()
+            self.sentence_graphs.append(dependency_graph.get_syntanctic_graph(sentence))
 
 
     def get_total_number_of_phrases(self) -> int:
-        return len(self.cm_indexer.syntactic_indexer_list)
+        return len(self.sentence_graphs)
 
 
     def get_sentence_at_index(self, index: int) -> Sentence:
         return self.document.get_sentences()[index]
 
     
-    def get_syntactic_indexer_at_index(self, index: int) -> CmWordDistanceIndexer:
-        return self.cm_indexer.syntactic_indexer_list[index]
+    # def get_syntactic_indexer_at_index(self, index: int) -> CmWordDistanceIndexer:
+    #     return self.cm_indexer.syntactic_indexer_list[index]
 
 
     def apply_page_rank(self, sentence_index: int) -> None:
