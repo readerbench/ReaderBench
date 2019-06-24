@@ -202,6 +202,9 @@ class CmGraphDO:
                 inferred_node.activate()
                 inferred_nodes.add(inferred_node)
         
+        tttt = time.time()
+        print("Inferari {}".format(int(tttt - t1)))
+        
         
         for edge in syntactic_graph.edge_list:
             self.add_edge_or_update(edge)
