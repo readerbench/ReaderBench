@@ -16,8 +16,8 @@ class Span(TextElement):
     def get_root(self) -> Word:
         return [word for word in self.components 
                 if word.head == word or 
-                   word.head.index_in_doc < self.words[0].index_in_doc or 
-                   word.head.index_in_doc > self.words[-1].index_in_doc
+                   word.head.index_in_doc < self.components[0].index_in_doc or 
+                   word.head.index_in_doc > self.components[-1].index_in_doc
             ][0]
     
     @classmethod
