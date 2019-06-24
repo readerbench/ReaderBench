@@ -58,5 +58,8 @@ class Word(TextElement):
     def __str__(self):
         return self.text
     
+    def __repr__(self):
+        return self.__str__()
+
     def __hash__(self):
         return hash((self.lemma, self.pos))

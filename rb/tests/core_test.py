@@ -15,6 +15,11 @@ class CoreTest(unittest.TestCase):
         doc = Document(Lang.RO, text_string)
         self.assertEqual(doc.text, text_string, "Should be " + text_string)
 
+    def test_get_words(self):
+        text_string = "This is a text string. Does the parsing work?\nSecond paragraph."
+        doc = Document(Lang.EN, text_string)
+        self.assertEqual(len(doc.get_words()), 14, "Should be 14: " + str(doc.get_words()))
+        
 
 if __name__ == '__main__':
     unittest.main()
