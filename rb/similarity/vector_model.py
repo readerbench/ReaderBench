@@ -7,7 +7,9 @@ from numpy.linalg import norm
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.word import Word
+from rb.similarity.vector import Vector
 from rb.utils.downloader import check_version, download_model
+
 WordSimilarity = Tuple[str, float]
 
 
@@ -28,8 +30,8 @@ class VectorModel:
         self.type = type
         self.name = name
         self.size = size
-        self.vectors: Dict[str, np.ndarray] = {}
-        self.base_vectors: List[np.ndarray] = []
+        self.vectors: Dict[str, Vector] = {}
+        self.base_vectors: List[Vector] = []
         self.word_clusters: Dict[int, List[str]] = {}
         corpus = "resources/{}/models/{}".format(lang.value, name)
         if check_version(lang, name):
@@ -47,7 +49,7 @@ class VectorModel:
     def load_vectors(self):
         self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.name, self.type.name))
 
-    def get_vector(self, elem: Union[str, TextElement]) -> np.ndarray:
+    def get_vector(self, elem: Union[str, TextElement]) -> Vector:
         if isinstance(elem, str):
             return self.vectors[elem]
         if not self in elem.vectors:
@@ -60,12 +62,12 @@ class VectorModel:
                     return None
             else:
                 vectors = [self.get_vector(child) for child in elem.components]
-                vectors = [v for v in vectors if v is not None]
-                elem.vectors[self] = np.sum(vectors, axis=0) if len(vectors) > 0 else None
+                vectors = [v.values for v in vectors if v is not None]
+                elem.vectors[self] = Vector(np.sum(vectors, axis=0)) if len(vectors) > 0 else None
         return elem.vectors[self]
             
     
-    def similarity(self, a: Union[TextElement, np.ndarray], b: Union[TextElement, np.ndarray]) -> float:
+    def similarity(self, a: Union[TextElement, Vector], b: Union[TextElement, Vector]) -> float:
         if isinstance(a, TextElement) and isinstance(b, TextElement) and a == b:
             return 1.0
         if isinstance(a, TextElement):
@@ -74,7 +76,7 @@ class VectorModel:
             b = self.get_vector(b)
         if a is None or b is None:
             return 0.0
-        return np.dot(a, b) / (norm(a) * norm(b))
+        return Vector.cosine_similarity(a, b)
 
 
     """
@@ -93,16 +95,16 @@ class VectorModel:
                 line = f.readline()
                 line_split = line.split()
                 word = line_split[0]
-                self.vectors[word] = np.array([float(x) for x in line_split[1:]])
+                self.vectors[word] = Vector(np.array([float(x) for x in line_split[1:]]))
             
-    def compute_hash(self, v: np.ndarray) -> int:
+    def compute_hash(self, v: Vector) -> int:
         result = 0
         for base in self.base_vectors:
-            result = (result << 1) + int(np.dot(base, v) >= 0)
+            result = (result << 1) + int(np.dot(base, v.values) >= 0)
         return result
 
     def build_clusters(self, n: int = 12):
-        self.base_vectors = np.random.normal(size=(n, self.size)).tolist()
+        self.base_vectors = [Vector(v) for v in np.random.normal(size=(n, self.size))]
         self.word_clusters = {}
         for w, v in self.vectors.items():
             hash = self.compute_hash(v)
@@ -117,7 +119,7 @@ class VectorModel:
         with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
             f.write("{}\n".format(len(self.base_vectors)))
             for base in self.base_vectors:
-                f.write(" ".join(str(x) for x in base) + "\n")
+                f.write(" ".join(str(x.values) for x in base) + "\n")
             f.write("{}\n".format(len(self.vectors)))
             for hash, words in self.word_clusters.items():
                 for word in words:
@@ -128,7 +130,7 @@ class VectorModel:
             n = int(f.readline())
             for i in range(n):
                 line = f.readline()
-                self.base_vectors.append(np.array([float(x) for x in line.split(" ")]))
+                self.base_vectors.append(Vector(np.array([float(x) for x in line.split(" ")])))
             n = int(f.readline())
             for i in range(n):
                 line = f.readline()
@@ -138,7 +140,7 @@ class VectorModel:
                     self.word_clusters[hash] = []
                 self.word_clusters[hash].append(word) 
 
-    def get_cluster(self, hash: int, vector: np.ndarray, threshold: float = None) -> List[WordSimilarity]:
+    def get_cluster(self, hash: int, vector: Vector, threshold: float = None) -> List[WordSimilarity]:
         if len(self.base_vectors) == 0:
             result = self.vectors.keys()
         else:
@@ -149,8 +151,8 @@ class VectorModel:
         else:
             return [(word, sim) for word, sim in result if sim > threshold]
 
-    def most_similar(self, elem: Union[str, TextElement, np.ndarray], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
-        if not isinstance(elem, type(np.ndarray)):
+    def most_similar(self, elem: Union[str, TextElement, Vector], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
+        if not isinstance(elem, type(Vector)):
             elem = self.get_vector(elem)
         if elem is None:
             return []
@@ -163,4 +165,3 @@ class VectorModel:
                     new_hash = new_hash ^ (1 << (len(self.base_vectors) - j - 1))
                     cluster = cluster + self.get_cluster(new_hash, elem, threshold)
         return sorted(cluster, key=lambda x: x[1], reverse=True)[:topN]
-        

@@ -157,8 +157,8 @@ class CmGraphDO:
         return 0
 
 
-    def refine_similar_concepts(self, sentence: Sentence, similar_concepts: List[str], lang: Lang, semantic_models: Models) -> List[str]:
-        aoa = AgeOfAcquisition(lang)
+    def refine_similar_concepts(self, sentence: Sentence, similar_concepts: List[str],
+                                    lang: Lang, semantic_models: Models, aoa: AgeOfAcquisition) -> List[str]:
         return [concept for concept in similar_concepts 
                     if self.compute_similarity_in_all_models(sentence, Word.from_str(lang, concept), semantic_models) > 0.33 
                     and aoa.get_kuperman_value(concept) and aoa.get_kuperman_value(concept) < 9]
@@ -170,37 +170,52 @@ class CmGraphDO:
         inferred_nodes = set()
 
         t1 = time.time()
-
+        aoa = None
         for node in syntactic_graph.node_list:
             node.activate()
             node.increment_activation_score()
+
+            if not aoa:
+                aoa = AgeOfAcquisition(node.get_word().lang)
 
             self.add_node_or_update(node)
 
             if node.get_word().pos != POS.NOUN and node.get_word().pos != POS.VERB:
                 continue
             
+            t_wn_s = time.time()
             synonyms = wordnet.get_synonyms(node.get_word())
             hypernyms = wordnet.get_hypernyms(node.get_word())
+            t_wn_e = time.time()
+            # print("Wordnet {}".format(int(t_wn_e - t_wn_s)))
             similar_concepts = []
             similar_concepts.extend(synonyms)
             similar_concepts.extend(hypernyms)
             
+            t_vm_s = time.time()
             for vect_model in semantic_models:
                 closest_semantic_words = vect_model.most_similar(node.get_word(), topN=5, threshold=0.5)
                 similar_concepts.extend([x[0] for x in closest_semantic_words])
+            t_vm_e = time.time()
+            # print("Vector models {}".format(int(t_vm_e - t_vm_s)))
             similar_concepts = list(set(similar_concepts))
             # remove the word if that is the case
             similar_concepts = [x for x in similar_concepts if x != node.get_word().lemma]
-            print("before", similar_concepts)
-            similar_concepts = self.refine_similar_concepts(sentence, similar_concepts, node.get_word().lang, semantic_models)
-            print("after", similar_concepts)
+            # print("before", similar_concepts)
+            t_refine_s = time.time()
+            similar_concepts = self.refine_similar_concepts(sentence, similar_concepts, node.get_word().lang, semantic_models, aoa)
+            t_refine_e = time.time()
+            # print("Rafinare {}".format(int(t_refine_e - t_refine_s)))
+            # print("after", similar_concepts)
 
             for concept in similar_concepts:
                 word = Word.from_str(node.get_word().lang, concept, node.get_word().pos)
                 inferred_node = CmNodeDO(word, CmNodeType.Inferred)
                 inferred_node.activate()
                 inferred_nodes.add(inferred_node)
+        
+        tttt = time.time()
+        # print("Inferari {}".format(int(tttt - t1)))
         
         
         for edge in syntactic_graph.edge_list:
@@ -258,7 +273,7 @@ class CmGraphDO:
                 self.add_edge_or_update(edge)
 
         t2 = time.time()
-        print("Graf {}".format(int(t2 - t1)))
+        #  print("Graf {}".format(int(t2 - t1)))
             
 
     def get_combined_graph(self, other_graph: 'CmGraphDO') -> 'CmGraphDO':

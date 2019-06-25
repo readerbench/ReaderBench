@@ -52,6 +52,11 @@ class TextElement:
     def get_vector(self, model: 'VectorModel') -> np.array:
         return self.vectors[model]
 
+    def get_words(self) -> List["Word"]:
+        if self.depth == TextElementType.WORD.value:
+            return [self]
+        return [word for child in self.components for word in child.get_words()]
+
     def __eq__(self, other):
         if isinstance(other, TextElement):
             return self.text == other.text

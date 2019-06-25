@@ -5,7 +5,7 @@ from rb.core.pos import POS
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.parser.spacy_parser import SpacyParser
-from spacy.tokens.token import Token
+from spacy.tokens import Token
 
 
 class Word(TextElement):
@@ -30,19 +30,22 @@ class Word(TextElement):
         self.is_alpha = token.is_alpha
         self.children: List["Word"] = []
         self.tag = token.tag_
+        self.index_in_doc = token.i
+        self.in_coref = False
+        self.coref_clusters = []
 
     @classmethod
     def from_str(cls, lang: Lang, text: str, pos: POS = POS.X) -> "Word":
         token = type('Token', (object,), {'text': text, 'lemma_': text, 'pos_': pos.value, 'tag_': pos.value, 
                      'dep_': None, 'ent_type_': None, 'ent_type': None, 'ent_id_': None, 'ent_id': None,
-                     'is_alpha': None, 'is_stop': None, 'tag': None})()
+                     'is_alpha': None, 'is_stop': None, 'tag': None, 'i': None})()
         return Word(lang, token, None)
     
     def is_dict_word(self):
         return SpacyParser.get_instance().is_dict_word(self.lemma, self.lang)
 
     def is_content_word(self):
-        return self.is_dict_word() and (self.pos is POS.ADJ or self.pos is POS.ADV or self.pos is POS.NOUN or self.pos is POS.VERB)
+        return self.is_dict_word() and self.pos in {POS.ADJ, POS.ADV, POS.NOUN, POS.VERB}
         
     def get_sentences(self) -> List["Sentence"]:
         return []
@@ -55,5 +58,8 @@ class Word(TextElement):
     def __str__(self):
         return self.text
     
+    def __repr__(self):
+        return self.__str__()
+
     def __hash__(self):
         return hash((self.lemma, self.pos))
