@@ -95,8 +95,9 @@ def restore_diacritics():
     for i, c in enumerate(content):
         if c != text[i]:
             st, dr = get_word_interval_mistake(content, i) # [st, dr]
-            if (st, dr) not in mistake_intervals:
-                mistake_intervals.append((st, dr))
+            info_wrong_word = (st, dr, text[st:dr + 1], content[st: dr + 1]) 
+            if info_wrong_word not in mistake_intervals:
+                mistake_intervals.append(info_wrong_word)
     response = jsonify({'restored': content, 'mistakes': mistake_intervals})
     return response, 200
 
