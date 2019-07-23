@@ -126,6 +126,16 @@ class Diacritics:
 		self.create_lower_mapping()
 		self.parse_args()
 
+	def get_word_interval_mistake(self, s, index):
+		nn = len(s)
+		ii = index
+		while ii < nn and s[ii] != ' ': ii += 1
+		dr = ii - 1
+		ii = index
+		while ii >= 0 and s[ii] != ' ': ii -= 1 
+		st = ii + 1
+		return st, dr
+
 	# get case of the highest probability (returned by softmax)
 	def get_case(self, p):
 		case = 0

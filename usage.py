@@ -23,11 +23,11 @@ parsed = parser(txt1)
 
 """how to use wordnet for RO"""
 
-print(POS.NOUN.to_wordnet())
-print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()))
-print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]))
-print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO))
-print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO))
+# print(POS.NOUN.to_wordnet())
+# print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()))
+# print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]))
+# print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO))
+# print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO))
 """how to parse text"""
 for sent in parsed.sents:
         print(sent, sent.root)
@@ -56,14 +56,17 @@ for comp in docs_en.components:
 
 
 """how to use named entity for ro, how to extract content words"""
-print('parsed text, lemmas, content words, ent types, etc.')
-docs_ro = Document(Lang.RO, txt2)
-for comp1 in docs_ro.components:
-	# comp is para
-    for comp2 in comp1.components:
-		# comp2 is sent
-        for ent in comp2.entities:
-            print(ent.text, 'x')
-        # key is word
-        for key in comp2.components:
-            print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
+# print('parsed text, lemmas, content words, ent types, etc.')
+# docs_ro = Document(Lang.RO, txt2)
+# for comp1 in docs_ro.components:
+# 	# comp is para
+#     for comp2 in comp1.components:
+# 		# comp2 is sent
+#         for ent in comp2.entities:
+#             print(ent.text, 'x')
+#         # key is word
+#         for key in comp2.components:
+#             print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
+# if you want only tokns you can do:
+# for token in docs_ro.get_tokens():
+#     print(token.lemma)
