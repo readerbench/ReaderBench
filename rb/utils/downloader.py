@@ -42,7 +42,10 @@ LINKS = {
     },
     Lang.RU: {
         'spacy': {
-            'ru_ud_ft': "https://nextcloud.readerbench.com/index.php/s/nbErkdgbxmgiRCG/download"
+            'ru_ud_ft': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/bWCztgwzdnXowc7/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/TsWjd6KoLjypJQC/download"
+            }
         }
     },
     Lang.FR: {

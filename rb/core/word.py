@@ -21,16 +21,16 @@ class Word(TextElement):
         self.pos = POS(token.pos_)
         self.detailed_pos = token.tag_
         self.head: "Word"
-        self.dep = token.dep_
-        self.ent_type_ = token.ent_type_
+        self.dep: str = token.dep_
+        self.ent_type_:str  = token.ent_type_
         self.ent_type = token.ent_type
         self.ent_id_ = token.ent_id_
         self.ent_id = token.ent_id
         self.is_stop = token.is_stop
         self.is_alpha = token.is_alpha
         self.children: List["Word"] = []
-        self.tag = token.tag_
-        self.index_in_doc = token.i
+        self.tag: str = token.tag_
+        self.index_in_doc: int = token.i
         self.in_coref = False
         self.coref_clusters = []
 
