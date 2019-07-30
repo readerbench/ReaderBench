@@ -10,7 +10,8 @@ from pathlib import Path
 
 import spacy
 
-
+from werkzeug import secure_filename
+import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
 from rb.ro_corrections.ro_correct import correct_text_ro
@@ -18,14 +19,17 @@ from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
+from rb.utils.universal_text_extractor import extract_raw_text
+
 from rb.utils.rblogger import Logger
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = '7d441f27d441f27123d441f2b6176a'
+app.config['UPLOAD_FOLDER'] = '.'
+
 spacyInstance = SpacyParser()
 logger = Logger.get_logger()
-dump = open('dump.txt', 'w', encoding='utf-8')
 
 @app.route('/test', methods=['POST'])
 def handle_get():
@@ -52,10 +56,23 @@ def ro_correct():
 
     text = text.replace('    ', '\t').replace('\t', '\n')
     return jsonify(correct_text_ro(text))
-    
+
+""" file should have proper extension, otherwise it will not work"""
+@app.route('/extract_text', methods=['POST'])
+def extract_text():
+    f = request.files['file']
+    path_to_tmp_file = secure_filename(str(uuid.uuid4()) + f.filename)
+    f.save(path_to_tmp_file)
+    raw_text = extract_raw_text(path_to_tmp_file)
+    try:
+        os.remove(path_to_tmp_file)
+    except OSError:
+        pass
+
+    return jsonify(raw_text)
+
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():
-    global dump
     logger.info('Received {} request for {}'.format(request.method, request.path))
 
     text = request.json['doc']
@@ -94,22 +111,12 @@ def restore_diacritics():
     mistake_intervals = []
     for i, c in enumerate(content):
         if c != text[i]:
-            st, dr = get_word_interval_mistake(content, i) # [st, dr]
+            st, dr = diacritics.get_word_interval_mistake(content, i) # [st, dr]
             info_wrong_word = (st, dr, text[st:dr + 1], content[st: dr + 1]) 
             if info_wrong_word not in mistake_intervals:
                 mistake_intervals.append(info_wrong_word)
     response = jsonify({'restored': content, 'mistakes': mistake_intervals})
     return response, 200
-
-def get_word_interval_mistake(s, index):
-    nn = len(s)
-    ii = index
-    while ii < nn and s[ii] != ' ': ii += 1
-    dr = ii - 1
-    ii = index
-    while ii >= 0 and s[ii] != ' ': ii -= 1 
-    st = ii + 1
-    return st, dr
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8082, debug=False)

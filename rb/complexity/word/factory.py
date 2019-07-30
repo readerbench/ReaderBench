@@ -16,6 +16,7 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     from rb.complexity.word.wd_avg_depth_hypernym_tree import WdAvgDpthHypTree
     from rb.complexity.word.no_wd_paths_hypernym_tree import NoWdPathsHypTree
     from rb.complexity.word.polysemy import Polysemy
+    from rb.complexity.word.wd_syllab import WdSyllab
     
     indices = []
     indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.AVG))
@@ -32,6 +33,8 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
                                     reduce_function=MeasureFunction.AVG))
     indices.append(Polysemy(lang, reduce_depth=TextElementType.WORD.value, 
                                     reduce_function=MeasureFunction.AVG))
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, 
+                                    reduce_function=MeasureFunction.AVG)) 
     #indices = [DepIndex(lang, dep, TextElementType.BLOCK, MeasureFunction.AVG) for dep in DepEnum]
     #indices += [DepIndex(lang, dep, TextElementType.BLOCK, MeasureFunction.STDEV) for dep in DepEnum]
     return indices
