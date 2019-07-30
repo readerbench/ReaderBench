@@ -41,10 +41,10 @@ class Word(TextElement):
                      'is_alpha': None, 'is_stop': None, 'tag': None, 'i': None})()
         return Word(lang, token, None)
     
-    def is_dict_word(self):
+    def is_dict_word(self) -> bool:
         return SpacyParser.get_instance().is_dict_word(self.lemma, self.lang)
 
-    def is_content_word(self):
+    def is_content_word(self) -> bool:
         return self.is_dict_word() and self.pos in {POS.ADJ, POS.ADV, POS.NOUN, POS.VERB}
         
     def get_sentences(self) -> List["Sentence"]:
