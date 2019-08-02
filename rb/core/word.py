@@ -5,6 +5,7 @@ from rb.core.pos import POS
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.parser.spacy_parser import SpacyParser
+from test_tags import get_pos_features
 from spacy.tokens import Token
 
 
@@ -22,7 +23,7 @@ class Word(TextElement):
         self.detailed_pos = token.tag_
         self.head: "Word"
         self.dep: str = token.dep_
-        self.ent_type_:str  = token.ent_type_
+        self.ent_type_: str  = token.ent_type_
         self.ent_type = token.ent_type
         self.ent_id_ = token.ent_id_
         self.ent_id = token.ent_id
@@ -33,6 +34,7 @@ class Word(TextElement):
         self.index_in_doc: int = token.i
         self.in_coref = False
         self.coref_clusters = []
+        self.pos_features = get_pos_features(self.pos, self.detailed_pos)
 
     @classmethod
     def from_str(cls, lang: Lang, text: str, pos: POS = POS.X) -> "Word":

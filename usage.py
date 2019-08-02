@@ -58,15 +58,15 @@ for comp in docs_en.components:
 """how to use named entity for ro, how to extract content words"""
 # print('parsed text, lemmas, content words, ent types, etc.')
 # docs_ro = Document(Lang.RO, txt2)
-# for comp1 in docs_ro.components:
-# 	# comp is para
-#     for comp2 in comp1.components:
-# 		# comp2 is sent
-#         for ent in comp2.entities:
-#             print(ent.text, 'x')
-#         # key is word
-#         for key in comp2.components:
-#             print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
-# if you want only tokns you can do:
+# # for comp1 in docs_ro.components:
+# # 	# comp is para
+# #     for comp2 in comp1.components:
+# # 		# comp2 is sent
+# #         for ent in comp2.entities:
+# #             print(ent.text, 'x')
+# #         # key is word
+# #         for key in comp2.components:
+# #             print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
+# # if you want only tokns you can do:
 # for token in docs_ro.get_tokens():
-#     print(token.lemma)
+#     print(token.lemma, token.pos_features)

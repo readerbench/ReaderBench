@@ -14,11 +14,19 @@ class RoAdpTypeEnum(Enum):
 class RoPOSFeatureAdpT(POSFeature):
 
 
+    _INSTANCE = None
+
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.ADPT,
                             values=None, pos_supported=None)
         self.values = set([ro_adp_type for _, ro_adp_type in RoAdpTypeEnum.__members__.items()])
         self.pos_supported = set([POS.ADP, POS.PUNCT, POS.SYM])
+
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureAdpT":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureAdpT()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoAdpTypeEnum]:
         pattern = '(Prep=[a-zA-Z,]*){1}'

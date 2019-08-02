@@ -8,8 +8,9 @@ from rb.core.pos_features.ro_pos_features.ro_pos_feature_mood import RoPOSFeatur
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_number import RoPOSFeatureNumber, RoNumberEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_number_psor import RoPOSFeatureNumberP, RoNumberPEnum
 from rb.core.pos_features.ro_pos_features.ro_features_name import RoFeaturesName
+from rb.core.pos_features.ro_pos_features.ro_compute_features import get_pos_features
 
-from rb.core.document import Document
+# from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.pos import POS
 from rb.parser.spacy_parser import computePOS
@@ -18,37 +19,38 @@ from conllu import parse, parse_incr
 
 log = open('log.log', 'w', encoding='utf-8')
 
-def test_pos_features():
-    txt2 = "Am fost la magazin să cumpăr suc CE. și biscuiți."
-    docs_ro = Document(Lang.RO, txt2)
+"""
+    Each token (word) has some features (e.g. gender, degree). 
+    There is an enum in ro_features_name with all the supported features.
 
-    case_ro = RoPOSFeatureCase()
-    def_ro = RoPOSFeatureDefinite()
-    degree_ro = RoPOSFeatureDegree()
-    abbr_ro = RoPOSFeatureAbbr()
-    adp_ro = RoPOSFeatureAdpT()
-    gender_ro = RoPOSFeatureGender()
-    mood_ro = RoPOSFeatureMood()
+    Each of these features has its own class in rb.core.pos_features.ro_pos_features and an enum with all possible values
+    In this class you can find the POS which supports (might have) that feature.
 
-    for token in docs_ro.get_tokens():
-        print(token.text, token.tag)
-        print(case_ro.get_values(token.tag))
-        print(def_ro.get_values(token.tag))
-        print(degree_ro.get_values(token.tag))
-        print(abbr_ro.get_values(token.tag))
-        print(adp_ro.get_values(token.tag))
-        print(gender_ro.get_values(token.tag))
-        print(mood_ro.get_values(token.tag))
+    TODO Each token (word) has a dict with key=enum_of_the_fature, value=value_of_the_feature
+"""
+# def test_pos_features():
+#     txt2 = "Am fost la magazin să cumpăr suc CE. și biscuiți."
+#     docs_ro = Document(Lang.RO, txt2)
 
-def get_pos_features(tag):
-    feature_extractors = {}
-    case_ro = RoPOSFeatureCase()
-    def_ro = RoPOSFeatureDefinite()
-    degree_ro = RoPOSFeatureDegree()
-    abbr_ro = RoPOSFeatureAbbr()
-    adp_ro = RoPOSFeatureAdpT()
-    gender_ro = RoPOSFeatureGender()
-    mood_ro = RoPOSFeatureMood()
+#     case_ro = RoPOSFeatureCase()
+#     def_ro = RoPOSFeatureDefinite()
+#     degree_ro = RoPOSFeatureDegree()
+#     abbr_ro = RoPOSFeatureAbbr()
+#     adp_ro = RoPOSFeatureAdpT()
+#     gender_ro = RoPOSFeatureGender()
+#     mood_ro = RoPOSFeatureMood()
+
+#     for token in docs_ro.get_tokens():
+#         print(token.text, token.tag, file=log)
+#         print(case_ro.get_values(token.tag), file=log)
+#         print(def_ro.get_values(token.tag), file=log)
+#         print(degree_ro.get_values(token.tag), file=log)
+#         print(abbr_ro.get_values(token.tag), file=log)
+#         print(adp_ro.get_values(token.tag), file=log)
+#         print(gender_ro.get_values(token.tag), file=log)
+#         print(mood_ro.get_values(token.tag), file=log)
+
+            
 
 def create_ud_dict():
     data_file = open("ud_ro_data/ud/ro_rrt-ud-dev.conllu", "r", encoding="utf-8")
@@ -75,12 +77,14 @@ def create_ud_dict():
             lemma = token['lemma']
             form = token['form']
             print(pos, lemma, form, tag, file=log)
-            for key, val in features_dict.items():   
-                print(key.name, val.get_values(tag), file=log)
-
+            # for key, val in features_dict.items():   
+            #     print(key.name, val.get_values(tag), file=log)
+            for key, v in get_pos_features(pos, tag).items():
+                print(key, v, file=log)
             # for el in tokenlist.serialize():
             #     print(el)
 
 if __name__ == "__main__":
     create_ud_dict()
-    
+    #test_pos_features()
+    pass
