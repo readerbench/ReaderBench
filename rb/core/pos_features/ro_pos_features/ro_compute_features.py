@@ -1,5 +1,4 @@
 from rb.core.pos_features.ro_pos_features.ro_features_name import RoFeaturesName
-
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_case import RoPOSFeatureCase, RoCaseEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_definite import RoPOSFeatureDefinite, RoDefiniteEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_degree import RoPOSFeatureDegree, RoDegreeEnum
@@ -22,8 +21,10 @@ from rb.core.pos_features.ro_pos_features.ro_pos_feature_strength import RoPOSFe
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_tense import RoPOSFeatureTense, RoTenseEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_variant import RoPOSFeatureVariant, RoVariantEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_verb_form import RoPOSFeatureVerbForm, RoVerbFormEnum
+from typing import Dict, List
+from enum import Enum
 
-def get_pos_features(pos, tag):
+def get_pos_features(pos, tag) -> Dict[Enum, List[Enum]]:
     features = {}
 
     feature_instances = [

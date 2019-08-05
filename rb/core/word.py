@@ -34,7 +34,7 @@ class Word(TextElement):
         self.index_in_doc: int = token.i
         self.in_coref = False
         self.coref_clusters = []
-        self.pos_features = get_pos_features(self.pos, self.detailed_pos)
+        self.pos_features = None # TODO
 
     @classmethod
     def from_str(cls, lang: Lang, text: str, pos: POS = POS.X) -> "Word":
