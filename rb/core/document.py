@@ -3,6 +3,7 @@ from rb.core.text_element import TextElement
 from rb.core.block import Block
 from rb.core.text_element_type import TextElementType
 from rb.core.word import Word
+from rb.utils.downloader import download_tags 
 from typing import List
 
 class Document(TextElement):
@@ -13,6 +14,7 @@ class Document(TextElement):
                  container: TextElement = None):
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
+        download_tags(lang)
         for block in text.split("\n"):
             self.components.append(Block(lang=lang, text=block.strip(),
                                          container=self))

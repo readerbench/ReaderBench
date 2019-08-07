@@ -7,7 +7,6 @@ from enum import Enum
 from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from conllu import parse, parse_incr
 from rb.parser.spacy_parser import computePOS
-from rb.core.pos_features.ro_pos_features.ro_compute_features import get_pos_features
 from rb.core.pos_features.ro_pos_features.ro_features_name import RoFeaturesName
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_case import RoPOSFeatureCase, RoCaseEnum
 from rb.core.pos_features.ro_pos_features.ro_pos_feature_definite import RoPOSFeatureDefinite, RoDefiniteEnum
@@ -41,9 +40,9 @@ class RoPOSFeatureExtractor(POSFeatureExtractor):
     
     _INSTANCE = None
     UD_RO_FILES = [
-        "ud_ro_data/ud/ro_rrt-ud-dev.conllu",
-        "ud_ro_data/ud/ro_rrt-ud-test.conllu",
-        "ud_ro_data/ud/ro_rrt-ud-train.conllu"]
+        "resources/ro/spacy/ud_tags/ro_rrt-ud-dev.conllu",
+        "resources/ro/spacy/ud_tags/ro_rrt-ud-test.conllu",
+        "resources/ro/spacy/ud_tags/ro_rrt-ud-train.conllu"]
 
     def __init__(self):
         self.lang = Lang.RO
@@ -120,8 +119,8 @@ class RoPOSFeatureExtractor(POSFeatureExtractor):
             (RoVerbFormEnum, RoPOSFeatureVerbForm.get_instance())]
 
         for feature_type, feature_instance in feature_instances:
-            if pos in feature_instance.pos_supported:
-                features[feature_type] = feature_instance.get_values(tag)
+            #if pos in feature_instance.pos_supported:
+            features[feature_type] = feature_instance.get_values(tag)
         return features
     
     def get_all_forms_from_lemma(self, lemma: str) -> Dict[str, Dict[Enum, List[Enum]]]:

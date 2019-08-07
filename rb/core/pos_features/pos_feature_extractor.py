@@ -18,7 +18,7 @@ class POSFeatureExtractor():
             from rb.core.pos_features.ro_pos_features.ro_pos_feature_extractor import RoPOSFeatureExtractor
             return RoPOSFeatureExtractor.get_instance()
         else:
-            return None
+            return POSFeatureExtractor()
 
     def create_ud_dict(self) -> Dict[str, Dict[str, List[Dict[Enum, List[Enum]]]]]:
         pass
