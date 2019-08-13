@@ -59,11 +59,11 @@ class TextElement:
 
     def __eq__(self, other):
         if isinstance(other, TextElement):
-            return self.text == other.text
+            return self.depth == self.depth and self.text == other.text
         return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self.text))
+        return hash((self.depth, self.text))
     
     def get_sentences(self) -> List["Sentence"]:
         from rb.core.sentence import Sentence
