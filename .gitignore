@@ -148,3 +148,5 @@ info.log
 *.tmp
 *.html
 .neuralcoref_cache/*
+ud_ro_data/*
+dump.txt

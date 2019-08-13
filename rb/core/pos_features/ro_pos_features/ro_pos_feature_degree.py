@@ -16,11 +16,19 @@ class RoDegreeEnum(Enum):
 class RoPOSFeatureDegree(POSFeature):
 
 
+    _INSTANCE = None
+    
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.DEG,
                             values=None, pos_supported=None)
         self.values = set([ro_degree for _, ro_degree in RoDegreeEnum.__members__.items()])
         self.pos_supported = set([POS.ADJ, POS.ADV])
+    
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureDegree":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureDegree()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoDegreeEnum]:
         pattern = '(Degree=[a-zA-Z,]*){1}'

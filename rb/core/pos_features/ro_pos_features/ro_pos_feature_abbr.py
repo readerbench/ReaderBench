@@ -14,11 +14,19 @@ class RoAbbrEnum(Enum):
 class RoPOSFeatureAbbr(POSFeature):
 
 
+    _INSTANCE = None
+
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.ABBR,
                             values=None, pos_supported=None)
         self.values = set([ro_abbr for _, ro_abbr in RoAbbrEnum.__members__.items()])
         self.pos_supported = set([POS.ADJ, POS.ADV, POS.NOUN, POS.PRON, POS.X])
+
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureAbbr":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureAbbr()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoAbbrEnum]:
         pattern = '(Abbr=[a-zA-Z,]*){1}'

@@ -17,6 +17,6 @@ class POSFeature():
         self.values = values
         self.pos_supported = pos_supported
 
-
     def get_values(self) -> List:
         pass
+    

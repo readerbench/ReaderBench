@@ -15,11 +15,19 @@ class RoDefiniteEnum(Enum):
 class RoPOSFeatureDefinite(POSFeature):
 
 
+    _INSTANCE = None
+
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.DEF,
                             values=None, pos_supported=None)
         self.values = set([ro_definite for _, ro_definite in RoDefiniteEnum.__members__.items()])
         self.pos_supported = set([POS.ADJ, POS.DET, POS.NOUN, POS.NUM, POS.PROPN])
+    
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureDefinite":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureDefinite()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoDefiniteEnum]:
         pattern = '(Definite=[a-zA-Z,]*){1}'

@@ -15,11 +15,19 @@ class RoGenderEnum(Enum):
 class RoPOSFeatureGender(POSFeature):
 
 
+    _INSTANCE = None
+
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.GEN,
                             values=None, pos_supported=None)
         self.values = set([ro_gender for _, ro_gender in RoGenderEnum.__members__.items()])
         self.pos_supported = set([POS.ADJ, POS.DET, POS.NOUN, POS.NUM, POS.PRON, POS.PROPN, POS.VERB, POS.AUX])
+
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureGender":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureGender()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoGenderEnum]:
         pattern = '(Gender=[a-zA-Z,]*){1}'

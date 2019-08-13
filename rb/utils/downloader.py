@@ -36,6 +36,10 @@ LINKS = {
             'ro_ud_ft_ner': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/5mMb98BXkctjXcP/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/gR6zetbDdfnMMEC/download"
+            },
+            'ud_tags': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/8WEiAWDSP83sBtx/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/afE4ZYAMoya9Ekp/download'
             }
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download"
@@ -92,6 +96,31 @@ def download_model(lang: Lang, name: Union[str, List[str]]) -> bool:
     link = root['link'] if isinstance(root, dict) else root
     folder = "resources/{}/{}".format(lang.value, "/".join(name[:-1]))
     download_folder(link, folder)
+    return True
+
+def download_tags(lang: Lang) -> bool:
+    path = "resources/{}/{}".format(lang.value, 'spacy')
+    full_path = path + '/ud_tags'
+    version_path = full_path + '/version.txt'
+    if os.path.isfile(version_path):
+        return True
+    
+
+    if lang not in LINKS:
+        logger.info('{} not supported for tags'.format(lang.value))
+        return False
+    if 'spacy' not in LINKS[lang]:
+        logger.info('Spacy does not exists for {}'.format(lang.value))
+        return False
+    if 'ud_tags' not in LINKS[lang]['spacy']:
+        logger.info('No tags for {}'.format(lang.value))
+        return False
+    link = LINKS[lang]['spacy']['ud_tags']['link']
+    # if you chnage this path you also have to change it in ro_pos_feature_extractor
+    logger.info('Downloading tags for {} ...'.format(lang.RO))
+    
+    download_folder(link, path)
+    logger.info('Downloaded tags for {} succesfully'.format(lang.value))
     return True
 
 def download_spacy_model(lang: Lang, name: str) -> bool:

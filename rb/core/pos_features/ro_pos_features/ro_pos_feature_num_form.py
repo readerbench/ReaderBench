@@ -16,11 +16,19 @@ class RoNumFormEnum(Enum):
 class RoPOSFeatureNumForm(POSFeature):
 
 
+    _INSTANCE = None
+    
     def __init__(self):
         POSFeature.__init__(self, lang=Lang.RO, name=RoFeaturesName.NRF,
                             values=None, pos_supported=None)
         self.values = set([ro_nr_form for _, ro_nr_form in RoNumFormEnum.__members__.items()])
         self.pos_supported = set([POS.NUM])
+
+    @classmethod
+    def get_instance(cls) -> "RoPOSFeatureNumForm":
+        if cls._INSTANCE is None:
+            cls._INSTANCE = RoPOSFeatureNumForm()
+        return cls._INSTANCE
 
     def get_values(self, tag: str) -> List[RoNumFormEnum]:
         pattern = '(NumForm=[a-zA-Z,]*){1}'
