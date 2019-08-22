@@ -19,7 +19,6 @@ from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
-from rb.utils.universal_text_extractor import extract_raw_text
 
 from rb.utils.rblogger import Logger
 
@@ -56,20 +55,6 @@ def ro_correct():
 
     text = text.replace('    ', '\t').replace('\t', '\n')
     return jsonify(correct_text_ro(text))
-
-""" file should have proper extension, otherwise it will not work"""
-@app.route('/extract_text', methods=['POST'])
-def extract_text():
-    f = request.files['file']
-    path_to_tmp_file = secure_filename(str(uuid.uuid4()) + f.filename)
-    f.save(path_to_tmp_file)
-    raw_text = extract_raw_text(path_to_tmp_file)
-    try:
-        os.remove(path_to_tmp_file)
-    except OSError:
-        pass
-
-    return jsonify(raw_text)
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():

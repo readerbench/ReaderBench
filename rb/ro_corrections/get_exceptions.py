@@ -11,6 +11,7 @@ def is_job_noun(spn, predicative_name_text, exceptions):
 def is_collective_subject(subject, spv, exceptions):
 	if subject.tag_[0] == "P":
 		return False
+	print(exceptions)
 	if subject.text.lower() in exceptions["Collective nouns"] and spv == ("3", "p"):
 		return True
 	return False
