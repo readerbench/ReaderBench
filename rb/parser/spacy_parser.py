@@ -100,27 +100,27 @@ def computePOS(token: Union[str, Token], lang: Lang) -> POS:
             pos = token.tag_.lower()
         else:
             pos = token.lower()
-            if pos.startswith("comma") or pos.startswith("period"):
-                return POS.PUNCT
-            if pos.startswith("n"):
-                return POS.NOUN
-            if pos.startswith("v"):
-                return POS.VERB
-            if pos.startswith("a"):
-                return POS.ADJ
-            if pos.startswith("r"):
-                return POS.ADV
-            if pos.startswith("s") or pos.startswith("cs"):
-                return POS.ADP
-            if pos.startswith("c"):
-                return POS.CCONJ
-            if pos.startswith("m"):
-                return POS.NUM
-            if pos.startswith("t"):
-                return POS.DET
-            if pos.startswith("d"):
-                return POS.PRON
-            return POS.X
+        if pos.startswith("comma") or pos.startswith("period"):
+            return POS.PUNCT
+        if pos.startswith("n"):
+            return POS.NOUN
+        if pos.startswith("v"):
+            return POS.VERB
+        if pos.startswith("a"):
+            return POS.ADJ
+        if pos.startswith("r"):
+            return POS.ADV
+        if pos.startswith("s") or pos.startswith("cs"):
+            return POS.ADP
+        if pos.startswith("c"):
+            return POS.CCONJ
+        if pos.startswith("m"):
+            return POS.NUM
+        if pos.startswith("t"):
+            return POS.DET
+        if pos.startswith("d"):
+            return POS.PRON
+        return POS.X
     return POS(token.pos_)
 
 
