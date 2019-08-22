@@ -5,20 +5,24 @@ import re
 import json
 import nltk
 import spacy
-import os
 #integrate ReaderBench
 import sys
-import os
 from rb.parser.spacy_parser import SpacyParser
 from rb.parser.spacy_parser import convertToPenn
 from rb.core.lang import Lang
 from nltk.stem.snowball import SnowballStemmer
 from rb.ro_corrections.get_pos_properties import *
+from rb.ro_corrections.get_exceptions import *
+from rb.ro_corrections.utils import *
+import os
+
+from nltk.stem.snowball import SnowballStemmer
 
 stemmer = SnowballStemmer("romanian")
-#rom_spacy = spacy.load('models/model3')
 rom_spacy = SpacyParser.get_instance().get_model(Lang.RO)
+
 window_size = 8
+
 
 with open(os.path.join(os.path.dirname(__file__), './lexicons.json'), 'rt') as fin:
     lexicons = json.load(fin)
@@ -238,6 +242,7 @@ def check_repetitions(sentence):
     repetitions_dictionary = build_repetitions_dictionary(repetitions)
     return convert_repetitions_dictionary(sentence, repetitions_dictionary)
 
+
 def are_synonyms(word1, word2):
     intersection  = set(lexicons[word1]) & set(lexicons[word2])
     return len(intersection) > 1
@@ -330,6 +335,7 @@ def check_adversative_conjunctions(sentence):
         mistakes += p.findall(sentence)
     return build_response(mistakes, sentence, "Conjunctie adversativa")
 
+
 def check_voi_verb(sentence):
     verb_list = ['vroiam', 'vroiai', 'vroia[^\w]', 'vroiau', 'vroiaţi']
     mistakes = []
@@ -364,161 +370,260 @@ def check_adverbs_in_middle(sentence):
         mistakes += p.findall(sentence)
     return build_response(mistakes, sentence, "Adverbe intercalate")
 
-def check_verbal_predicate(P, spn, corrections, last, text, paragraph_index):
-	if P.tag_[:3] == "Vmi":
-		spv = get_verb(P.tag_)
-		if spn[:2] == spv:
-			return last
-		if spn[0] == spv[0] and spv[1] == "":
-			return last
-		if spn[1] == spv[1] and spv[0] == "-":
-			return last
-		
-		#it is not correct
-		word_index = get_index(text, last, P.text)
-		person, number, gender = get_person_number_gender(spn)
-		message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-		corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-		last = word_index
-		return last
-	#participiu  or infinitive
-	elif P.tag_[:3] == "Vmp" or P.tag_[:4] == "Vmnp":
-		for child in P.children:
-			if child.dep_ == "aux":
-				if child.tag_ == "Vanp":
-					return last
+def check_verbal_predicate(S, P, spn, corrections, last, text, paragraph_index):
+    if P.tag_[:3] == "Vmi":
+        spv = get_verb(P.tag_)
+        if is_collective_subject(S, spv, exceptions):
+            return last
 
-				aux = get_verb(child.tag_)
-				if aux == spn[:2]:
-					return last
-				if aux[0] == spn[0] and aux[1] == "":
-					return last
-				
-				#it is not correct
-				word_index = get_index(text, last, child.text)
-				person, number, gender = get_person_number_gender(spn)
-				message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-				corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-				last = word_index
-				return last
+        if spn[:2] == spv:
+            return last
+        if spn[0] == spv[0] and spv[1] == "":
+            return last
+        if spn[1] == spv[1] and spv[0] == "-":
+            return last
+        
+        #it is not correct
+        word_index = get_index(text, last, P.text)
+        person, number, gender = get_person_number_gender(spn)
+        message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
+        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+        last = word_index
+        return last
+    #participiu  or infinitive
+    elif P.tag_[:3] == "Vmp" or P.tag_[:4] == "Vmnp":
+        for child in P.children:
+            if child.dep_ == "aux":
+                if child.tag_ == "Vanp":
+                    return last
 
-def check_copulative_verb(P, spn, corrections, last, text, paragraph_index):
-	#check copulativ verb with subject
-	has_cop = False
-	for child in P.children:
-		if child.dep_ == "cop":
-			if child.tag_[:3] == "Vmi":
-				spv = get_verb(child.tag_)
-				
-				if spn[:2] == spv:
-					return last
-				if spn[0] == spv[0] and spv[1] == "":
-					return last
-				if spn[1] == spv[1] and spv[0] == "-":
-					return last
+                aux = get_verb(child.tag_)
+                if is_collective_subject(S, aux, exceptions):
+                    return last
 
-				#it is not correct
-				word_index = get_index(text, last, child.text)
-				person, number, gender = get_person_number_gender(spn)
-				message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-				corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-				last = word_index
-				return last
-			else:
-				has_cop = True
-	if has_cop == True:
-		for child1 in P.children:
-			if child1.dep_ == "aux":
-				if child1.tag_ == "Vanp":
-					return last
+                if aux == spn[:2]:
+                    return last
+                if aux[0] == spn[0] and aux[1] == "":
+                    return last
+                
+                #it is not correct
+                word_index = get_index(text, last, child.text)
+                person, number, gender = get_person_number_gender(spn)
+                message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
+                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+                last = word_index
+                return last
 
-				aux = get_verb(child1.tag_)
-				if aux == spn[:2]:
-					return last
-				if aux[0] == spn[0] and aux[1] == "":
-					return last
+def check_copulative_verb(S, P, spn, corrections, last, text, paragraph_index):
+    #check copulativ verb with subject
+    has_cop = False
+    for child in P.children:
+        if child.dep_ == "cop":
+            if child.tag_[:3] == "Vmi" or child.tag_[:3] == "Vai":
+                spv = get_verb(child.tag_)
 
-				#it is not correct
-				word_index = get_index(text, last, child1.text)
-				person, number, gender = get_person_number_gender(spn)
-				message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-				corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-				last = word_index
-				return last
+                if is_collective_subject(S, spv, exceptions):
+                    return last
+                
+                if spn[:2] == spv:
+                    return last
+                if spn[0] == spv[0] and spv[1] == "":
+                    return last
+                if spn[1] == spv[1] and spv[0] == "-":
+                    return last
+
+                #it is not correct
+                word_index = get_index(text, last, child.text)
+                person, number, gender = get_person_number_gender(spn)
+                message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
+                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+                last = word_index
+                return last
+            else:
+                has_cop = True
+    if has_cop == True:
+        for child1 in P.children:
+            if child1.dep_ == "aux":
+                if child1.tag_ == "Vanp":
+                    return last
+                aux = get_verb(child1.tag_)
+                if is_collective_subject(S, aux, exceptions):
+                    return last
+
+                if aux == spn[:2]:
+                    return last
+                if aux[0] == spn[0] and aux[1] == "":
+                    return last
+
+                #it is not correct
+                word_index = get_index(text, last, child1.text)
+                person, number, gender = get_person_number_gender(spn)
+                message = "Verbul copulativ trebuie sa fie la persoana " + person + ", numarul " + number
+                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+                last = word_index
+                return last
+    return last
 
 def check_predicative_name(NP, spn, corrections, last, text, paragraph_index):
-	#adjectiv
-	if NP.tag_[:2] == "Af":
-		np = get_adjective(NP.tag_)
-	#noun
-	elif NP.tag_[:2] == "Nc":
-		np = get_noun(NP.tag_)
+    if is_job_noun(spn, NP, exceptions):
+        return last
 
-	#ordinal numeral or cardinal numeral
-	elif NP.tag_[:2] == "Mo" or NP.tag_[:2] == "Mc":
-		np = get_numeral(NP.tag_)
+    if NP.tag_[:3] == "Rgp":
+        return last
 
-	if np[1] == spn[1] and np[2] == spn[2]:
-		return last
-	#Subject is a personal pronoun without person
-	if np[1] == spn[1] and spn[2] == "-":
-		return last
+    np = ""
+    #adjectiv
+    if NP.tag_[:2] == "Af":
+        np = get_adjective(NP.tag_)
+    #noun
+    elif NP.tag_[:2] == "Nc":
+       np = get_noun(NP.tag_)
 
-	#it is not correct
-	person, number, gender = get_person_number_gender(spn)
-	word_index = get_index(text, last, NP.text)
-	message = "Numele predicativ trebuie sa fie la numarul " + number + ", genul " + gender
-	corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-	last = word_index
-	return last
+    #ordinal numeral or cardinal numeral
+    elif NP.tag_[:2] == "Mo" or NP.tag_[:2] == "Mc":
+       np = get_numeral(NP.tag_)
+
+
+    if np[1] == spn[1] and np[2] == spn[2]:
+       return last
+    #Subject is a personal pronoun without gender
+    if np[1] == spn[1] and spn[2] == "-":
+       return last
+
+    #it is not correct
+    person, number, gender = get_person_number_gender(spn)
+    word_index = get_index(text, last, NP.text)
+    message = "Numele predicativ trebuie sa fie la numarul " + number + ", genul " + gender
+    corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+    last = word_index
+    return last
+
 
 def check_subject_and_predicate_relation(text):
-	last = 0
-	corrections = []
-	for paragraph_index, sentence in enumerate(text.split("\n")):
-		doc = rom_spacy(sentence)
-		for token in doc:
-			if token.dep_ == "nsubj":
-				S = token
-				P = token.head
+    last = 0
+    corrections = []
+    predicates = []
+    for paragraph_index, sentence in enumerate(text.split("\n")):
+        doc = rom_spacy(sentence)
+        for token in doc:
+            if token.dep_ == "nsubj":
+                S = token
+                P = token.head
+                if P not in predicates:
+                    predicates.append(P)
+                else:
+                    continue
 
-				if S.tag_[0] == "P":
-					spn = get_pronoun(S.tag_)
-				else:
-					spn = get_noun(S.tag_)
+                if is_multiple_subject_linked_to_subject(S):
+                    spn = get_multiple_subject(S, "conj", exceptions)
+                elif is_multiple_subject_linked_to_predicate(P):
+                    spn = get_multiple_subject(P, "nsubj", exceptions)
+                else:
+                    if S.tag_[0] == "P":
+                        spn = get_pronoun(S.tag_)
+                    else:
+                        spn = get_noun(S.tag_)
 
-				if P.tag_[0] == "V":
-					last = check_verbal_predicate(P, spn, corrections, last, text, paragraph_index)
-				else:
-					last = check_copulative_verb(P, spn, corrections, last, text, paragraph_index)
-					last = check_predicative_name(P, spn, corrections, last, text, paragraph_index)
+                multiple_predicates = get_multiple_predicates(P)
 
-	return corrections
+                #all parts from multiple_predicates shoud be in the same relation with the subject
+                for single_predicate in multiple_predicates:
+                    if single_predicate.tag_[0] == "V":
+                        last = check_verbal_predicate(S, single_predicate, spn, corrections, last, text, paragraph_index)
+                    else:
+                        last = check_copulative_verb(S, single_predicate, spn, corrections, last, text, paragraph_index)
+                        last = check_predicative_name(single_predicate, spn, corrections, last, text, paragraph_index)
+    return corrections
 
 def check_noun_and_adjective_relation(text):
-	last = 0
-	corrections = []
-	for paragraph_index, sentence in enumerate(text.split("\n")):
-		doc = rom_spacy(sentence)
-		for token in doc:
-			if token.dep_ == "amod":
-				if token.tag_[:2] == "Af":
-					A = token
-					N = token.head
+    last = 0
+    corrections = []
+    for paragraph_index, sentence in enumerate(text.split("\n")):
+        doc = rom_spacy(sentence)
+        for token in doc:
+            if token.tag_[:2] == "Af":
+                (is_linked, noun) = is_in_adjective_noun_relation(token)
+                if is_linked:
+                    A = token
+                    N = noun
+                    spa = get_adjective(A.tag_)
+                    spn = get_noun(N.tag_)
+                    if spa[1] == spn[1] and spa[2] == spn[2]:
+                        continue
+                    else:
+                        #it is not correct
+                        person, number, gender = get_person_number_gender(spn)
+                        word_index = get_index(text, last, A.text)
+                        message = "Adjectivul trebuie sa fie la numarul " + number + ", genul " + gender
+                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - adjectiv", "word_index": word_index})
+                        last = word_index
+    return corrections
 
-					spa = get_adjective(A.tag_)
-					spn = get_noun(N.tag_)
+def check_noun_and_numeral_relation(text):
+    last = 0
+    corrections = []
+    for paragraph_index, sentence in enumerate(text.split("\n")):
+        doc = rom_spacy(sentence)
+        for token in doc:
+            if token.dep_ == "nummod":
+                if token.tag_[:2] == "Mc" or token.tag_[:2] == "Mo":
+                    Nr = token
+                    N = token.head
+                    spnr = get_numeral(Nr.tag_)
+                    spn = get_noun(N.tag_)
+                    if spnr[1] == spn[1] and spnr[2] == spn[2]:
+                        continue
+                    if spnr[2] == "-" and spnr[1] == spn[1]:
+                        continue
+                    else:
+                        #it is not correct
+                        person, number, gender = get_person_number_gender(spn)
+                        word_index = get_index(text, last, Nr.text)
+                        message = "Numeralul trebuie sa fie la numarul " + number + ", genul " + gender
+                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - numeral", "word_index": word_index})
+                        last = word_index
+    return corrections
 
-					if spa[1] == spn[1] and spa[2] == spn[2]:
-						continue
-					else:
-						#it is not correct
-						person, number, gender = get_person_number_gender(spn)
-						word_index = get_index(text, last, A.text)
-						message = "Adjectivul trebuie sa fie la numarul " + number + ", genul " + gender
-						corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - adjectiv", "word_index": word_index})
-						last = word_index
-	return corrections
+def check_noun_and_unstated_article_relation(text):
+    last = 0
+    corrections = []
+    for paragraph_index, sentence in enumerate(text.split("\n")):
+        doc = rom_spacy(sentence)
+        for token in doc:
+            if token.dep_ == "det":
+                if token.tag_[:2] == "Ti":
+                    UA = token
+                    N = token.head
+                    spar = get_unstated_article(UA.tag_)
+                    spn = get_noun(N.tag_)
+                    if spar[1] == spn[1] and spar[2] == spn[2]:
+                        continue
+                    if spar[2] == "-" and spar[1] == spn[1]:
+                        continue
+                    else:
+                        #it is not correct
+                        person, number, gender = get_person_number_gender(spn)
+                        word_index = get_index(text, last, UA.text)
+                        message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
+                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
+                        last = word_index
+                elif token.tag_[:3] == "Di3":
+                    UA = token.head
+                    N = token.head
+                    spn = get_noun(N.tag_)
+                    if spn[2] == "p":
+                        continue
+                    else:
+                        #it is not correct
+                        person, number, gender = get_person_number_gender(spn)
+                        word_index = get_index(text, last, UA.text)
+                        message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
+                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
+                        last = word_index
+
+    return corrections
+
+
 
 def get_index(text, last, token):
     import string
@@ -616,8 +721,10 @@ def create_output_list(result, case, default_suggestion = None):
             output_list.append(create_output(case, message, paragraph_index, word_index))
         return output_list
 
+
 def sort_by_start_index(result):
     return sorted(result, key = lambda x: x['start'])
+
 
 def corrects_coordonative_error(result, sentence):
     result = sort_by_start_index(result)
@@ -634,6 +741,7 @@ def corrects_coordonative_error(result, sentence):
     p = re.compile('\s\s+')
     return p.sub(' ', sentence)
 
+
 def corrects_adversative_error(result, sentence):
     result = sort_by_start_index(result)
     
@@ -645,6 +753,7 @@ def corrects_adversative_error(result, sentence):
     p = re.compile('\s\s+')
     return p.sub(' ', sentence)
 
+
 def corrects_voi_verb(result, sentence):
     result = sort_by_start_index(result)
     
@@ -654,6 +763,7 @@ def corrects_voi_verb(result, sentence):
         del sentence[item["start"] + 1 - index]
         index += 1
     return "".join(sentence)
+
 
 def corrects_comparative(result, sentence):
     result = sort_by_start_index(result)
@@ -675,6 +785,8 @@ def corrects_adverbs_at_the_beginning(result, sentence):
     p = re.compile('\s\s+')
     return p.sub(' ', sentence)
 
+
+
 def corrects_adverbs_in_middle(result, sentence):
     result = sort_by_start_index(result)
     
@@ -691,6 +803,8 @@ def corrects_adverbs_in_middle(result, sentence):
     sentence = "".join(sentence)
     return p.sub(' ', sentence)
             
+
+
 def split_text(sentence):
     split_text = []
     for sentence in sentence.split('\n'):
@@ -698,11 +812,44 @@ def split_text(sentence):
         split_text.append([words])
     return split_text
 
+def get_paragraph_offset(pid, text):
+    offset = 0
+    for par in text[:pid]:
+        for word in par[0]:
+            offset += len(word)
+        offset += len(par[0]) - 1
+    return offset
+
+def get_word_offset(wid, paragraph, end = False):
+    offset = 0
+    for word in paragraph[0][:wid]:
+        offset += len(word) + 1
+    if end:
+        offset += len(paragraph[0][wid]) - 1
+    return offset
+
+
+    # output["title"] = category
+    # output["message"] = message
+    # output["paragraph_index"] = paragraph_index
+    # output["word_index"] = word_index
+def change_format(output):
+    mistakes = []
+    for error in output["correction"]:
+        if isinstance(error["word_index"], int):
+            error["word_index"] = [error["word_index"]]
+        par_offset = get_paragraph_offset(error["paragraph_index"], output["split_text"])
+        word_offset_start = get_word_offset(error["word_index"][0], output["split_text"][error["paragraph_index"]])
+        word_offset_end = get_word_offset(error["word_index"][-1], output["split_text"][error["paragraph_index"]], True)
+        error["correction_index"] = [par_offset + word_offset_start, par_offset + word_offset_end]
+    return output
+        
+
 def identify_mistake(sentence):
 
-
-    # for token in rom_spacy(sentence):
-    # 	print(token, token.tag_, token.dep_, token.head, token.pos_)
+    doc = rom_spacy(sentence)
+    for token in doc:
+        print(token, token.tag_, token.head, token.dep_)
 
     output = {}
     output["split_text"] = split_text(sentence)
@@ -780,13 +927,22 @@ def identify_mistake(sentence):
     #Step13 - Noun and adjective relation
     output_list.extend(check_noun_and_adjective_relation(sentence))
 
+    #Step14 - Noun and numeral relation
+    output_list.extend(check_noun_and_numeral_relation(sentence))
+
+    #Step15 - Noun and unstated article relation
+    output_list.extend(check_noun_and_unstated_article_relation(sentence))
+
     output["correction"] = output_list
+
+    output = change_format(output)
 
 
     return output
 
+
 def correct_text_ro(text):
 
-	p = re.compile('\s\s+')
-	text = p.sub(' ', text)
-	return identify_mistake(text)
+    p = re.compile('\s\s+')
+    text = p.sub(' ', text)
+    return identify_mistake(text)

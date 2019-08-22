@@ -63,6 +63,6 @@ if __name__ == "__main__":
         """ if you want only tokens (&their properties) you can do """
         docs_ro = Document(Lang.RO, txt_ro)
         for token in docs_ro.get_tokens():
-            print(token.lemma, token.text, token.tag, token.pos_features, file=log)
+            print(token.lemma, token.pos, token.text, token.tag, token.pos_features, file=log)
         
         # POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
