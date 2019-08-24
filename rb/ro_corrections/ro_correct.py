@@ -35,8 +35,8 @@ def remove_punctuation(doc):
     result = []
     
     for el in doc:
-        if el.text not in punctuation_list:
-            result.append(el)
+        # if el.text not in punctuation_list:
+        result.append(el)
     return result
 
 def convert_char_ind_to_word_ind(text, index):
@@ -55,7 +55,7 @@ def convert_char_ind_to_word_ind(text, index):
 
     index = index - prev_endl_index - 1
     paragraph = text[(prev_endl_index + 1):].split('\n')[0]
-    return {'paragraph': paragraph_no, 'index': len(paragraph[:index].split())}
+    return {'paragraph': paragraph_no, 'index': len(rom_spacy(paragraph[:index]))}
 
 def is_exception(mistake, case):
     mistake = " ".join(mistake)
@@ -176,10 +176,12 @@ def convert_repetitions_dictionary(sentence, repetitions_dictionary):
         
         for i in range(len(repetitions_dictionary[root])):
             word_index = repetitions_dictionary[root][i][1] - 1
-            text_before = ' '.join(sentence.split(' ')[:word_index])
+            text_before = ' '.join([w.text for w in rom_spacy(sentence)[:word_index]])
 
             paragraph_index = text_before.count('\n')
-            previous_words = len('\n'.join(text_before.split('\n')[:-1]).split())
+            previous_words = len(
+                [w.text
+                for w in rom_spacy('\n'.join(text_before.split('\n')[:-1]))])
             items.append({
                 'mistake': repetitions_dictionary[root],
                 'paragraph': paragraph_index,
@@ -411,8 +413,10 @@ def check_verbal_predicate(S, P, spn, corrections, last, text, paragraph_index):
                 person, number, gender = get_person_number_gender(spn)
                 message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
                 corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-                last = word_index
+                last = word_index + 1
                 return last
+    
+    return last
 
 def check_copulative_verb(S, P, spn, corrections, last, text, paragraph_index):
     #check copulativ verb with subject
@@ -603,7 +607,7 @@ def check_noun_and_unstated_article_relation(text):
                     else:
                         #it is not correct
                         person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, UA.text)
+                        word_index = get_index(text, last, token.text)
                         message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
                         corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
                         last = word_index
@@ -616,7 +620,7 @@ def check_noun_and_unstated_article_relation(text):
                     else:
                         #it is not correct
                         person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, UA.text)
+                        word_index = get_index(text, last, token.text)
                         message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
                         corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
                         last = word_index
@@ -624,12 +628,12 @@ def check_noun_and_unstated_article_relation(text):
     return corrections
 
 
-
 def get_index(text, last, token):
     import string
 
-    strip = lambda s: "".join([c for c in s if c not in string.punctuation])
-    text = [strip(word) for word in text.split(" ")]
+    strip = lambda s: "".join([c for c in s if c not in string.punctuation or c == '-'])
+    text = [strip(word.text) for word in rom_spacy(text)]
+    # text = [strip(word) for word in split_text(text)]
     return last + text[last:].index(token)
 
 def create_output(category, message, paragraph_index, word_index):
@@ -641,10 +645,10 @@ def create_output(category, message, paragraph_index, word_index):
     return output
 
 def get_mistakes(mistakes):
-    message = ""
+    message = []
     for item in mistakes:
-        message += str(item)
-    return message
+        message.append("(" + str(item[0]) + ")")
+    return ", ".join(message)
 
 def create_output_list(result, case, default_suggestion = None):
     output_list = []
@@ -808,7 +812,7 @@ def corrects_adverbs_in_middle(result, sentence):
 def split_text(sentence):
     split_text = []
     for sentence in sentence.split('\n'):
-        words = sentence.split()
+        words = [token.text for token in rom_spacy(sentence)]
         split_text.append([words])
     return split_text
 
@@ -824,20 +828,93 @@ def get_word_offset(wid, paragraph, end = False):
     offset = 0
     for word in paragraph[0][:wid]:
         offset += len(word) + 1
+        if word == '-':
+            offset -= 2
     if end:
         offset += len(paragraph[0][wid]) - 1
     return offset
 
 
-    # output["title"] = category
-    # output["message"] = message
-    # output["paragraph_index"] = paragraph_index
-    # output["word_index"] = word_index
+def fix_dashes(output):
+    word_breaks = []
+    new_text = []
+    for paragraph in output['split_text']:
+        par_breaks = []
+        new_paragraph = [[]]
+        word_breaks.append(par_breaks)
+        new_text.append(new_paragraph)
+
+        i = 0
+        while i < len(paragraph[0]):
+            if paragraph[0][i] == '-':
+                par_breaks.append(i)
+                new_paragraph[0][-1] += paragraph[0][i] + paragraph[0][i + 1]
+                i += 2
+            else:
+                new_paragraph[0].append(paragraph[0][i])
+                i += 1
+    
+    output['split_text'] = new_text
+    for error in output['correction']:
+        paragraph = error['paragraph_index']
+        breaks = word_breaks[paragraph]
+        if len(breaks) == 0:
+            continue
+        
+        count = 0
+        for i in range(len(error['word_index'])):
+            offset = 0
+            for e in breaks:
+                if error['word_index'][i] > e:
+                    offset -= 2
+            error['word_index'][i] += offset
+
+
+def fix_punctuation(output):
+    import string
+    word_breaks = []
+    new_text = []
+    for paragraph in output['split_text']:
+        par_breaks = []
+        new_paragraph = [[]]
+        word_breaks.append(par_breaks)
+        new_text.append(new_paragraph)
+
+        i = 0
+        while i < len(paragraph[0]):
+            if paragraph[0][i] != '-' and paragraph[0][i] in ".,;:!?":
+                par_breaks.append(i)
+                new_paragraph[0][-1] += paragraph[0][i]
+                i += 1
+            else:
+                new_paragraph[0].append(paragraph[0][i])
+                i += 1
+    
+    output['split_text'] = new_text
+    for error in output['correction']:
+        paragraph = error['paragraph_index']
+        breaks = word_breaks[paragraph]
+        if len(breaks) == 0:
+            continue
+        
+        count = 0
+        for i in range(len(error['word_index'])):
+            offset = 0
+            for e in breaks:
+                if error['word_index'][i] > e:
+                    offset -= 1
+            error['word_index'][i] += offset
+
+
 def change_format(output):
-    mistakes = []
     for error in output["correction"]:
         if isinstance(error["word_index"], int):
             error["word_index"] = [error["word_index"]]
+    
+    fix_dashes(output)
+    fix_punctuation(output)
+    mistakes = []
+    for error in output["correction"]:
         par_offset = get_paragraph_offset(error["paragraph_index"], output["split_text"])
         word_offset_start = get_word_offset(error["word_index"][0], output["split_text"][error["paragraph_index"]])
         word_offset_end = get_word_offset(error["word_index"][-1], output["split_text"][error["paragraph_index"]], True)
@@ -848,9 +925,10 @@ def change_format(output):
 def identify_mistake(sentence):
 
     doc = rom_spacy(sentence)
+    
     for token in doc:
         print(token, token.tag_, token.head, token.dep_)
-
+    
     output = {}
     output["split_text"] = split_text(sentence)
     output_list = []
@@ -934,15 +1012,21 @@ def identify_mistake(sentence):
     output_list.extend(check_noun_and_unstated_article_relation(sentence))
 
     output["correction"] = output_list
-
     output = change_format(output)
-
 
     return output
 
 
 def correct_text_ro(text):
-
     p = re.compile('\s\s+')
     text = p.sub(' ', text)
-    return identify_mistake(text)
+    paragraphs = text.split('\n')
+    output = {'split_text': [], 'correction': []}
+    for i, paragraph in enumerate(paragraphs):
+        mistakes = identify_mistake(paragraph)
+        output['split_text'].append(mistakes['split_text'][0])
+        for error in mistakes['correction']:
+            error['paragraph_index'] = i
+            output['correction'].append(error)
+    
+    return output
