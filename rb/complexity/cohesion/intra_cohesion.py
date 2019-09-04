@@ -12,14 +12,14 @@ from rb.utils.rblogger import Logger
 logger = Logger.get_logger()
 
 
-class AdjCohesion(ComplexityIndex):
+class IntraCohesion(ComplexityIndex):
 
-    """AdjCohesion between text elements of element_type """
+    """IntraCohesion between elements element_type"""
     def __init__(self, lang: Lang, element_type: TextElementType,
             reduce_depth: int, reduce_function: MeasureFunction):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
-                                 abbr="AdjCoh")
+                                 abbr="IntraCoh")
         self.element_type = element_type        
         if element_type.value > reduce_depth:
             logger.error('For index {} element_type has to be lower or equal than reduce_depth'.format(self))
@@ -32,9 +32,10 @@ class AdjCohesion(ComplexityIndex):
         if element.depth == self.element_type.value:
             sim_values = []
             for i, _ in enumerate(element.components):
-                    if i + 1 < len(element.components):
+                for j, _ in enumerate(element.components):
+                    if i != j:
                         sim_values.append(element.get_parent_document().cna_graph.model.similarity(
-                                element.components[i], element.components[i + 1]))
+                                element.components[i], element.components[j]))
             return sim_values
         elif element.depth <= self.reduce_depth:
             res = []
@@ -61,4 +62,4 @@ class AdjCohesion(ComplexityIndex):
         return values
     
     def __repr__(self):
-        return self.abbr + "_" + self.element_type.name
+        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.element_type.name

@@ -3,7 +3,7 @@ from multiprocessing import Pool, cpu_count
 from typing import Callable, Iterable, List, Tuple
 
 from rb.complexity.index_category import IndexCategory
-from rb.complexity.measure_function import MeasureFunction
+from rb.complexity.measure_function import MeasureFunction, average, standard_deviation
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
@@ -15,6 +15,9 @@ from joblib import Parallel, delayed
 
 logger = Logger.get_logger()
 
+
+
+"""TODO check for indices which compute on empty set of values """
 class ComplexityIndex():
     """General class for any complexity index
     
@@ -41,20 +44,33 @@ class ComplexityIndex():
         detailed string representation of the index, should overwritten by each index
     """
 
+    IDENTITY = 0
+
     def __init__(self, lang: Lang, category: IndexCategory, abbr: str, reduce_depth: int, reduce_function: MeasureFunction):
         self.lang = lang
         self.category = category
         self.abbr = abbr
         self.reduce_function = reduce_function
         self.reduce_depth = reduce_depth
+        if self.reduce_function is None:
+            self.reduce_function_abbr =  '' 
+        elif self.reduce_function is average:
+            self.reduce_function_abbr = 'Avg'
+        elif self.reduce_function is standard_deviation:
+            self.reduce_function_abbr =  'StDev'
+        self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_type_from_depth(self.reduce_depth).name
 
+    def element_type_from_depth(self, depth) -> TextElementType:
+        for el_type in TextElementType:
+            if el_type.value == depth:
+                return el_type
     # overwritten by each index
     def process(self, element: TextElement) -> float:
         pass
 
     # overwritten by each index 
     def __repr__(self):
-        return self.abbr
+        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr
 
 def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)

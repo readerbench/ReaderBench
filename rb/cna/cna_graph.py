@@ -11,6 +11,7 @@ class CnaGraph:
         self.add_element(doc)
         self.model = model
         self.add_semantic_links()
+        doc.cna_graph = self
         
     def add_element(self, element: TextElement):
         self.graph.add_node(element)
@@ -21,8 +22,8 @@ class CnaGraph:
             self.graph.add_edges_from(zip(element.components[:-1], element.components[1:]), type=EdgeType.ADJACENT)
     
     def add_semantic_links(self):
-        for i, a in enumerate(self.graph.vertices[:-1]):
-            for b in self.graph.vertices[i+1:]
+        for i, a in enumerate(list(self.graph.nodes)[:-1]):
+            for b in list(self.graph.nodes)[i+1:]:
                 sim = self.model.similarity(a, b)
                 if sim > 0.3:
                     self.graph.add_edge(a, b, type=EdgeType.SEMANTIC)

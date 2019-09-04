@@ -926,8 +926,8 @@ def identify_mistake(sentence):
 
     doc = rom_spacy(sentence)
     
-    for token in doc:
-        print(token, token.tag_, token.head, token.dep_)
+    # for token in doc:
+    #     print(token, token.tag_, token.head, token.dep_)
     
     output = {}
     output["split_text"] = split_text(sentence)

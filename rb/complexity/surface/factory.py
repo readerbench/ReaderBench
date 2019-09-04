@@ -20,6 +20,7 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     from rb.complexity.syntax.dep_enum import DepEnum
 
     indices = []
+
     indices.append(NoWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.AVG))

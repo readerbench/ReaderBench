@@ -1,6 +1,7 @@
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.block import Block
+from rb.core.sentence import Sentence
 from rb.core.text_element_type import TextElementType
 from rb.core.word import Word
 from rb.utils.downloader import download_tags 
@@ -15,17 +16,20 @@ class Document(TextElement):
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
         download_tags(lang)
+        self.cna_graph = None
+        text = text.replace("\n\n", "\n")
         for block in text.split("\n"):
             self.components.append(Block(lang=lang, text=block.strip(),
                                          container=self))
 
-    def get_tokens(self) -> List[Word]:
-        tokens = []
-        for paragraph in self.components:
-            for sentence in paragraph.components:
-                for token in sentence.components:
-                    tokens.append(token)
-        return tokens
+    def get_words(self) -> List[Word]:
+        return [word for block in self.components for sent in block.components for word in sent.components]
+
+    def get_sentences(self) -> List[Sentence]:
+        return [sent for block in self.components for sent in block.components]
+
+    def get_blocks(self) -> List[Block]:
+        return self.components
 
     def __str__(self):
         return self.text
