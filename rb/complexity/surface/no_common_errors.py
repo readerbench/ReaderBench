@@ -19,7 +19,7 @@ class NoCommonErrors(ComplexityIndex):
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="CmnErrors", reduce_depth=reduce_depth, 
+                                 abbr="NoCommonErrors", reduce_depth=reduce_depth, 
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

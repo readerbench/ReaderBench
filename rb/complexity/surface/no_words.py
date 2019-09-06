@@ -10,14 +10,14 @@ from rb.utils.rblogger import Logger
 logger = Logger.get_logger()
 
 
-class NoWordsIndex(ComplexityIndex):
+class NoWord(ComplexityIndex):
     
 
     def __init__(self, lang: Lang, reduce_depth: int,
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="Wd", reduce_depth=reduce_depth,
+                                 abbr="NoWd", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

@@ -58,12 +58,17 @@ class ComplexityIndex():
             self.reduce_function_abbr = 'Avg'
         elif self.reduce_function is standard_deviation:
             self.reduce_function_abbr =  'StDev'
-        self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_type_from_depth(self.reduce_depth).name
+        self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
+                self.element_type_from_depth(self.reduce_depth).name)
 
     def element_type_from_depth(self, depth) -> TextElementType:
         for el_type in TextElementType:
             if el_type.value == depth:
                 return el_type
+
+    def element_to_abr(self, s) -> str:
+        return s[0].upper() + s[1:].lower()
+
     # overwritten by each index
     def process(self, element: TextElement) -> float:
         pass

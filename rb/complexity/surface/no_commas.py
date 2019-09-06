@@ -19,7 +19,7 @@ class NoCommas(ComplexityIndex):
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="Commas", reduce_depth=reduce_depth, 
+                                 abbr="NoCommas", reduce_depth=reduce_depth, 
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

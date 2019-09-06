@@ -34,7 +34,7 @@ class Block(TextElement):
                     words = {word.index_in_doc: word for sent in self.components for word in sent.components}
                     self.coref_clusters = [CorefCluster(lang, cluster, words, self) for cluster in doc._.coref_clusters]
             except AttributeError:
-                logger.info("Block does not have coref")
+                pass
 
     def get_sentences(self) -> List[Sentence]:
         return self.components

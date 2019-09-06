@@ -61,4 +61,4 @@ class AdjCohesion(ComplexityIndex):
         return values
     
     def __repr__(self):
-        return self.abbr + "_" + self.element_type.name
+        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + '_' + self.element_type.name

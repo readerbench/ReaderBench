@@ -19,6 +19,7 @@ from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
+from rb.processings.essay_scoring import EssayScoring
 
 from rb.utils.rblogger import Logger
 
@@ -55,6 +56,14 @@ def ro_correct():
 
     text = text.replace('    ', '\t').replace('\t', '\n')
     return jsonify(correct_text_ro(text))
+
+@app.route('/scoring', methods=['POST'])
+def scoring():
+    data = request.get_json()
+    text = data['text']
+    essay_scoring = EssayScoring()
+    score = essay_scoring.predict(text, file_to_svr_model='svr_rbf.p')
+    return jsonify(str(score))
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():

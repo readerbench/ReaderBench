@@ -29,8 +29,14 @@ LINKS = {
     },
     Lang.RO: {
         'models': {
-            'diacritics': "https://nextcloud.readerbench.com/index.php/s/pfC25G64JgxcfZS/download",
-            'readme': "https://nextcloud.readerbench.com/index.php/s/g9etLBeSTmKxjM8/download",
+            'diacritics': {
+                "link": "https://nextcloud.readerbench.com/index.php/s/pfC25G64JgxcfZS/download",
+                "version": "https://nextcloud.readerbench.com/index.php/s/XmW7b3kLMbQtn5C/download"
+            },
+            'readme': {
+                "link": "https://nextcloud.readerbench.com/index.php/s/g9etLBeSTmKxjM8/download",
+                "version": "https://nextcloud.readerbench.com/index.php/s/QXd8847qLz5tNAa/download"
+            },
         },
         'spacy': {
             'ro_ud_ft_ner': {
@@ -154,6 +160,7 @@ def check_spacy_version(lang: Lang, name: str) -> bool:
     return check_version(lang, ['spacy', name])
 
 def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
+    logger.info('Checking version for model {}, {}'.format(name, lang.value))
     if isinstance(name, str):
         name = ['models', name]
     path = "/".join(name)
@@ -174,7 +181,7 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
             return False
         root = root[key]
     if isinstance(root, dict):
-        filename = wget.download(root['version'], out="resources/", bar=wget.bar_thermometer)
+        filename = wget.download(root['version'], out="resources/")
         try:
             remote_version = read_version(filename)
         except:
@@ -182,6 +189,7 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
             return False
         return newer_version(remote_version, local_version)
     else:
+        logger.info('Could not find version link in links json')
         return True
     
 def read_version(filename: str) -> str:
@@ -191,11 +199,15 @@ def read_version(filename: str) -> str:
 def newer_version(remote_version: str, local_version: str) -> bool:
     remote_version = remote_version.split(".")
     local_version = local_version.split(".")
+
     for a, b in zip(remote_version, local_version):
         if int(a) > int(b):
+            logger.info('Remote version {} is ahead of local version {}'.format(remote_version, local_version))
             return True
         if int(a) < int(b):
+            logger.info('Remote version {} is behind of local version {}'.format(remote_version, local_version))
             return False
+    logger.info('Remote version {} is the same as local version {}'.format(remote_version, local_version))
     return False   
     
         

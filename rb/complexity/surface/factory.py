@@ -5,7 +5,7 @@ from rb.complexity.measure_function import MeasureFunction
 
 
 def create(lang: Lang) -> List["ComplexityIndex"]:
-    from rb.complexity.surface.no_words import NoWordsIndex
+    from rb.complexity.surface.no_words import NoWord
     from rb.complexity.surface.no_unq_words import NoUniqueWordsIndex
     from rb.complexity.surface.no_commas import NoCommas
     from rb.complexity.surface.no_punctuations import NoPunctuations
@@ -16,23 +16,32 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     from rb.complexity.surface.no_cacophonies import NoCacophonies
     from rb.complexity.surface.no_common_errors import NoCommonErrors
 
-    from rb.complexity.syntax.dep import DepIndex
-    from rb.complexity.syntax.dep_enum import DepEnum
-
     indices = []
 
-    indices.append(NoWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
     indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
     indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
     indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
     indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.AVG))
+    indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.STDEV))
+
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoCommonErrors(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
-    # for dep_type in DepEnum:
-    #     indices.append(DepIndex(lang, dep_type, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.STDEV))
+
+    if lang is Lang.RO:
+        indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
+        indices.append(NoCommonErrors(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
     
     return indices
 

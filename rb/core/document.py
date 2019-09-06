@@ -15,7 +15,7 @@ class Document(TextElement):
                  container: TextElement = None):
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
-        download_tags(lang)
+        #download_tags(lang)
         self.cna_graph = None
         text = text.replace("\n\n", "\n")
         for block in text.split("\n"):

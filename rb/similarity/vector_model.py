@@ -100,7 +100,14 @@ class VectorModel:
     def compute_hash(self, v: Vector) -> int:
         result = 0
         for base in self.base_vectors:
-            result = (result << 1) + int(np.dot(base, v.values) >= 0)
+            # print('base={}'.format(base))
+            # print('values={}'.format(v.values))
+            # print('result={}'.format(result))
+            # print('base.shape={},len(v.values)={}'.format(len(base), len(v.values)))
+            # print('np.dot={}'.format(np.dot(base, v.values)))
+            # print('int={}'.format(int(np.dot(base, v.values) >= 0)))
+            # print('result={}'.format((result << 1) + int(np.dot(base, v.values) >= 0)))
+            result = (result << 1) + int(np.dot(base.values, v.values) >= 0)
         return result
 
     def build_clusters(self, n: int = 12):

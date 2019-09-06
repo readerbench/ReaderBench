@@ -12,27 +12,32 @@ from rb.utils.rblogger import Logger
 logger = Logger.get_logger()
 
 
-class StartEndCohesion(ComplexityIndex):
+class TransCohesion(ComplexityIndex):
 
-    """ only between start block and end block """
     def __init__(self, lang: Lang,
             reduce_depth: int = None, reduce_function: MeasureFunction = None):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
-                                 abbr="StartEndCoh")
+                                 abbr="TransCohesion")
 
     def process(self, element: TextElement) -> float:
         return self.compute(element)
 
     def compute(self, element: TextElement) -> float:
 
-        doc = element.get_parent_document()
-        if len(doc.get_blocks()) < 2:
+        blocks = element.get_blocks()
+        if len(blocks) < 2:
             element.indices[self] = ComplexityIndex.IDENTITY
-            return ComplexityIndex.IDENTITY
+            return ComplexityIndex.IDENTITY            
         else:
-            start_block = element.get_blocks()[0]
-            end_block = element.get_blocks()[-1]
-            v = doc.cna_graph.model.similarity(start_block, end_block)
-            element.indices[self] = v
-            return v
+            sim_values = []            
+            for i, _ in enumerate(blocks[:-1]):
+                current_block_sents = blocks[i].get_sentences()
+                next_block_sents = blocks[i].get_sentences()
+                if len(current_block_sents) == 0 or len(next_block_sents) == 0:
+                    continue
+                cur_sent = current_block_sents[-1]
+                next_sent = next_block_sents[0]
+                sim_values.append(element.cna_graph.model.similarity(cur_sent, next_sent))
+            element.indices[self] = sum(sim_values) / len(sim_values)
+            return element.indices[self]

@@ -19,7 +19,7 @@ class NoCacophonies(ComplexityIndex):
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="Cacophony", reduce_depth=reduce_depth, 
+                                 abbr="NpCacophony", reduce_depth=reduce_depth, 
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

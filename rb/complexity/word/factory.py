@@ -19,12 +19,17 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     from rb.complexity.word.wd_syllab import WdSyllab
     
     indices = []
+
     indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(WdDiffLemma(lang, TextElementType.WORD.value, MeasureFunction.AVG))
+    indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.STDEV))
+
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.AVG))
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.STDEV))
+
+    indices.append(WdDiffLemma(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.AVG))
+    
     indices.append(NoRepetitions(lang, window_size=8, reduce_depth=TextElementType.SENT.value, 
                                     reduce_function=MeasureFunction.AVG))
-    # indices.append(NoNamedEntity(lang, named_ent_type=NamedEntityONEnum.NORP, reduce_depth=TextElementType.WORD.value, 
-    #                                 reduce_function=MeasureFunction.AVG))
     indices.append(WdMaxDpthHypTree(lang, reduce_depth=TextElementType.WORD.value, 
                                     reduce_function=MeasureFunction.AVG))
     indices.append(WdAvgDpthHypTree(lang, reduce_depth=TextElementType.WORD.value, 
@@ -33,8 +38,10 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
                                     reduce_function=MeasureFunction.AVG))
     indices.append(Polysemy(lang, reduce_depth=TextElementType.WORD.value, 
                                     reduce_function=MeasureFunction.AVG))
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG)) 
-    #indices = [DepIndex(lang, dep, TextElementType.BLOCK, MeasureFunction.AVG) for dep in DepEnum]
-    #indices += [DepIndex(lang, dep, TextElementType.BLOCK, MeasureFunction.STDEV) for dep in DepEnum]
+
+
+    for named_ent_type in NamedEntityONEnum:
+        indices.append(NoNamedEntity(lang, named_ent_type=named_ent_type, reduce_depth=TextElementType.WORD.value, 
+                                        reduce_function=MeasureFunction.AVG))
+    
     return indices

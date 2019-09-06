@@ -1,4 +1,3 @@
-from rb.parser.spacy_parser import SpacyParser
 from rb.core.lang import Lang
 from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
@@ -25,63 +24,67 @@ log = open('log.log', 'w', encoding='utf-8')
 
 if __name__ == "__main__":
 
-    """how to use wordnet for RO"""
-    print(POS.NOUN.to_wordnet(), file=log)
-    print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
-    print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]), file=log)
-    print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
-    print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO), file=log)
+    r = 0
 
-    """indices for en (is the same for RO, just change language) """ 
-    w2v = Word2Vec('coca', Lang.EN)
-    docs_en = Document(Lang.EN, txt_eng)
-    CnaGraph(docs_en, w2v)
-    compute_indices(docs_en)
+    if r == 1:
+        """how to use wordnet for RO"""
+        print(POS.NOUN.to_wordnet(), file=log)
+        print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
+        print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]), file=log)
+        print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
+        print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO), file=log)
 
-    print('\n\nindices at the doc level: \n\n', file=log)
-    for key, v in docs_en.indices.items():
-        print(docs_en.text, key, v, file=log)
+        """indices for en (is the same for RO, just change language) """ 
+        w2v = Word2Vec('coca', Lang.EN)
+        docs_en = Document(Lang.EN, txt_eng)
+        CnaGraph(docs_en, w2v)
+        compute_indices(docs_en)
 
-    print('\n\nindices at the block level: \n\n', file=log)
-    for comp in docs_en.components:
-        for key, v in comp.indices.items():
-            print(comp.text, key, v, file=log)
+        print('\n\nindices at the doc level: \n\n', file=log)
+        for key, v in docs_en.indices.items():
+            print(key, v, file=log)
+
+        print('\n\nindices at the block level: \n\n', file=log)
+        for comp in docs_en.get_blocks():
+            for key, v in comp.indices.items():
+                print(comp.text, key, v, file=log)
 
 
-    print('\n\nindices at the sent level: \n\n', file=log)
-    for comp in docs_en.components:
-        for comp2 in comp.components:
-            for key, v in comp2.indices.items():
-                print(comp2.text, key, v, file=log)
+        print('\n\nindices at the sent level: \n\n', file=log)
+        for comp in docs_en.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
 
-    """how to use named entity for ro, how to extract content words, separate texts into paragraphs, sent, etc."""
-    docs_ro = Document(Lang.RO, txt_ro)
-    for comp1 in docs_ro.components:
-        # comp is para
-        for comp2 in comp1.components:
-            # comp2 is sent
-            for ent in comp2.entities:
-                # print(ent.text, 'x')
-                # key is word
-                for key in comp2.components:
-                    #print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
-                    pass
+        """how to use named entity for ro, how to extract content words, separate texts into paragraphs, sent, etc."""
+        docs_ro = Document(Lang.RO, txt_ro)
+        for comp1 in docs_ro.components:
+            # comp is para
+            for comp2 in comp1.components:
+                # comp2 is sent
+                for ent in comp2.entities:
+                    # print(ent.text, 'x')
+                    # key is word
+                    for key in comp2.components:
+                        #print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
+                        pass
+    else:
+        """ if you want only tokens (&their properties) you can do """
+        docs_ro = Document(Lang.RO, txt_ro)
+        compute_indices(docs_ro)
 
-    """ if you want only tokens (&their properties) you can do """
-    docs_ro = Document(Lang.RO, txt_ro)
-    
-    
-    print('block: ', file=log)
-    for block in docs_en.get_blocks():
-        print(block, 'end block' , file=log)
+        print('\n\nindices at the doc level: \n\n', file=log)
+        for key, v in docs_ro.indices.items():
+            print(key, v, file=log)
 
-    print('sents: ', file=log)
-    for sent in docs_en.get_sentences():
-        print(sent, file=log)
+        print('\n\nindices at the block level: \n\n', file=log)
+        for comp in docs_ro.get_blocks():
+            for key, v in comp.indices.items():
+                print(comp.text, key, v, file=log)
 
-    print('words: ', file=log)
-    for token in docs_ro.get_words():
-        print(token.lemma, token.pos, token.text, token.tag, token.pos_features, file=log)
+        print('\n\nindices at the sent level: \n\n', file=log)
+        for comp in docs_ro.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
     # print(docs_ro.get_words()[0].get_parent_document().get_sentences())
     # POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
     
