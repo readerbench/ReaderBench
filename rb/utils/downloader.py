@@ -34,7 +34,7 @@ LINKS = {
                 "version": "https://nextcloud.readerbench.com/index.php/s/XmW7b3kLMbQtn5C/download"
             },
             'readme': {
-                "link": "https://nextcloud.readerbench.com/index.php/s/g9etLBeSTmKxjM8/download",
+                "link": "https://nextcloud.readerbench.com/index.php/s/Sj94ysrmDDxX8YH/download",
                 "version": "https://nextcloud.readerbench.com/index.php/s/QXd8847qLz5tNAa/download"
             },
         },
