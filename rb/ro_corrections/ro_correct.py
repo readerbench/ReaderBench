@@ -668,6 +668,8 @@ def create_output_list(result, case, default_suggestion = None):
         return output_list
     if case == "Repetiţie" or case == "Repetiţie sinonime":
         for item in result:
+            if len(item['mistake']) >= 1 and (str(item['mistake'][0]) == '.' or str(item['mistake'][0]) == ','):
+                continue
             message = "Reformulare. Repetiţie deranjantă pentru cuvântul/cuvintele: " + get_mistakes(item["mistake"])
             if case == "Repetitie sinonime":
                 message += " Cuvintele sunt sinonime."
