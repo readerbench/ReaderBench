@@ -126,7 +126,7 @@ class VectorModel:
         with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
             f.write("{}\n".format(len(self.base_vectors)))
             for base in self.base_vectors:
-                f.write(" ".join(str(x.values) for x in base) + "\n")
+                f.write(" ".join(str(x) for x in base.values) + "\n")
             f.write("{}\n".format(len(self.vectors)))
             for hash, words in self.word_clusters.items():
                 for word in words:
