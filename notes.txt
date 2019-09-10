@@ -37,3 +37,6 @@ scor:
 
 
 
+fluct:
+    No  Unq Adj, Verbs, Adv, Nouns
+    AdjCohesion

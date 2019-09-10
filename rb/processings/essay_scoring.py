@@ -20,6 +20,7 @@ class EssayScoring:
 
     def compute_indices(self, csv_file_in: str = 'essays.csv', lang: Lang = Lang.RO, 
             write_file: str='essays_eval.csv') -> List[List]:
+        w2v = Word2Vec('readme', Lang.RO)        
         all_rows = []
         first_row = ['grade', 'content']
         essay_r = csv.reader(open(csv_file_in, 'rt', encoding='utf-8'))
@@ -35,6 +36,7 @@ class EssayScoring:
             grade = max(grade, 7.0) - 7.0
 
             docs_ro = Document(Lang.RO, content)
+            CnaGraph(docs_ro, w2v)
             compute_indices(docs_ro)
 
             row = []

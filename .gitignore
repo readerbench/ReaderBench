@@ -107,6 +107,7 @@ dist
 
 # dependencies
 /node_modules
+notes.txt
 
 # IDEs and editors
 /.idea

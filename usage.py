@@ -69,7 +69,9 @@ if __name__ == "__main__":
                         pass
     else:
         """ if you want only tokens (&their properties) you can do """
+        w2v = Word2Vec('readme', Lang.RO)
         docs_ro = Document(Lang.RO, txt_ro)
+        CnaGraph(docs_ro, w2v)
         compute_indices(docs_ro)
 
         print('\n\nindices at the doc level: \n\n', file=log)

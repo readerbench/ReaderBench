@@ -89,6 +89,5 @@ def compute_indices(element: TextElement):
     #         index.process(element)
     # with Pool(processes=num_cores) as pool:
     # tasks = [(index, element) for cat in IndexCategory for index in cat.create(element.lang)]
-    lda = LDA('coca', Lang.EN)
     Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) for cat in IndexCategory for index in cat.create(element.lang))
         

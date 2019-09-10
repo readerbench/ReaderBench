@@ -20,7 +20,7 @@ from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
 from rb.processings.essay_scoring import EssayScoring
-
+from rb.processings.fluctuations import Fluctuations
 from rb.utils.rblogger import Logger
 
 app = Flask(__name__)
@@ -64,6 +64,20 @@ def scoring():
     essay_scoring = EssayScoring()
     score = essay_scoring.predict(text, file_to_svr_model='svr_rbf.p')
     return jsonify(str(score))
+
+@app.route('/fluctuations', methods=['POST'])
+def fluctuations():
+    data = request.get_json()
+    text = data['text']
+    lang = data['lang']
+    fl = Fluctuations()
+
+    if lang == 'ro':
+        res = fl.compute_indices(text, lang=Lang.RO)
+    else:
+        res = fl.compute_indices(text, lang=Lang.EN)
+
+    return jsonify(res)
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():
