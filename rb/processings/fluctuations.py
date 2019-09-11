@@ -57,9 +57,6 @@ class Fluctuations:
                         'AvgSentUnqPOSMain_adv':
                             {Lang.RO: 'Numărului de adverbe unice per propoziție',
                              Lang.EN: 'Number of unique adverbs per sentence'},
-                        'AvgSentUnqPOSMain_pron': 
-                            {Lang.RO: 'Numărului de pronume unice per propoziție',
-                             Lang.EN: 'Number of unique pronouns per sentence'},
                         'AdjExtCoh_SENT':
                             {Lang.RO: 'Coeziunea propoziției curente cu propozițiile vecine',
                              Lang.EN: 'Cohesion of the current sentence with its neighbouring sentences'}
@@ -77,9 +74,6 @@ class Fluctuations:
                         'AvgSentUnqPOSMain_adv':
                             {Lang.RO: 'Media numărului de adverbe unice per prpoziție',
                              Lang.EN: 'Average of the number of unique adverbs per sentence'},
-                        'AvgSentUnqPOSMain_pron': 
-                            {Lang.RO: 'Media numărului de pronume unice per prpoziție',
-                             Lang.EN: 'Average of the number of unique pronouns per sentence'},
                         'AdjExtCoh_BLOCK':
                             {Lang.RO: 'Coeziunea paragrafului curent cu paragrafele vecine',
                              Lang.EN: 'Cohesion of the current paragraph with its neighbouring paragraphs'}
