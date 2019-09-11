@@ -80,6 +80,11 @@ class Fluctuations:
                         }
         result = []
 
+        for ind_doc, _ in doc.indices.items():
+            print(ind_doc)
+            print(ind_doc, file=log)
+
+
         for ind_sent, _ in indices_sent.items():
             d = {'index': ind_sent, 'index_description': indices_sent[ind_sent][lang],
                  'level': 'sentence', 'values': [], 'text': []}
@@ -102,7 +107,6 @@ class Fluctuations:
                  'level': 'paragraph', 'values': [], 'text': []}
             for block in doc.get_blocks():
                 for key, v in block.indices.items():
-                    print(key, v, file=log)
                     if str(key) == ind_block:
                         d['values'].append(v)
                         d['text'].append(block.text)
