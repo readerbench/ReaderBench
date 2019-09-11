@@ -44,14 +44,51 @@ class Fluctuations:
         CnaGraph(doc, w2v)
         compute_indices(doc)
 
-        indices_sent = ['AvgWordUnqPOSMain_noun', 'AvgWordUnqPOSMain_verb', 'AvgWordUnqPOSMain_adj',
-                        'AvgWordUnqPOSMain_adv', 'AvgWordUnqPOSMain_pron', 'AdjExtCoh_SENT']
-        indices_block = ['AvgSentUnqPOSMain_noun', 'AvgSentUnqPOSMain_verb', 'AvgSentUnqPOSMain_adj',
-                         'AvgSentUnqPOSMain_adv', 'AvgSentUnqPOSMain_pron', 'AdjExtCoh_BLOCK']
+        indices_sent = {
+                        'AvgSentUnqPOSMain_noun': 
+                            {Lang.RO: 'Numărul de substantive unice per propoziție',
+                             Lang.EN: 'Number of unique nouns per sentence'}, 
+                        'AvgSentUnqPOSMain_verb': 
+                            {Lang.RO: 'Numărul de verbe unice per propoziție',
+                             Lang.EN: 'Number of unique verbs per sentence'},
+                        'AvgSentUnqPOSMain_adj':
+                            {Lang.RO: 'Numărul de adjective unice per propoziție',
+                             Lang.EN: 'Number of unique adjectives per sentence'},
+                        'AvgSentUnqPOSMain_adv':
+                            {Lang.RO: 'Numărului de adverbe unice per propoziție',
+                             Lang.EN: 'Number of unique adverbs per sentence'},
+                        'AvgSentUnqPOSMain_pron': 
+                            {Lang.RO: 'Numărului de pronume unice per propoziție',
+                             Lang.EN: 'Number of unique pronouns per sentence'},
+                        'AdjExtCoh_SENT':
+                            {Lang.RO: 'Coeziunea propoziției curente cu propozițiile vecine',
+                             Lang.EN: 'Cohesion of the current sentence with its neighbouring sentences'}
+                        }
+        indices_block = {
+                        'AvgSentUnqPOSMain_noun': 
+                            {Lang.RO: 'Media numărului de substantive unice per prpoziție',
+                             Lang.EN: 'Average of the number of unique nouns per sentence'}, 
+                        'AvgSentUnqPOSMain_verb': 
+                            {Lang.RO: 'Media numărului de verbe unice per prpoziție',
+                             Lang.EN: 'Average of the number of unique verbs per sentence'},
+                        'AvgSentUnqPOSMain_adj':
+                            {Lang.RO: 'Media numărului de adjective unice per prpoziție',
+                             Lang.EN: 'Average of the number of unique adjectives per sentence'},
+                        'AvgSentUnqPOSMain_adv':
+                            {Lang.RO: 'Media numărului de adverbe unice per prpoziție',
+                             Lang.EN: 'Average of the number of unique adverbs per sentence'},
+                        'AvgSentUnqPOSMain_pron': 
+                            {Lang.RO: 'Media numărului de pronume unice per prpoziție',
+                             Lang.EN: 'Average of the number of unique pronouns per sentence'},
+                        'AdjExtCoh_BLOCK':
+                            {Lang.RO: 'Coeziunea paragrafului curent cu paragrafele vecine',
+                             Lang.EN: 'Cohesion of the current paragraph with its neighbouring paragraphs'}
+                        }
         result = []
 
-        for ind_sent in indices_sent:
-            d = {'index': ind_sent, 'level': 'sentence', 'values': [], 'text': []}
+        for ind_sent, _ in indices_sent.items():
+            d = {'index': ind_sent, 'index_description': indices_sent[ind_sent][lang],
+                 'level': 'sentence', 'values': [], 'text': []}
             for sent in doc.get_sentences():
                 for key, v in sent.indices.items():
                     if str(key) == ind_sent:
@@ -66,10 +103,12 @@ class Fluctuations:
                 d['values'][i] = str(v)
             result.append(d)
         
-        for ind_block in indices_block:
-            d = {'index': ind_block, 'level': 'sentence', 'values': [], 'text': []}
+        for ind_block, _ in indices_block.items():
+            d = {'index': ind_block, 'index_description': indices_block[ind_block][lang],
+                 'level': 'paragraph', 'values': [], 'text': []}
             for block in doc.get_blocks():
                 for key, v in block.indices.items():
+                    print(key, v, file=log)
                     if str(key) == ind_block:
                         d['values'].append(v)
                         d['text'].append(block.text)

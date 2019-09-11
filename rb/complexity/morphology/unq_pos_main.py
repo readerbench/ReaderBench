@@ -44,6 +44,7 @@ class UnqPosMain(ComplexityIndex):
                 values += self.compute_above(child)
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
+            element.indices[self] = len(self.compute_below(element))
             values = [len(self.compute_below(element))]
         else:
             logger.error('wrong reduce depth value.')

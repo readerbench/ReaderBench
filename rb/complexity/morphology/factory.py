@@ -14,6 +14,7 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     from rb.complexity.morphology.unq_pos_main import UnqPosMain
 
     indices = []
+
     indices.append(PosMain(lang, PosEum.NOUN, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(PosMain(lang, PosEum.VERB, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(PosMain(lang, PosEum.ADJ, TextElementType.SENT.value, MeasureFunction.AVG))
@@ -25,17 +26,6 @@ def create(lang: Lang) -> List["ComplexityIndex"]:
     indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.SENT.value, MeasureFunction.AVG))
-
-    indices.append(PosMain(lang, PosEum.NOUN, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.VERB, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADJ, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADV, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.PRON, TextElementType.WORD.value, MeasureFunction.AVG))
-
-    indices.append(UnqPosMain(lang, PosEum.NOUN, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.VERB, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.WORD.value, MeasureFunction.AVG))
     
+
     return indices
