@@ -3,7 +3,8 @@ from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.complexity.cohesion.adj_cohesion import AdjCohesion
 from rb.similarity.word2vec import Word2Vec
-from rb.cna.cna_graph import CnaGraph
+from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
+from rb.similarity.vector_model_instance import VECTOR_MODELS
 from typing import Tuple, List
 from sklearn.svm import SVR
 import pickle
@@ -13,7 +14,8 @@ from rb.utils.rblogger import Logger
 from typing import List, Tuple
 import numpy as np
 
-log = open('log.log', 'wt', encoding='utf-8')
+
+logger = Logger.get_logger()
 
 class Fluctuations:
 
@@ -36,12 +38,11 @@ class Fluctuations:
     def compute_indices(self, text: str, lang: Lang) -> List[List]:
         
         if lang is Lang.RO:
-            w2v = Word2Vec('readme', lang)
-        else:
-            w2v = Word2Vec('coca', lang)
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](name=CorporaEnum.README.value, lang=lang)
+        elif lang is Lang.EN:
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](name=CorporaEnum.COCA.value, lang=lang)
 
-        doc = Document(lang, text)
-        CnaGraph(doc, w2v)
+        doc = Document(lang=lang, text=text, vector_model=vector_model)
         compute_indices(doc)
 
         indices_sent = {
@@ -79,11 +80,6 @@ class Fluctuations:
                              Lang.EN: 'Cohesion of the current paragraph with its neighbouring paragraphs'}
                         }
         result = []
-
-        for ind_doc, _ in doc.indices.items():
-            print(ind_doc)
-            print(ind_doc, file=log)
-
 
         for ind_sent, _ in indices_sent.items():
             d = {'index': ind_sent, 'index_description': indices_sent[ind_sent][lang],

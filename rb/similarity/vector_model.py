@@ -10,8 +10,8 @@ from rb.core.word import Word
 from rb.similarity.vector import Vector
 from rb.utils.downloader import check_version, download_model
 
-WordSimilarity = Tuple[str, float]
 
+WordSimilarity = Tuple[str, float]
 
 
 class VectorModelType(Enum):
@@ -20,6 +20,11 @@ class VectorModelType(Enum):
     WORD2VEC = 2
     FASTTEXT = 3
     GLOVE = 4
+
+
+class CorporaEnum(Enum):
+    README = 'readme'
+    COCA = 'coca'
 
 
 class VectorModel:
@@ -172,3 +177,5 @@ class VectorModel:
                     new_hash = new_hash ^ (1 << (len(self.base_vectors) - j - 1))
                     cluster = cluster + self.get_cluster(new_hash, elem, threshold)
         return sorted(cluster, key=lambda x: x[1], reverse=True)[:topN]
+
+

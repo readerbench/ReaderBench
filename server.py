@@ -19,8 +19,8 @@ from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
-from rb.processings.essay_scoring import EssayScoring
-from rb.processings.fluctuations import Fluctuations
+from rb.processings.scoring.essay_scoring import EssayScoring
+from rb.processings.fluctuations.fluctuations import Fluctuations
 from rb.utils.rblogger import Logger
 
 app = Flask(__name__)

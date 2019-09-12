@@ -2,7 +2,8 @@ from rb.core.lang import Lang
 from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.similarity.word2vec import Word2Vec
-from rb.cna.cna_graph import CnaGraph
+from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
+from rb.similarity.vector_model_instance import VECTOR_MODELS
 from typing import Tuple, List
 from sklearn.svm import SVR
 import pickle
@@ -12,6 +13,7 @@ from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
+
 class EssayScoring:
 
 
@@ -19,32 +21,35 @@ class EssayScoring:
         pass
 
     def compute_indices(self, csv_file_in: str = 'essays.csv', lang: Lang = Lang.RO, 
-            write_file: str='essays_eval.csv') -> List[List]:
+            write_file: str='essays_eval.csv', nr_docs: int = None) -> List[List]:
         
         indices = []
         if lang is Lang.RO:
-            w2v = Word2Vec('readme', Lang.RO)
-            with open('rb/processings/indices_ro_scoring.txt', 'rt', encoding='utf-8') as f:
+            with open('rb/processings/scoring/indices_ro_scoring.txt', 'rt', encoding='utf-8') as f:
                 for line in f:
                     indices.append(line.strip())    
-                    
+        if lang is Lang.RO:
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                name=CorporaEnum.README.value, lang=lang)
+        elif lang is Lang.EN:
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+                name=CorporaEnum.COCA.value, lang=lang)
+            
         all_rows = []
         first_row = ['grade', 'content']
         essay_r = csv.reader(open(csv_file_in, 'rt', encoding='utf-8'))
 
         for i, row in enumerate(essay_r):
-            if i > 50:  break
-            logger.info('Computing indices for document {}'.format(i))
+            if (not (nr_docs is None)) and i > nr_docs:  break
+            logger.info('Computing indices for document number {}'.format(i))
             try:
                 grade = float(row[0])
                 content = row[1]
             except:
-                print('skip')
                 continue
             grade = max(grade, 7.0) - 7.0
-
-            doc = Document(lang, content)
-            CnaGraph(doc, w2v)
+            
+            doc = Document(lang=lang, text=content, vector_model=vector_model)
             compute_indices(doc)
 
             row = []
@@ -107,17 +112,23 @@ class EssayScoring:
 
         print('loss: {}'.format(loss))
 
-    def predict(self, content, file_to_svr_model, lang=Lang.RO) -> float:
+    def predict(self, content: str, file_to_svr_model: str, lang=Lang.RO) -> float:
+        svr = pickle.load(open(file_to_svr_model, "rb"))
         if lang is Lang.RO:
-            svr = pickle.load(open(file_to_svr_model, "rb"))
-            w2v = Word2Vec('readme', Lang.RO)
-        doc = Document(lang, content)
-        CnaGraph(doc, w2v)
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                name=CorporaEnum.README.value, lang=lang)
+        elif lang is Lang.EN:
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+                name=CorporaEnum.COCA.value, lang=lang)
+
+        doc = Document(lang=lang, text=content, vector_model=vector_model)
         compute_indices(doc)
+
         indices = []
-        with open('rb/processings/indices_ro_scoring.txt', 'rt', encoding='utf-8') as f:
-            for line in f:
-                indices.append(line.strip())
+        if lang is Lang.RO:
+            with open('rb/processings/scoring/indices_ro_scoring.txt', 'rt', encoding='utf-8') as f:
+                for line in f:
+                    indices.append(line.strip())
         values_indices = []
         for ind in indices: 
             for key, v in doc.indices.items():
@@ -125,7 +136,6 @@ class EssayScoring:
                     values_indices.append(v)
 
         grade = svr.predict([values_indices])[0]
-        print(grade)
         return grade
 
         

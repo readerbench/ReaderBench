@@ -4,6 +4,7 @@ from typing import List, Iterable
 from nltk.tokenize import sent_tokenize, WordPunctTokenizer
 from os.path import isdir, isfile, join
 from os import listdir
+from rb.core.lang import Lang
 
 from spacy.lang.ro.lemmatizer import LOOKUP
 #from spacy.lang.ro.lex_attrs import words
@@ -46,6 +47,13 @@ def load_docs(folder: str) -> Iterable[str]:
                 if current != "":
                     yield current
 
+def str_to_lang(s: str) -> Lang:
+    if s.strip() == "ro" or s.strip() == "rou":
+        return Lang.RO
+    elif s.strip() == "en" or s.strip() == "eng":
+        return Lang.EN
+    return Lang.EN
+    
 if __name__ == "__main__":
     pass
     # with open("dict_ro.txt", "wt") as out:
