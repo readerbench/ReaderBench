@@ -108,13 +108,14 @@ class EssayScoring:
             csv_writer.writerows(all_rows)
         return all_rows
     
-    def read_indices(self, path_to_csv_file='measurements.csv') -> List[List[float]]:
-        essay_r = csv.reader(open(path_to_csv_file, 'rt', encoding='utf-8'))
+    def read_indices(self, base_folder: str = 'essays_ro',
+         path_to_csv_file='measurements.csv') -> List[List[float]]:
+        essay_r = csv.reader(open(os.path.join(base_folder, path_to_csv_file), 'rt', encoding='utf-8'))
         results = []
         """ first row is the score """
         for i, row in enumerate(essay_r):
             if i == 0:  continue
-            results.append([row[0]] + row[2:])
+            results.append(row[1:])
         return results
 
     def train_svr(self, results: List[List], save_model_file=None):

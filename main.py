@@ -29,7 +29,8 @@ def do_scoring():
                                   write_file=args.scoring_indices_output_csv_file, 
                                   stats=args.stats_file, lang=args.scoring_lang, 
                                   nr_docs=12)
-    results = essay_scoring.read_indices(path_to_csv_file=args.scoring_indices_output_csv_file)
+    results = essay_scoring.read_indices(base_folder=args.base_folder, 
+                    path_to_csv_file=args.scoring_indices_output_csv_file)
     essay_scoring.train_svr(results, save_model_file=args.model_file)
     essay_scoring.predict(test, file_to_svr_model=args.model_file)
 
