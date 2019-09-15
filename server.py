@@ -69,7 +69,10 @@ def scoring():
 def fluctuations():
     data = request.get_json()
     text = data['text']
-    lang = data['lang']
+    if 'lang' in data:
+        lang = data['lang']
+    else:
+        lang = 'ro'
     fl = Fluctuations()
 
     if lang == 'ro':
