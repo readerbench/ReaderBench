@@ -62,7 +62,7 @@ def scoring():
     data = request.get_json()
     text = data['text']
     essay_scoring = EssayScoring()
-    score = essay_scoring.predict(text, file_to_svr_model='svr_rbf.p')
+    score = essay_scoring.predict(text, file_to_svr_model='svr_gamma.p')
     return jsonify(str(score))
 
 @app.route('/fluctuations', methods=['POST'])
