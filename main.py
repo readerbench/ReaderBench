@@ -23,11 +23,15 @@ test = """I. Evaluarea performantelor profesionale
 def do_scoring():
     global args, logger, test
     essay_scoring = EssayScoring()
-    essay_scoring.compute_indices(csv_file_in=args.scoring_input_csv_file, lang=args.scoring_lang, 
-                                  write_file=args.scoring_indices_output_csv_file, nr_docs=12)
-    results = essay_scoring.read_indices(path_to_csv_file=args.scoring_indices_output_csv_file)
-    essay_scoring.train_svr(results, save_model_file=args.scoring_svr_rbf_model_file)
-    essay_scoring.predict(test, file_to_svr_model=args.scoring_svr_rbf_model_file)
+    #essay_scoring.create_files_from_csv(path_to_csv_file='essays.csv', path_to_folder=args.base_folder)
+
+    # essay_scoring.compute_indices(base_folder=args.base_folder,
+    #                              write_file=args.scoring_indices_output_csv_file, 
+    #                              stats=args.stats_file, lang=args.scoring_lang, 
+    #                              nr_docs=12)
+    # results = essay_scoring.read_indices(path_to_csv_file=args.scoring_indices_output_csv_file)
+    # essay_scoring.train_svr(results, save_model_file=args.model_file)
+    essay_scoring.predict(test, file_to_svr_model=args.model_file)
 
 
 def do_fluctuations():
@@ -41,15 +45,19 @@ if __name__ == "__main__":
 
     """parameters for scoring""" 
     parser.add_argument('--scoring', dest='scoring', action='store_true', default=False)
-    parser.add_argument('--scoring_input_csv_file', dest='scoring_input_csv_file', action='store', default='essays.csv',
-                        help='File with corpus for scoring.')
+    parser.add_argument('--base_folder', dest='base_folder', action='store', default='essays_ro',
+                        help='Base folder for files.')
+    parser.add_argument('--scoring_indices_output_csv_file', dest='scoring_indices_output_csv_file',
+                        action='store', default='measurements.csv',
+                        help='Csv file for with indices.')
+    parser.add_argument('--stats_file', dest='stats_file',
+                        action='store', default='stats.csv',
+                        help='Csv file with stats about files.')
+    parser.add_argument('--model_file', dest='model_file',
+                        action='store', default='svr_gamma.p',
+                        help='Pickle file for the model')
     parser.add_argument('--scoring_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value], help='Language for scoring (only ro supported)')
-    parser.add_argument('--scoring_indices_output_csv_file', dest='scoring_indices_output_csv_file', action='store', 
-                        default='essays_eval_all.csv', help='Name of csv file to save indices results for scoring')
-    parser.add_argument('--scoring_svr_rbf_model_file', dest='scoring_svr_rbf_model_file', action='store', 
-                        default='svr_rbf_all.p', help='Pickle file (.p) where to save sklearn svr model')
-
     """parameters for fluctuations"""
     parser.add_argument('--fluctuations', dest='fluctuations', action='store_true', default=False)
     parser.add_argument('--fluctuations_lang', dest='fluctuations_lang', default=Lang.RO.value, nargs='?', 

@@ -6,6 +6,7 @@ from rb.core.text_element_type import TextElementType
 from rb.core.word import Word
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
+from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 
 
 from rb.utils.downloader import download_tags 

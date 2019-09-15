@@ -9,6 +9,8 @@ from sklearn.svm import SVR
 import pickle
 import os
 import csv
+from werkzeug import secure_filename
+import uuid
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -19,9 +21,38 @@ class EssayScoring:
 
     def __init__(self):
         pass
+    
+    """ given a csv, transform it into text files and a csv with filename, grade"""
+    def create_files_from_csv(self, path_to_csv_file: str, path_to_folder=".", output_stats_csv='stats.csv'):
+        essay_r = csv.reader(open(path_to_csv_file, 'rt', encoding='utf-8'))
+        
+        csv_stats = [['filename', 'grade']]
+        try:
+            os.mkdir(path_to_folder)
+            logger.info("Directory {} created".format(path_to_folder))
+        except FileExistsError:
+            logger.info("Directory {} already exists".format(path_to_folder))
+        
+        for i, row in enumerate(essay_r):
+            try:
+                grade = float(row[0])
+                content = str(row[1])
+            except:
+                continue
+            text_file = secure_filename(str(uuid.uuid4()) + '.txt')
+            full_path_text_file = os.path.join(path_to_folder, text_file)
+            entry_csv = [text_file, grade]
+            csv_stats.append(entry_csv)
+            with open(full_path_text_file, 'wt', encoding='utf-8') as f:
+                f.write(content)
 
-    def compute_indices(self, csv_file_in: str = 'essays.csv', lang: Lang = Lang.RO, 
-            write_file: str='essays_eval.csv', nr_docs: int = None) -> List[List]:
+        with open(os.path.join(path_to_folder, output_stats_csv), 'wt', encoding='utf-8') as csv_essays_eval:
+            csv_writer = csv.writer(csv_essays_eval)
+            csv_writer.writerows(csv_stats)
+
+
+    def compute_indices(self, base_folder: str = 'essays_ro', write_file: str='measurements.csv',
+            stats: str = 'stats.csv', lang: Lang = Lang.RO, nr_docs: int = None) -> List[List]:
         
         indices = []
         if lang is Lang.RO:
@@ -36,18 +67,21 @@ class EssayScoring:
                 name=CorporaEnum.COCA.value, lang=lang)
             
         all_rows = []
-        first_row = ['grade', 'content']
-        essay_r = csv.reader(open(csv_file_in, 'rt', encoding='utf-8'))
+        first_row = ['filename', 'grade']
+        essay_r = csv.reader(open(os.path.join(base_folder, stats), 'rt', encoding='utf-8'))
 
         for i, row in enumerate(essay_r):
+            if i == 0:  continue
             if (not (nr_docs is None)) and i > nr_docs:  break
             logger.info('Computing indices for document number {}'.format(i))
             try:
-                grade = float(row[0])
-                content = row[1]
+                grade = float(row[1])
+                file_name = str(row[0])
             except:
                 continue
-            grade = max(grade, 7.0) - 7.0
+
+            with open(os.path.join(base_folder, file_name), 'rt', encoding='utf-8') as f:
+                content = f.read() 
             
             doc = Document(lang=lang, text=content, vector_model=vector_model)
             compute_indices(doc)
@@ -60,7 +94,7 @@ class EssayScoring:
                             first_row.append(key)
                 all_rows.append(first_row)
 
-            row = [grade, content]
+            row = [file_name, grade]
             for ind in indices:
                 for key, v in doc.indices.items():
                     if str(key) == ind:
@@ -69,14 +103,15 @@ class EssayScoring:
             if len(row) == len(first_row):
                 all_rows.append(row)
 
-        with open(write_file, 'wt', encoding='utf-8') as csv_essays_eval:
+        with open(os.path.join(base_folder, write_file), 'wt', encoding='utf-8') as csv_essays_eval:
             csv_writer = csv.writer(csv_essays_eval)
             csv_writer.writerows(all_rows)
         return all_rows
     
-    def read_indices(self, path_to_csv_file='essays_eval.csv') -> List[List[float]]:
+    def read_indices(self, path_to_csv_file='measurements.csv') -> List[List[float]]:
         essay_r = csv.reader(open(path_to_csv_file, 'rt', encoding='utf-8'))
         results = []
+        """ first row is the score """
         for i, row in enumerate(essay_r):
             if i == 0:  continue
             results.append([row[0]] + row[2:])
