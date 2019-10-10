@@ -84,12 +84,9 @@ def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
 
 # computed indices and saves for each TextElement in indices dictionary
-def compute_indices(doc: Document, use_cna_graph: bool, vector_models: List[VectorModel]):
+def compute_indices(doc: Document, cna_graph: CnaGraph = None):
     logger.info('Starting computing all indices for {0} type element'.format(type(doc).__name__))
-    cna_graph = None
-    if use_cna_graph:
-        cna_graph = CnaGraph(doc=doc, models=vector_models)
-
+    
     num_cores = cpu_count()
     Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
         for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))

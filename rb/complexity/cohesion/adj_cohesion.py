@@ -35,10 +35,10 @@ class AdjCohesion(ComplexityIndex):
         if element.depth == self.element_type.value:
             sim_values = []
             for i, comp in enumerate(element.components): 
-                adj_edge = self.cna_graph.edges(node=comp, edge_type=EdgeType.ADJACENT, vector_model=None)
+                a, b, _ = self.cna_graph.edges(node=comp, edge_type=EdgeType.ADJACENT, vector_model=None)
                 for edge in adj_edge:
-                    sim_edge = self.cna_graph.edges(node=(edge[0], edge[1]), edge_type=EdgeType.SEMANTIC, vector_model=None)
-                    sim_values.append(sim_edge[0][2])
+                    _, _, sim = self.cna_graph.edges(node=(a, b), edge_type=EdgeType.SEMANTIC, vector_model=None)[0]
+                    sim_values.append(sim)
             return sim_values
         elif element.depth <= self.reduce_depth:
             res = []
