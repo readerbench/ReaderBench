@@ -12,6 +12,8 @@ from rb.similarity.lda import LDA
 from rb.similarity.lsa import LSA
 from rb.similarity.word2vec import Word2Vec
 from joblib import Parallel, delayed
+from rb.similarity.vector_model import VectorModel
+from rb.cna.cna_graph import CnaGraph
 
 logger = Logger.get_logger()
 
@@ -81,13 +83,12 @@ def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
 
 # computed indices and saves for each TextElement in indices dictionary
-def compute_indices(element: TextElement):
+def compute_indices(doc: Document, use_cna_graph: bool, vector_models: List[VectorModel]):
     logger.info('Starting computing all indices for {0} type element'.format(type(element).__name__))
+    cna_graph = None
+    if use_cna_graph:
+        cna_graph = CnaGraph(doc=doc, model=vector_models)
+
     num_cores = cpu_count()
-    # for cat in IndexCategory:
-    #     for index in cat.value(element.lang):
-    #         index.process(element)
-    # with Pool(processes=num_cores) as pool:
-    # tasks = [(index, element) for cat in IndexCategory for index in cat.create(element.lang)]
-    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) for cat in IndexCategory for index in cat.create(element.lang))
+    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) for cat in IndexCategory for index in cat.create(element.lang, cna_graph))
         

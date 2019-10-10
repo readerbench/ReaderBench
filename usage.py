@@ -53,12 +53,12 @@ if __name__ == "__main__":
         for comp in doc.get_sentences():
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
-    else:
+    elif r == 2:
         """ for ro """
         vector_model = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
-                name=CorporaEnum.README.value, lang=Lang.RO)
-        doc = Document(lang=Lang.RO, text=txt_ro, vector_model=vector_model)
-        # compute_indices(doc)
+                        name=CorporaEnum.README, lang=Lang.RO)
+        doc = Document(lang=Lang.RO, text=txt_ro)
+        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
 
         print('\n\nindices at the doc level: \n\n', file=log)
         for key, v in doc.indices.items():
@@ -77,5 +77,6 @@ if __name__ == "__main__":
         for word in doc.get_words():
             print(word, word.idx, word.is_alpha)
     # print(docs_ro.get_words()[0].get_parent_document().get_sentences())
-    # POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
+    else:
+        POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
     

@@ -2,9 +2,10 @@ from typing import List
 from rb.core.lang import Lang
 from rb.core.text_element_type import TextElementType
 from rb.complexity.measure_function import MeasureFunction
+from rb.cna.cna_graph import CnaGraph
 
 
-def create(lang: Lang) -> List["ComplexityIndex"]:
+def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.surface.no_words import NoWord
     from rb.complexity.surface.no_unq_words import NoUniqueWordsIndex
     from rb.complexity.surface.no_commas import NoCommas

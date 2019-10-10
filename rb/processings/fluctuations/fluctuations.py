@@ -64,17 +64,17 @@ class Fluctuations:
                         }
         indices_block = {
                         'AvgSentUnqPOSMain_noun': 
-                            {Lang.RO: 'Media numărului de substantive unice per prpoziție',
-                             Lang.EN: 'Average of the number of unique nouns per sentence'}, 
+                            {Lang.RO: 'Media numărului de substantive unice per frază',
+                             Lang.EN: 'Average of the number of unique nouns per paragraph'}, 
                         'AvgSentUnqPOSMain_verb': 
-                            {Lang.RO: 'Media numărului de verbe unice per prpoziție',
-                             Lang.EN: 'Average of the number of unique verbs per sentence'},
+                            {Lang.RO: 'Media numărului de verbe unice per frază',
+                             Lang.EN: 'Average of the number of unique verbs per paragraph'},
                         'AvgSentUnqPOSMain_adj':
-                            {Lang.RO: 'Media numărului de adjective unice per prpoziție',
-                             Lang.EN: 'Average of the number of unique adjectives per sentence'},
+                            {Lang.RO: 'Media numărului de adjective unice per frază',
+                             Lang.EN: 'Average of the number of unique adjectives per paragraph'},
                         'AvgSentUnqPOSMain_adv':
-                            {Lang.RO: 'Media numărului de adverbe unice per prpoziție',
-                             Lang.EN: 'Average of the number of unique adverbs per sentence'},
+                            {Lang.RO: 'Media numărului de adverbe unice per frază',
+                             Lang.EN: 'Average of the number of unique adverbs per paragraph'},
                         'AdjExtCoh_BLOCK':
                             {Lang.RO: 'Coeziunea paragrafului curent cu paragrafele vecine',
                              Lang.EN: 'Cohesion of the current paragraph with its neighbouring paragraphs'}

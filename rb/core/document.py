@@ -26,7 +26,6 @@ class Document(TextElement):
         for block in text.split("\n"):
             self.components.append(Block(lang=lang, text=block.strip(),
                                          container=self))
-        CnaGraph(self, vector_model)
 
     def get_words(self) -> List[Word]:
         return [word for block in self.components for sent in block.components for word in sent.components]

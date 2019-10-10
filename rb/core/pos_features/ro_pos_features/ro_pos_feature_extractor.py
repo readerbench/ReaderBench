@@ -84,13 +84,22 @@ class RoPOSFeatureExtractor(POSFeatureExtractor):
     def print_ud_dict(self, file_name: str) -> None:
         
         file_handle = open(file_name, 'w', encoding='utf-8')
-
+        all_combinations = set()
         for lemma, forms in self.all_forms.items():
-            print(lemma, len(forms), file=file_handle)
+            # print(lemma, len(forms), file=file_handle)
             for word_form, features_sup in forms.items():
-                print('  ', word_form, len(features_sup), file=file_handle)
+                # print('  ', word_form, len(features_sup), file=file_handle)
                 for features in features_sup:
-                    print('      ', features, file=file_handle)
+                    el = []
+                    for key, f in features.items():
+                        if len(f) > 0:
+                            for ff in f:
+                                el.append(ff)
+                    print(el, file=file_handle)
+                    all_combinations.add(frozenset(el))
+                        # if f in features:
+                        #     print(features[f], file=file_handle)
+        print(len(all_combinations), file=file_handle)
 
     def get_pos_features(self, pos: POS, tag: str) -> Dict[Enum, List[Enum]]:
         features = {}
