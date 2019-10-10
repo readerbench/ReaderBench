@@ -6,6 +6,7 @@ from rb.complexity.measure_function import MeasureFunction
 from rb.core.text_element_type import TextElementType   
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
+from rb.cna.cna_graph import CnaGraph
 
 from rb.utils.rblogger import Logger
 
@@ -16,11 +17,12 @@ class AdjCohesion(ComplexityIndex):
 
     """AdjCohesion between text elements of element_type """
     def __init__(self, lang: Lang, element_type: TextElementType,
-            reduce_depth: int, reduce_function: MeasureFunction):
+            reduce_depth: int, reduce_function: MeasureFunction, cna_graph: CnaGraph):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="AdjCoh")
-        self.element_type = element_type        
+        self.element_type = element_type
+        self.cna_graph = cna_graph
         if element_type.value > reduce_depth:
             logger.error('For index {} element_type has to be lower or equal than reduce_depth'.format(self))
 
@@ -31,6 +33,7 @@ class AdjCohesion(ComplexityIndex):
     def compute_below(self, element: TextElement) -> List[float]:
         if element.depth == self.element_type.value:
             sim_values = []
+            
             for i, _ in enumerate(element.components):
                     if i + 1 < len(element.components):
                         sim_values.append(element.get_parent_document().cna_graph.model.similarity(

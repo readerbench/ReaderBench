@@ -35,9 +35,9 @@ if __name__ == "__main__":
         """indices for en (is the same for RO, just change language) """ 
         vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
             name=CorporaEnum.COCA.value, lang=Lang.EN)
-        doc = Document(lang=Lang.EN, text=txt_eng, vector_model=vector_model)
-        compute_indices(doc)
+        doc = Document(lang=Lang.EN, text=txt_eng)
 
+        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
 
         print('\n\nindices at the doc level: \n\n', file=log)
         for key, v in doc.indices.items():

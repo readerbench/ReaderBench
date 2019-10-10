@@ -9,6 +9,7 @@ from rb.complexity.measure_function import MeasureFunction
 from rb.core.text_element_type import TextElementType   
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
+from rb.cna.cna_graph import CnaGraph
 
 from rb.utils.rblogger import Logger
 
@@ -17,7 +18,8 @@ logger = Logger.get_logger()
 class AdjExternalCohesion(ComplexityIndex):
 
     def __init__(self, lang: Lang, element_type: TextElementType,
-            reduce_depth: int = None, reduce_function: MeasureFunction = None):
+            reduce_depth: int = None, reduce_function: MeasureFunction = None,
+            cna_graph: CnaGraph = None):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="AdjExtCoh")

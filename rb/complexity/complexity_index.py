@@ -90,5 +90,6 @@ def compute_indices(doc: Document, use_cna_graph: bool, vector_models: List[Vect
         cna_graph = CnaGraph(doc=doc, model=vector_models)
 
     num_cores = cpu_count()
-    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) for cat in IndexCategory for index in cat.create(element.lang, cna_graph))
+    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) \
+        for cat in IndexCategory for index in cat.create(element.lang, cna_graph))
         
