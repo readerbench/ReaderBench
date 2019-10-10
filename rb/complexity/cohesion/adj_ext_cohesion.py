@@ -23,7 +23,8 @@ class AdjExternalCohesion(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="AdjExtCoh")
-        self.element_type = element_type        
+        self.element_type = element_type
+        self.cna_graph = cna_graph   
         if not (element_type is TextElementType.BLOCK or element_type is TextElementType.SENT):
             logger.error('For index {} element_type has to {} or {}'.format(TextElementType.BLOCK, TextElementType.SENT))
 

@@ -7,6 +7,7 @@ from rb.core.text_element_type import TextElementType
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
 
@@ -33,11 +34,11 @@ class AdjCohesion(ComplexityIndex):
     def compute_below(self, element: TextElement) -> List[float]:
         if element.depth == self.element_type.value:
             sim_values = []
-            
-            for i, _ in enumerate(element.components):
-                    if i + 1 < len(element.components):
-                        sim_values.append(element.get_parent_document().cna_graph.model.similarity(
-                                element.components[i], element.components[i + 1]))
+            for i, comp in enumerate(element.components): 
+                adj_edge = self.cna_graph.edges(node=comp, edge_type=EdgeType.ADJACENT, vector_model=None)
+                for edge in adj_edge:
+                    sim_edge = self.cna_graph.edges(node=(edge[0], edge[1]), edge_type=EdgeType.SEMANTIC, vector_model=None)
+                    sim_values.append(sim_edge[2])
             return sim_values
         elif element.depth <= self.reduce_depth:
             res = []

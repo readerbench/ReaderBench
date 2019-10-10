@@ -22,7 +22,8 @@ class StartMiddleCohesion(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="StartMidCoh")
-
+        self.cna_graph = cna_graph
+        
     def process(self, element: TextElement) -> float:
         return self.compute(element)
 
