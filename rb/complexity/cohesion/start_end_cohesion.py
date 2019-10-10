@@ -7,6 +7,7 @@ from rb.core.text_element_type import TextElementType
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
 
@@ -36,6 +37,8 @@ class StartEndCohesion(ComplexityIndex):
         else:
             start_block = element.get_blocks()[0]
             end_block = element.get_blocks()[-1]
-            v = doc.cna_graph.model.similarity(start_block, end_block)
+            sim_edge = self.cna_graph.edges(node=(start_block, end_block), edge_type=EdgeType.SEMANTIC, 
+                                            vector_model=None)
+            v = sim_edge[0][2]
             element.indices[self] = v
             return v

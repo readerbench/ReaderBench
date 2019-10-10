@@ -10,6 +10,7 @@ from rb.core.text_element_type import TextElementType
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
 
@@ -41,21 +42,30 @@ class AdjExternalCohesion(ComplexityIndex):
             elems[0].indices[self] = ComplexityIndex.IDENTITY
             return ComplexityIndex.IDENTITY
         elif len(elems) == 2:
-            v = element.get_parent_document().cna_graph.model.similarity(
-                                elems[0], elems[1])
+            sim_edge = self.cna_graph.edges(node=(elems[0], elems[1]), edge_type=EdgeType.SEMANTIC, 
+                                            vector_model=None)
+            v = sim_edge[0][2]
             elems[0].indices[self] = elems[1].indices[self] = v
             return ComplexityIndex.IDENTITY
         else:
             for i, elem in enumerate(elems):
                 if i == 0:
-                    v = element.get_parent_document().cna_graph.model.similarity(elems[i], elems[i + 1])
+                    sim_edge = self.cna_graph.edges(node=(elems[i], elems[i + 1]), edge_type=EdgeType.SEMANTIC,
+                                                    vector_model=None)
+                    v = sim_edge[0][2]
                     elems[i].indices[self] = v
                 elif i == len(elems) - 1:
-                    v = element.get_parent_document().cna_graph.model.similarity(elems[i], elems[i - 1])
+                    sim_edge = self.cna_graph.edges(node=(elems[i], elems[i - 1]), edge_type=EdgeType.SEMANTIC,
+                                                    vector_model=None)
+                    v = sim_edge[0][2]
                     elems[i].indices[self] = v
                 else:
-                    v = element.get_parent_document().cna_graph.model.similarity(elems[i], elems[i - 1])
-                    v += element.get_parent_document().cna_graph.model.similarity(elems[i], elems[i + 1])
+                    sim_edge = self.cna_graph.edges(node=(elems[i], elems[i - 1]), edge_type=EdgeType.SEMANTIC,
+                                                    vector_model=None)
+                    v = sim_edge[0][2]
+                    sim_edge = self.cna_graph.edges(node=(elems[i], elems[i + 1]), edge_type=EdgeType.SEMANTIC,
+                                                    vector_model=None)
+                    v += sim_edge[0][2]
                     v /= 2
                     elems[i].indices[self] = v
             return ComplexityIndex.IDENTITY     

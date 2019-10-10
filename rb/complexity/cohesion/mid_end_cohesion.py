@@ -7,6 +7,7 @@ from rb.core.text_element_type import TextElementType
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
 
@@ -40,7 +41,10 @@ class MiddleEndCohesion(ComplexityIndex):
 
             for i, _ in enumerate(blocks):
                 if i == end_index:  continue
-                weighted_sum = element.cna_graph.model.similarity(end_block, blocks[i]) * (1.0 / (end_index - i))
+                sim_edge = self.cna_graph.edges(node=(end_block, blocks[i]), edge_type=EdgeType.SEMANTIC,
+                                                vector_model=None)
+                v = sim_edge[0][2]
+                weighted_sum += v * (1.0 / (end_index - i))
                 scale_factor += (1.0 / (end_index -  i))
             element.indices[self] = weighted_sum / scale_factor 
             return element.indices[self]

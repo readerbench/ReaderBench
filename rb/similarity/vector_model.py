@@ -163,7 +163,8 @@ class VectorModel:
         else:
             return [(word, sim) for word, sim in result if sim > threshold]
 
-    def most_similar(self, elem: Union[str, TextElement, Vector], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
+    def most_similar(self, elem: Union[str, TextElement, Vector], 
+                    topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
         if not isinstance(elem, type(Vector)):
             elem = self.get_vector(elem)
         if elem is None:

@@ -5,6 +5,7 @@ from typing import Callable, Iterable, List, Tuple
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import MeasureFunction, average, standard_deviation
 from rb.core.lang import Lang
+from rb.core.document import Document
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.utils.rblogger import Logger
@@ -84,12 +85,12 @@ def compute_index(index: ComplexityIndex, element: TextElement) -> float:
 
 # computed indices and saves for each TextElement in indices dictionary
 def compute_indices(doc: Document, use_cna_graph: bool, vector_models: List[VectorModel]):
-    logger.info('Starting computing all indices for {0} type element'.format(type(element).__name__))
+    logger.info('Starting computing all indices for {0} type element'.format(type(doc).__name__))
     cna_graph = None
     if use_cna_graph:
-        cna_graph = CnaGraph(doc=doc, model=vector_models)
+        cna_graph = CnaGraph(doc=doc, models=vector_models)
 
     num_cores = cpu_count()
-    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) \
-        for cat in IndexCategory for index in cat.create(element.lang, cna_graph))
+    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
+        for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))
         

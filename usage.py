@@ -23,7 +23,6 @@ log = open('log.log', 'w', encoding='utf-8')
 if __name__ == "__main__":
 
     r = 2
-
     if r == 1:
         """how to use wordnet for RO"""
         print(POS.NOUN.to_wordnet(), file=log)
@@ -55,10 +54,11 @@ if __name__ == "__main__":
                     print(comp.text, key, v, file=log)
     elif r == 2:
         """ for ro """
-        vector_model = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
-                        name=CorporaEnum.README, lang=Lang.RO)
+       
         doc = Document(lang=Lang.RO, text=txt_ro)
-        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
+        vector_model_ro_word2vec = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
+                        name=CorporaEnum.README.value, lang=Lang.RO)
+        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model_ro_word2vec])
 
         print('\n\nindices at the doc level: \n\n', file=log)
         for key, v in doc.indices.items():
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                     print(comp.text, key, v, file=log)
 
         for word in doc.get_words():
-            print(word, word.idx, word.is_alpha)
+            print(word.lemma, file=log)
     # print(docs_ro.get_words()[0].get_parent_document().get_sentences())
     else:
         POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')

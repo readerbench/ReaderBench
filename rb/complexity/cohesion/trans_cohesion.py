@@ -7,6 +7,7 @@ from rb.core.text_element_type import TextElementType
 from typing import List, Callable
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
 
@@ -41,6 +42,9 @@ class TransCohesion(ComplexityIndex):
                     continue
                 cur_sent = current_block_sents[-1]
                 next_sent = next_block_sents[0]
-                sim_values.append(element.cna_graph.model.similarity(cur_sent, next_sent))
+                sim_edge = self.cna_graph.edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
+                                                vector_model=None)
+                v = sim_edge[0][2]
+                sim_values.append(v)
             element.indices[self] = sum(sim_values) / len(sim_values)
             return element.indices[self]
