@@ -22,7 +22,7 @@ log = open('log.log', 'w', encoding='utf-8')
 
 if __name__ == "__main__":
 
-    r = 0
+    r = 2
 
     if r == 1:
         """how to use wordnet for RO"""
