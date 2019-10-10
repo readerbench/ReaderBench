@@ -1,10 +1,11 @@
+from typing import List, Tuple, Union
+
 import networkx as nx
 from rb.cna.edge_type import EdgeType
 from rb.core.document import Document
 from rb.core.text_element import TextElement
 from rb.similarity.vector_model import VectorModel
 
-from typing import List, Tuple
 
 class CnaGraph:
     def __init__(self, doc: Document, models: List[VectorModel]):
@@ -30,7 +31,10 @@ class CnaGraph:
                     self.graph.add_edge(a, b, type=EdgeType.SEMANTIC, model=model, value=sim)
                     self.graph.add_edge(b, a, type=EdgeType.SEMANTIC, model=model, value=sim)
     
-    def edges(self, node: TextElement, edge_type: EdgeType = None, vector_model: VectorModel = None) -> List[Tuple[TextElement, TextElement, float]]:
+    def edges(self, 
+            node: Union[TextElement, Tuple[TextElement, TextElement]], 
+            edge_type: EdgeType = None, 
+            vector_model: VectorModel = None) -> List[Tuple[TextElement, TextElement, float]]:
         return [(a, b, data["value"] if "value" in data else 0)
             for a, b, data in self.graph.edges(node, data=True) 
             if (edge_type is None or data["type"] is edge_type) and 
