@@ -20,39 +20,41 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.cohesion.trans_cohesion import TransCohesion
 
     indices = []
-    indices.append(IntraCohesion(lang=lang, element_type=TextElementType.BLOCK, 
-                                    reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG,
-                                    cna_graph=cna_graph))
-    """ aka inter cohesion """
-    indices.append(IntraCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                    reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
-                                    cna_graph=cna_graph))
-    indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                    reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
-                                    cna_graph=cna_graph))
-    indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                    reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
-                                    cna_graph=cna_graph))
-    indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
-                                    reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
-                                    cna_graph=cna_graph))
-    indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
-                                    reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
-                                    cna_graph=cna_graph))
-    indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.SENT,
+    if cna_graph:
+        indices.append(IntraCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+                                        reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG,
                                         cna_graph=cna_graph))
-    indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.BLOCK,
+        """ aka inter cohesion """
+        indices.append(IntraCohesion(lang=lang, element_type=TextElementType.DOC, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
                                         cna_graph=cna_graph))
-    indices.append(StartEndCohesion(lang=lang,
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
+                                        cna_graph=cna_graph))
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
+                                        cna_graph=cna_graph))
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
+                                        cna_graph=cna_graph))
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
+                                        cna_graph=cna_graph))
+        indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.SENT,
+                                            cna_graph=cna_graph))
+        indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.BLOCK,
+                                            cna_graph=cna_graph))
+        indices.append(StartEndCohesion(lang=lang,
+                                        reduce_depth=None, reduce_function=None,
+                                        cna_graph=cna_graph))
+        indices.append(StartMiddleCohesion(lang=lang,
+                                        reduce_depth=None, reduce_function=None,
+                                        cna_graph=cna_graph))
+        indices.append(MiddleEndCohesion(lang=lang,
+                                        reduce_depth=None, reduce_function=None,
+                                        cna_graph=cna_graph))
+        indices.append(TransCohesion(lang=lang,
                                     reduce_depth=None, reduce_function=None,
                                     cna_graph=cna_graph))
-    indices.append(StartMiddleCohesion(lang=lang,
-                                    reduce_depth=None, reduce_function=None))
-    indices.append(MiddleEndCohesion(lang=lang,
-                                    reduce_depth=None, reduce_function=None,
-                                    cna_graph=cna_graph))
-    indices.append(TransCohesion(lang=lang,
-                                 reduce_depth=None, reduce_function=None,
-                                 cna_graph=cna_graph))
                                 
     return indices

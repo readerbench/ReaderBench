@@ -30,72 +30,78 @@ if __name__ == "__main__":
     parser.add_argument('--indices_en', dest='indices_en', action='store_true', default=False)
     parser.add_argument('--wordnet_ro', dest='wordnet_ro', action='store_true', default=False)
     parser.add_argument('--wordnet_en', dest='wordnet_en', action='store_true', default=False)
-    
+    parser.add_argument('--pos_features_ro', dest='pos_features_ro', action='store_true', default=False)
+
     args = parser.parse_args()
     
     if args.parser_ro:
+        print('parser for ro: ', file=log)
         doc = Document(lang=Lang.RO, text=txt_ro)
         for word in doc.get_words():
             print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
 
     if args.parser_en:
+        print('parser for en: ', file=log)
         doc = Document(lang=Lang.EN, text=txt_eng)
         for word in doc.get_words():
             print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
 
     if args.wordnet_ro:
+        print('wordnet for ro: ', file=log)
         print(POS.NOUN.to_wordnet(), file=log)
         print('hypernyms (for om) ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
         print('paths lengths for om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
 
     if args.wordnet_en:
-        print('hypernyms eng for human', get_hypernyms('human', lang=Lang.EN, file=log))
+        print('wordnet for en: ', file=log)
+        print('hypernyms eng for human', get_hypernyms('human', lang=Lang.EN), file=log)
 
     if args.indices_en:
-        vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-            name=CorporaEnum.COCA.value, lang=Lang.EN)
         doc = Document(lang=Lang.EN, text=txt_eng)
-        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
+        en_coca_word2vec = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+            name=CorporaEnum.COCA.value, lang=Lang.EN)
+        """you can compute indices without the cna graph, but this means 
+           some indices won't be computed"""
+        cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
+        compute_indices(doc=doc, cna_graph=cna_graph_en)
 
-        print('\n\nindices at the doc level: \n\n', file=log)
+        print('\n\nindices at the doc level (en): \n\n', file=log)
         for key, v in doc.indices.items():
             print(key, v, file=log)
 
-        print('\n\nindices at the block level: \n\n', file=log)
+        print('\n\nindices at the block level (en): \n\n', file=log)
         for comp in doc.get_blocks():
             for key, v in comp.indices.items():
                 print(comp.text, key, v, file=log)
 
-
-        print('\n\nindices at the sent level: \n\n', file=log)
+        print('\n\nindices at the sent level (en): \n\n', file=log)
         for comp in doc.get_sentences():
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
-    elif r == 2:
-        """ for ro """
-       
+
+    if args.indices_ro:
+        ro_readme_word2vec = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
+            name=CorporaEnum.README.value, lang=Lang.RO)
         doc = Document(lang=Lang.RO, text=txt_ro)
-        vector_model_ro_word2vec = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
-                        name=CorporaEnum.README.value, lang=Lang.RO)
-        cna_graph = CnaGraph(doc, [vector_model_ro_word2vec])
-        compute_indices(doc, cna_graph=cna_graph)
+        """you can compute indices without the cna graph, but this means 
+           some indices won't be computed"""
+        cna_graph_ro = CnaGraph(doc=doc, models=[ro_readme_word2vec])
+        compute_indices(doc=doc, cna_graph=cna_graph_ro)
 
-        print('\n\nindices at the doc level: \n\n', file=log)
+        print('\n\nindices at the doc level (ro): \n\n', file=log)
         for key, v in doc.indices.items():
             print(key, v, file=log)
 
-        print('\n\nindices at the block level: \n\n', file=log)
+        print('\n\nindices at the block level (ro): \n\n', file=log)
         for comp in doc.get_blocks():
             for key, v in comp.indices.items():
                 print(comp.text, key, v, file=log)
 
-        print('\n\nindices at the sent level: \n\n', file=log)
+        print('\n\nindices at the sent level (ro): \n\n', file=log)
         for comp in doc.get_sentences():
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
 
-       
-    # print(docs_ro.get_words()[0].get_parent_document().get_sentences())
-    else:
+    if args.pos_features_ro:
         POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
     
