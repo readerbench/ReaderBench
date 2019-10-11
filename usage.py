@@ -8,6 +8,7 @@ from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from rb.complexity.word.name_entity_enum import NamedEntityONEnum
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
+from rb.cna.cna_graph import CnaGraph
 from nltk.corpus import wordnet as wn
 
 
@@ -35,7 +36,7 @@ if __name__ == "__main__":
         vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
             name=CorporaEnum.COCA.value, lang=Lang.EN)
         doc = Document(lang=Lang.EN, text=txt_eng)
-
+        C
         compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
 
         print('\n\nindices at the doc level: \n\n', file=log)
@@ -58,7 +59,8 @@ if __name__ == "__main__":
         doc = Document(lang=Lang.RO, text=txt_ro)
         vector_model_ro_word2vec = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
                         name=CorporaEnum.README.value, lang=Lang.RO)
-        compute_indices(doc, use_cna_graph=True, vector_models=[vector_model_ro_word2vec])
+        cna_graph = CnaGraph(doc, [vector_model_ro_word2vec])
+        compute_indices(doc, cna_graph=cna_graph)
 
         print('\n\nindices at the doc level: \n\n', file=log)
         for key, v in doc.indices.items():
