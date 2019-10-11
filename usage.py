@@ -10,7 +10,7 @@ from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
 from rb.cna.cna_graph import CnaGraph
 from nltk.corpus import wordnet as wn
-
+import argparse
 
 txt_eng = """This is a sample document. It Romanian, (him) can contain, multiple sentences and paragraphs and repeating sentencesm Romania.
 This is considered a new block (paragraph).
@@ -23,20 +23,38 @@ log = open('log.log', 'w', encoding='utf-8')
 
 if __name__ == "__main__":
 
-    r = 2
-    if r == 1:
-        """how to use wordnet for RO"""
-        print(POS.NOUN.to_wordnet(), file=log)
-        print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
-        print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]), file=log)
-        print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
-        print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO), file=log)
+    parser = argparse.ArgumentParser(description='RUn a specific task')
+    parser.add_argument('--parser_ro', dest='parser_ro', action='store_true', default=False)
+    parser.add_argument('--parser_en', dest='parser_en', action='store_true', default=False)
+    parser.add_argument('--indices_ro', dest='indices_ro', action='store_true', default=False)
+    parser.add_argument('--indices_en', dest='indices_en', action='store_true', default=False)
+    parser.add_argument('--wordnet_ro', dest='wordnet_ro', action='store_true', default=False)
+    parser.add_argument('--wordnet_en', dest='wordnet_en', action='store_true', default=False)
+    
+    args = parser.parse_args()
+    
+    if args.parser_ro:
+        doc = Document(lang=Lang.RO, text=txt_ro)
+        for word in doc.get_words():
+            print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
 
-        """indices for en (is the same for RO, just change language) """ 
+    if args.parser_en:
+        doc = Document(lang=Lang.EN, text=txt_eng)
+        for word in doc.get_words():
+            print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
+
+    if args.wordnet_ro:
+        print(POS.NOUN.to_wordnet(), file=log)
+        print('hypernyms (for om) ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
+        print('paths lengths for om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
+
+    if args.wordnet_en:
+        print('hypernyms eng for human', get_hypernyms('human', lang=Lang.EN, file=log))
+
+    if args.indices_en:
         vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
             name=CorporaEnum.COCA.value, lang=Lang.EN)
         doc = Document(lang=Lang.EN, text=txt_eng)
-        C
         compute_indices(doc, use_cna_graph=True, vector_models=[vector_model])
 
         print('\n\nindices at the doc level: \n\n', file=log)
@@ -76,8 +94,7 @@ if __name__ == "__main__":
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
 
-        for word in doc.get_words():
-            print(word.lemma, file=log)
+       
     # print(docs_ro.get_words()[0].get_parent_document().get_sentences())
     else:
         POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
