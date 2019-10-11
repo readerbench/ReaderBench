@@ -9,7 +9,9 @@ from rb.complexity.word.name_entity_enum import NamedEntityONEnum
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
 from rb.cna.cna_graph import CnaGraph
+from rb.ro_corrections.ro_correct import correct_text_ro
 from nltk.corpus import wordnet as wn
+from flask import jsonify
 import argparse
 
 txt_eng = """This is a sample document. It Romanian, (him) can contain, multiple sentences and paragraphs and repeating sentencesm Romania.
@@ -30,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--indices_en', dest='indices_en', action='store_true', default=False)
     parser.add_argument('--wordnet_ro', dest='wordnet_ro', action='store_true', default=False)
     parser.add_argument('--wordnet_en', dest='wordnet_en', action='store_true', default=False)
+    parser.add_argument('--ro_correct_anda', dest='ro_correct_anda', action='store_true', default=False)
     parser.add_argument('--pos_features_ro', dest='pos_features_ro', action='store_true', default=False)
 
     args = parser.parse_args()
@@ -105,3 +108,6 @@ if __name__ == "__main__":
     if args.pos_features_ro:
         POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
     
+    if args.ro_correct_anda:
+        txt = "Fiind protejate de stratul de gheaţă, apele mai adânci nu îngheaţă până la fund, ci au, sub stratul de gheaţă, temperatura de 4 grade la care viaţa poate continua"
+        print(correct_text_ro(txt), file=log)

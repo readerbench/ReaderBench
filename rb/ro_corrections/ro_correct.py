@@ -173,7 +173,7 @@ def build_repetitions_dictionary(repetitions):
 def convert_repetitions_dictionary(sentence, repetitions_dictionary):
     items = []
     for root in repetitions_dictionary:
-        
+        mistake_list = []
         for i in range(len(repetitions_dictionary[root])):
             word_index = repetitions_dictionary[root][i][1] - 1
             text_before = ' '.join([w.text for w in rom_spacy(sentence)[:word_index]])
@@ -182,11 +182,12 @@ def convert_repetitions_dictionary(sentence, repetitions_dictionary):
             previous_words = len(
                 [w.text
                 for w in rom_spacy('\n'.join(text_before.split('\n')[:-1]))])
-            items.append({
+            mistake_list.append({
                 'mistake': repetitions_dictionary[root],
                 'paragraph': paragraph_index,
                 'word_index': word_index - previous_words,
             })
+        items.append(mistake_list)
     return items
 
 #using a window check if there are words with the same stem in window. Eliminate stop_words
@@ -389,7 +390,8 @@ def check_verbal_predicate(S, P, spn, corrections, last, text, paragraph_index):
         word_index = get_index(text, last, P.text)
         person, number, gender = get_person_number_gender(spn)
         message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+        corrections.append({"message": message, "paragraph_index": paragraph_index, 
+            "title": "Acord subiect - predicat", "word_index": word_index})
         last = word_index
         return last
     #participiu  or infinitive
@@ -440,7 +442,8 @@ def check_copulative_verb(S, P, spn, corrections, last, text, paragraph_index):
                 word_index = get_index(text, last, child.text)
                 person, number, gender = get_person_number_gender(spn)
                 message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
+                corrections.append({"message": message, "paragraph_index": paragraph_index,
+                     "title": "Acord subiect - predicat", "word_index": word_index})
                 last = word_index
                 return last
             else:
@@ -559,7 +562,8 @@ def check_noun_and_adjective_relation(text):
                         person, number, gender = get_person_number_gender(spn)
                         word_index = get_index(text, last, A.text)
                         message = "Adjectivul trebuie sa fie la numarul " + number + ", genul " + gender
-                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - adjectiv", "word_index": word_index})
+                        corrections.append({"message": message, "paragraph_index": paragraph_index,
+                                 "title": "Acord substantiv - adjectiv", "word_index": word_index})
                         last = word_index
     return corrections
 
@@ -667,18 +671,23 @@ def create_output_list(result, case, default_suggestion = None):
             output_list.append(create_output(case, message, paragraph_index, item["word_index"][1]))
         return output_list
     if case == "Repetiţie" or case == "Repetiţie sinonime":
-        for item in result:
-            try:
-                if len(item['mistake']) >= 1 and (str(item['mistake'][0][0]) == '.' or str(item['mistake'][0][0]) == ','):
-                    continue
-            except:
-                pass
-            message = "Reformulare. Repetiţie deranjantă pentru cuvântul/cuvintele: " + get_mistakes(item["mistake"])
-            if case == "Repetitie sinonime":
-                message += " Cuvintele sunt sinonime."
-            paragraph_index = item["paragraph"]
-            word_index = item["word_index"]
-            output_list.append(create_output(case, message, paragraph_index, word_index))
+        for mistake_list in result:
+            mistake_output_list = []
+            for item in mistake_list:
+                try:
+                    if len(item['mistake']) >= 1 and (str(item['mistake'][0][0]) == '.' or str(item['mistake'][0][0]) == ','):
+                        continue
+                except:
+                    pass
+                message = "Reformulare. Repetiţie deranjantă pentru cuvântul/cuvintele: " + get_mistakes(item["mistake"])
+                if case == "Repetitie sinonime":
+                    message += " Cuvintele sunt sinonime."
+                paragraph_index = item["paragraph"]
+                word_index = item["word_index"]
+                mistake_output_list.append(create_output(case, message, paragraph_index, word_index))
+                # print('len mistake output list', len(mistake_output_list))
+                # print(mistake_output_list)
+            output_list.append(mistake_output_list)
         return output_list
     if case == "Conjuncţie coordonatoare":
         for item in result:
@@ -860,19 +869,35 @@ def fix_dashes(output):
                 i += 1
     
     output['split_text'] = new_text
-    for error in output['correction']:
-        paragraph = error['paragraph_index']
-        breaks = word_breaks[paragraph]
-        if len(breaks) == 0:
-            continue
-        
-        count = 0
-        for i in range(len(error['word_index'])):
-            offset = 0
-            for e in breaks:
-                if error['word_index'][i] > e:
-                    offset -= 2
-            error['word_index'][i] += offset
+    for error_l in output['correction']:
+        if isinstance(error_l, list):
+            for error in error_l:
+                paragraph = error['paragraph_index']
+                breaks = word_breaks[paragraph]
+                if len(breaks) == 0:
+                    continue
+                
+                count = 0
+                for i in range(len(error['word_index'])):
+                    offset = 0
+                    for e in breaks:
+                        if error['word_index'][i] > e:
+                            offset -= 2
+                    error['word_index'][i] += offset
+        else:
+            error = error_l
+            paragraph = error['paragraph_index']
+            breaks = word_breaks[paragraph]
+            if len(breaks) == 0:
+                continue
+            
+            count = 0
+            for i in range(len(error['word_index'])):
+                offset = 0
+                for e in breaks:
+                    if error['word_index'][i] > e:
+                        offset -= 2
+                error['word_index'][i] += offset
 
 
 def fix_punctuation(output):
@@ -896,36 +921,92 @@ def fix_punctuation(output):
                 i += 1
     
     output['split_text'] = new_text
-    for error in output['correction']:
-        paragraph = error['paragraph_index']
-        breaks = word_breaks[paragraph]
-        if len(breaks) == 0:
-            continue
-        
-        count = 0
-        for i in range(len(error['word_index'])):
-            offset = 0
-            for e in breaks:
-                if error['word_index'][i] > e:
-                    offset -= 1
-            error['word_index'][i] += offset
+    for error_l in output['correction']:
+        if isinstance(error_l, list):
+            for error in error_l:
+                paragraph = error['paragraph_index']
+                breaks = word_breaks[paragraph]
+                if len(breaks) == 0:
+                    continue
+                
+                count = 0
+                for i in range(len(error['word_index'])):
+                    offset = 0
+                    for e in breaks:
+                        if error['word_index'][i] > e:
+                            offset -= 1
+                    error['word_index'][i] += offset
+        else:
+            error = error_l
+            paragraph = error['paragraph_index']
+            breaks = word_breaks[paragraph]
+            if len(breaks) == 0:
+                continue
+            
+            count = 0
+            for i in range(len(error['word_index'])):
+                offset = 0
+                for e in breaks:
+                    if error['word_index'][i] > e:
+                        offset -= 1
+                error['word_index'][i] += offset
 
 
 def change_format(output):
-    for error in output["correction"]:
-        if isinstance(error["word_index"], int):
-            error["word_index"] = [error["word_index"]]
+    for error_l in output["correction"]:
+        if isinstance(error_l, list):
+            for error in error_l:
+                if isinstance(error["word_index"], int):
+                    error["word_index"] = [error["word_index"]]
+        else:
+            error = error_l
+            if isinstance(error["word_index"], int):
+                error["word_index"] = [error["word_index"]]
     
     fix_dashes(output)
     fix_punctuation(output)
     mistakes = []
-    for error in output["correction"]:
-        par_offset = get_paragraph_offset(error["paragraph_index"], output["split_text"])
-        word_offset_start = get_word_offset(error["word_index"][0], output["split_text"][error["paragraph_index"]])
-        word_offset_end = get_word_offset(error["word_index"][-1], output["split_text"][error["paragraph_index"]], True)
-        error["correction_index"] = [par_offset + word_offset_start, par_offset + word_offset_end]
+    for error_l in output["correction"]:
+        if isinstance(error_l, list):
+            for error in error_l:
+                par_offset = get_paragraph_offset(error["paragraph_index"], output["split_text"])
+                word_offset_start = get_word_offset(error["word_index"][0], output["split_text"][error["paragraph_index"]])
+                word_offset_end = get_word_offset(error["word_index"][-1], output["split_text"][error["paragraph_index"]], True)
+                error["correction_index"] = [par_offset + word_offset_start, par_offset + word_offset_end]
+        else:
+            error = error_l
+            par_offset = get_paragraph_offset(error["paragraph_index"], output["split_text"])
+            word_offset_start = get_word_offset(error["word_index"][0], output["split_text"][error["paragraph_index"]])
+            word_offset_end = get_word_offset(error["word_index"][-1], output["split_text"][error["paragraph_index"]], True)
+            error["correction_index"] = [par_offset + word_offset_start, par_offset + word_offset_end]
     return output
-        
+
+
+def simplify_format(output):
+
+    if 'split_text' in output:
+        del output['split_text']
+    
+    new_corrections = []
+
+    for error_l in output['correction']:
+        if isinstance(error_l, list):
+            if len(error_l) > 0:
+                refact_cor = {}
+                correction_index_list = []
+                refact_cor['message'] = error_l[0]['message']
+                refact_cor['title'] = error_l[0]['title']
+                for error in error_l:
+                    correction_index_list.append(error['correction_index'])
+                refact_cor['correction_index'] = correction_index_list
+                new_corrections.append(refact_cor)
+        else:
+            if 'paragraph_index' in error_l:
+                del error_l['paragraph_index']
+            if 'word_index' in error_l:
+                del error_l['word_index']
+            new_corrections.append(error_l)
+    return new_corrections
 
 def identify_mistake(sentence):
 
@@ -1018,6 +1099,7 @@ def identify_mistake(sentence):
 
     output["correction"] = output_list
     output = change_format(output)
+    output = simplify_format(output)
 
     return output
 
@@ -1026,12 +1108,15 @@ def correct_text_ro(text):
     p = re.compile('\s\s+')
     text = p.sub(' ', text)
     paragraphs = text.split('\n')
-    output = {'split_text': [], 'correction': []}
+    output = []
     for i, paragraph in enumerate(paragraphs):
         mistakes = identify_mistake(paragraph)
-        output['split_text'].append(mistakes['split_text'][0])
-        for error in mistakes['correction']:
-            error['paragraph_index'] = i
-            output['correction'].append(error)
-    
+        if len(mistakes) > 0:
+            output += mistakes
     return output
+
+if __name__ == "__main__":
+    txt = "Fiind protejate de stratul de gheaţă, apele mai adânci nu îngheaţă până la fund, ci au, sub stratul de gheaţă, temperatura de 4 grade la care viaţa poate continua"
+    correct_text_ro(txt)
+    with open('log.log', 'wt', encoding='utf-8') as f:
+        f.write(jsonify(correct_text_ro(txt)))
