@@ -5,7 +5,6 @@ import re
 import json
 import nltk
 import spacy
-#integrate ReaderBench
 import sys
 from rb.parser.spacy_parser import SpacyParser
 from rb.parser.spacy_parser import convertToPenn
@@ -68,24 +67,11 @@ def is_exception(mistake, case):
 def build_response(mistakes_list, sentence, case):
     items = []
     if case == "Cacofonie" or case == "Si_parazitar":
-        last_index = 0
-        for mistake in mistakes_list:
-            if (is_exception(mistake, "Cacofonie")) :
-                continue
-            concatenated_mistake = mistake[0] + " " + mistake[1]
-            index = sentence[last_index:].index(concatenated_mistake)
-            par_word = convert_char_ind_to_word_ind(sentence, last_index + index)
-            
-            paragraph_index = par_word['paragraph']
-            word_index = par_word['index']
-            
-            item  = {
-                'mistake': concatenated_mistake,
-                'paragraph': paragraph_index,
-                'word_index': [word_index, word_index + 1]
-            }
-            last_index = index + len(mistake) - 1
-            items.append(item)
+        item  = {
+            'mistake': case,
+            'index': mistake_list
+        }
+        items.append(item)
         return items
     if case == "Conjunctie coordonatoare" or case == "Verbul 'a voi'" or case == "Totusi" or case == "Adverbe la inceput" or case == "Adverbe intercalate":
         for mistake in mistakes_list:
@@ -145,21 +131,28 @@ def build_response(mistakes_list, sentence, case):
                     items.append(item)
         return items 
 
-def check_cacophony(sentence):
-    regex_list = ['(\w*la)\s(la\w*)','(\w*sa)\s(sa\w*)','(\w*ca)\s(ca\w*)','(\w*ca)\s(co\w*)','(\w*ca)\s(că\w*)','(\w*ca)\s(ce\w*)',
-            '(\w*ca)\s(ci\w*)','(\w*că)\s(ca\w*)','(\w*cu)\s(co\w*)', '(\w*că)\s(co\w*)', '(\w*că)\s(cu\w*)', '(\w*că)\s(când\w*)', 
-            '(\w*ca)\s(când\w*)', '(\w*că)\s(câ)']
+def check_cacophony(par_index, doc):
+    cac_list = [['la', 'la'], ['sa', 'sa'],
+            ['ca', 'ca'], ['ca', 'că'],
+            ['ca', 'ce'], ['ca', 'ci'],
+            ['că', 'ca'], ['cu', 'co'],
+            ['că', 'cu'], ['că', 'când'],
+            ['ca', 'când'], ['că', 'câ']]
     cacophony_list = []
-    for regex in regex_list:
-        p = re.compile(regex, re.IGNORECASE)
-        cacophony_list += p.findall(sentence)
-    cacophony_list.sort(key=lambda s: sentence.index(s[0] + ' ' + s[1]))
-    return build_response(cacophony_list, sentence, "Cacofonie")
+    for i, token in enumerate(doc):
+        if i == len(doc) - 2:   continue
+        for c_pair in cac_list:
+            if doc[i].text == c_pair[0] and doc[i + 1].text == c_pair[1]:
+                cacophony_list.append({
+                    'mistake': "Cacofonie",
+                    'index': [ [par_index, i], [par_index, i + 1] ]
+                })
+    return cacophony_list
 
-def check_si_parazitar(sentence):
-    regex = '(\w*ca)\s(şi\w*)'
-    p = re.compile(regex, re.IGNORECASE)
-    return build_response(p.findall(sentence), sentence, "Si_parazitar")
+# def check_si_parazitar(sentence):
+#     regex = '(\w*ca)\s(şi\w*)'
+#     p = re.compile(regex, re.IGNORECASE)
+#     return build_response(p.findall(sentence), sentence, "Si_parazitar")
 
 #group repetition in dictionary to be solve separated
 def build_repetitions_dictionary(repetitions):
@@ -170,85 +163,42 @@ def build_repetitions_dictionary(repetitions):
         d[item[2]].append((item[0], item[1]))
     return d
 
-def convert_repetitions_dictionary(sentence, repetitions_dictionary):
-    items = []
-    for root in repetitions_dictionary:
-        mistake_list = []
-        for i in range(len(repetitions_dictionary[root])):
-            word_index = repetitions_dictionary[root][i][1] - 1
-            text_before = ' '.join([w.text for w in rom_spacy(sentence)[:word_index]])
-
-            paragraph_index = text_before.count('\n')
-            previous_words = len(
-                [w.text
-                for w in rom_spacy('\n'.join(text_before.split('\n')[:-1]))])
-            mistake_list.append({
-                'mistake': repetitions_dictionary[root],
-                'paragraph': paragraph_index,
-                'word_index': word_index - previous_words,
-            })
-        items.append(mistake_list)
-    return items
 
 #using a window check if there are words with the same stem in window. Eliminate stop_words
 #create a list with (word, index, stem)
 #returns a dictionary with grouped repetitions
-def check_repetitions(sentence):
-    
-    doc = rom_spacy.parser(rom_spacy(sentence))
-    sentence_tokens = remove_punctuation(list(doc))
-    sentence_tokens = [e for e in sentence_tokens if e.text.strip() != '...']
+def check_repetitions(par_index, doc):
     
     repetitions = []
     index = 0
-    lemmas = []
     
-    last_index = 0
-    while index == 0 or len(sentence_tokens) - index >= window_size:
+    while index == 0 or len(doc) - index >= window_size:
         repetitions_dictionary = {}
-        repetitions_dictionary_stemming = {}
-        
         #lemmatization
-        for i in range(index, min(index + window_size, len(sentence_tokens))):
-            word = sentence_tokens[i]
-            num_endlines = len(list(filter(lambda x: len(x.text.strip()) == 0, sentence_tokens[:i])))
+        for i in range(index, min(index + window_size, len(doc))):
+            word = doc[i]
+            num_endlines = len(list(filter(lambda x: len(x.text.strip()) == 0, doc[:i])))
             if word.is_stop != True:
                 lemma = word.lemma_
                 if lemma in repetitions_dictionary:
-                    added_word = repetitions_dictionary[lemma]
-                    if added_word not in repetitions:
-                        repetitions.append(added_word)
-                        lemmas.append(added_word[0])
-                    if (word.text, i + 1 - num_endlines, lemma) not in repetitions:
-                        repetitions.append((word.text, i + 1 - num_endlines, lemma))
-                        lemmas.append(word.text)
+                    repetitions_dictionary[lemma].append(i)
                 else:
-                    repetitions_dictionary[lemma] = (word.text, i + 1 - num_endlines, lemma)
-                    
-        # try also with stemming
-        for i in range(index, min(index + window_size, len(sentence_tokens))):
-            word = sentence_tokens[i]
-            num_endlines = len(list(filter(lambda x: len(x.text.strip()) == 0, sentence_tokens[:i])))
-            if word.is_stop != True and word.text not in lemmas:
-                stem = stemmer.stem(word.text)
-                if stem in repetitions_dictionary_stemming:
-                    added_word = repetitions_dictionary_stemming[stem]
-                    if added_word not in repetitions:
-                        repetitions.append(added_word)
-                    if (word.text, i + 1 - num_endlines, stem) not in repetitions:
-                        repetitions.append((word.text, i + 1 - num_endlines, stem))
-                else:
-                    repetitions_dictionary_stemming[stem] = (word.text, i + 1 - num_endlines, stem)
-                    
+                    repetitions_dictionary[lemma] = [i]
+        for k, v in repetitions_dictionary.items():
+            if len(v) >= 2 and doc[v[0]].is_punct == False and doc[v[0]].is_stop == False:
+                el = [ [par_index, value] for value in v]
+                if el not in repetitions:
+                    repetitions.append(el)
         index += 1
-
-    repetitions_dictionary = build_repetitions_dictionary(repetitions)
-    return convert_repetitions_dictionary(sentence, repetitions_dictionary)
+    items = []
+    for rep in repetitions:
+        items.append({'mistake': "Repetiție",
+                    'index': rep})
+    return items
 
 
 def are_synonyms(word1, word2):
-    intersection  = set(lexicons[word1]) & set(lexicons[word2])
-    return len(intersection) > 1
+    return ((len(set(lexicons[word1]) & set([word2])) >= 1) or (len(set(lexicons[word2]) & set([word1])) >= 1))
 
 def get_synonym_pairs(window):
     pairs = []
@@ -312,11 +262,16 @@ def check_synonyms_repetitions(sentence):
     return convert_repetitions_dictionary(sentence, repetitions)
 
 #Dupa totusi nu se pune virgula.
-def check_totusi(sentence):
-    regex = '(totuși\s*,)'
-    p = re.compile(regex)
-    mistakes = p.findall(sentence)
-    return build_response(mistakes, sentence, "Totusi")
+def check_totusi(par_index, doc):
+    mistake_list = []
+    for i, token in enumerate(doc):
+        if i == 0:   continue
+        if doc[i].text.lower() == 'totuși' and doc[i - 1].text == ',':
+            mistake_list.append({
+                'mistake': "Virgulă înainte de totuși",
+                'index': [ [par_index, i - 1], [par_index, i] ]
+            })
+    return mistake_list
 
 #Atunci când părțile de propoziție sau propozițiile se află într-un raport de coordonare, introduse prin conjuncțiile și, sau, ori, totuși nu se despart prin virgulă.
 def check_coordinative_conjunctions(sentence):
@@ -339,13 +294,18 @@ def check_adversative_conjunctions(sentence):
     return build_response(mistakes, sentence, "Conjunctie adversativa")
 
 
-def check_voi_verb(sentence):
-    verb_list = ['vroiam', 'vroiai', 'vroia[^\w]', 'vroiau', 'vroiaţi']
-    mistakes = []
-    for regex in verb_list:
-        p = re.compile(regex, re.IGNORECASE)
-        mistakes += p.findall(sentence)
-    return build_response(mistakes, sentence, "Verbul 'a voi'")
+def check_voi_verb(par_index, doc):
+    verb_list = ['vroiam', 'vroiai', 'vroia', 'vroiau', 'vroiaţi']
+    mistake_list = []
+    for i, token in enumerate(doc):
+        if i == len(doc) - 2:   continue
+        for vb in verb_list:
+            if doc[i].text == vb:
+                mistake_list.append({
+                    'mistake': "Forme verbului",
+                    'index': [ [par_index, i] ]
+                })
+    return mistake_list
 
 def check_comparative(sentence):
     regex_list = ['(mai\s\w+\sde)', '(mai\s\w+\sca)']
@@ -355,13 +315,20 @@ def check_comparative(sentence):
         mistakes += p.findall(sentence)
     return build_response(mistakes, sentence, "Comparativ de superioritate")
 
-def check_adverbs_at_the_beginning(sentence):
-    adverb_list = ['Totuși\s', 'Așadar\s', 'Prin urmare\s', 'Deci\s']
-    mistakes = []
-    for regex in adverb_list:
-        p = re.compile(regex)
-        mistakes += p.findall(sentence)
-    return build_response(mistakes, sentence, "Adverbe la inceput")
+def check_adverbs_at_the_beginning(par_index, doc):
+
+    adverb_list = ['Totuși', 'Așadar', 'Prin urmare', 'Deci']
+    mistake_list = []
+
+    for i, token in enumerate(doc):
+        if i == len(doc) - 2:   continue
+        for vb in adverb_list:
+            if doc[i].text == vb:
+                mistake_list.append({
+                    'mistake': "Adevrb nepotrivit la început de frază",
+                    'index': [ [par_index, i] ]
+                })
+    return mistake_list
 
 def check_adverbs_in_middle(sentence):
     adverb_list = ['(\w\s+desigur)','(desigur\s+\w)', '(\w\s+firește)', '(firește\s+\w)','(\w\s+așadar)','(așadar\s+\w)',
@@ -373,54 +340,48 @@ def check_adverbs_in_middle(sentence):
         mistakes += p.findall(sentence)
     return build_response(mistakes, sentence, "Adverbe intercalate")
 
-def check_verbal_predicate(S, P, spn, corrections, last, text, paragraph_index):
+def check_verbal_predicate(par_index, S, P, spn, corrections):
     if P.tag_[:3] == "Vmi":
         spv = get_verb(P.tag_)
         if is_collective_subject(S, spv, exceptions):
-            return last
+            return None
 
         if spn[:2] == spv:
-            return last
+            return None
         if spn[0] == spv[0] and spv[1] == "":
-            return last
+            return None
         if spn[1] == spv[1] and spv[0] == "-":
-            return last
+            return None
         
-        #it is not correct
-        word_index = get_index(text, last, P.text)
         person, number, gender = get_person_number_gender(spn)
-        message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-        corrections.append({"message": message, "paragraph_index": paragraph_index, 
-            "title": "Acord subiect - predicat", "word_index": word_index})
-        last = word_index
-        return last
-    #participiu  or infinitive
+        mistake = {
+            'mistake': 'Acordul verbului cu subiectul',
+            'index': [[par_index, S.i], [par_index, P.i]]
+        }
+        corrections.append(mistake)
+        
     elif P.tag_[:3] == "Vmp" or P.tag_[:4] == "Vmnp":
         for child in P.children:
             if child.dep_ == "aux":
                 if child.tag_ == "Vanp":
-                    return last
+                    return None
 
                 aux = get_verb(child.tag_)
                 if is_collective_subject(S, aux, exceptions):
-                    return last
+                    return None
 
                 if aux == spn[:2]:
-                    return last
+                    return None
                 if aux[0] == spn[0] and aux[1] == "":
-                    return last
-                
-                #it is not correct
-                word_index = get_index(text, last, child.text)
-                person, number, gender = get_person_number_gender(spn)
-                message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-                last = word_index + 1
-                return last
-    
-    return last
+                    return None
 
-def check_copulative_verb(S, P, spn, corrections, last, text, paragraph_index):
+                mistake = {
+                    'mistake': 'Acordul verbului cu subiectul',
+                    'index': [[par_index, S.i], [par_index, child.i]]
+                }
+                corrections.append(mistake)
+
+def check_copulative_verb(par_index, S, P, spn, corrections):
     #check copulativ verb with subject
     has_cop = False
     for child in P.children:
@@ -429,54 +390,48 @@ def check_copulative_verb(S, P, spn, corrections, last, text, paragraph_index):
                 spv = get_verb(child.tag_)
 
                 if is_collective_subject(S, spv, exceptions):
-                    return last
+                    return None
                 
                 if spn[:2] == spv:
-                    return last
+                    return None
                 if spn[0] == spv[0] and spv[1] == "":
-                    return last
+                    return None
                 if spn[1] == spv[1] and spv[0] == "-":
-                    return last
-
-                #it is not correct
-                word_index = get_index(text, last, child.text)
-                person, number, gender = get_person_number_gender(spn)
-                message = "Predicatul trebuie sa fie la persoana " + person + ", numarul " + number
-                corrections.append({"message": message, "paragraph_index": paragraph_index,
-                     "title": "Acord subiect - predicat", "word_index": word_index})
-                last = word_index
-                return last
+                    return None
+                # predicat nominal: verb copulativ + nume predicativ, punele pe ambele in index
+                mistake = {
+                    'mistake': 'Acordul verbului cu subiectul',
+                    'index': [[par_index, S.i], [par_index, P.i], [par_index, child.i]]
+                }
+                corrections.append(mistake)
             else:
                 has_cop = True
     if has_cop == True:
         for child1 in P.children:
             if child1.dep_ == "aux":
                 if child1.tag_ == "Vanp":
-                    return last
+                    return None
                 aux = get_verb(child1.tag_)
                 if is_collective_subject(S, aux, exceptions):
-                    return last
+                    return None
 
                 if aux == spn[:2]:
-                    return last
+                    return None
                 if aux[0] == spn[0] and aux[1] == "":
-                    return last
+                    return None
 
-                #it is not correct
-                word_index = get_index(text, last, child1.text)
-                person, number, gender = get_person_number_gender(spn)
-                message = "Verbul copulativ trebuie sa fie la persoana " + person + ", numarul " + number
-                corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-                last = word_index
-                return last
-    return last
+                mistake = {
+                    'mistake': 'Acordul verbului cu subiectul',
+                    'index': [[par_index, S.i], [par_index, child.i]]
+                }
+                corrections.append(mistake)
 
-def check_predicative_name(NP, spn, corrections, last, text, paragraph_index):
+def check_predicative_name(par_index, S, NP, spn, corrections):
     if is_job_noun(spn, NP, exceptions):
-        return last
+        return None
 
     if NP.tag_[:3] == "Rgp":
-        return last
+        return None
 
     np = ""
     #adjectiv
@@ -490,145 +445,130 @@ def check_predicative_name(NP, spn, corrections, last, text, paragraph_index):
     elif NP.tag_[:2] == "Mo" or NP.tag_[:2] == "Mc":
        np = get_numeral(NP.tag_)
 
-
     if np[1] == spn[1] and np[2] == spn[2]:
-       return last
+       return None
     #Subject is a personal pronoun without gender
     if np[1] == spn[1] and spn[2] == "-":
-       return last
+       return None
 
-    #it is not correct
-    person, number, gender = get_person_number_gender(spn)
-    word_index = get_index(text, last, NP.text)
-    message = "Numele predicativ trebuie sa fie la numarul " + number + ", genul " + gender
-    corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord subiect - predicat", "word_index": word_index})
-    last = word_index
+    mistake = {
+        'mistake': 'Acordul numelui predicativ cu subiectul',
+        'index': [[par_index, S.i], [par_index, NP.i]]
+    }
+    corrections.append(mistake)
     return last
 
 
-def check_subject_and_predicate_relation(text):
-    last = 0
+def check_subject_and_predicate_relation(par_index, doc):
     corrections = []
     predicates = []
-    for paragraph_index, sentence in enumerate(text.split("\n")):
-        doc = rom_spacy(sentence)
-        for token in doc:
-            if token.dep_ == "nsubj":
-                S = token
-                P = token.head
-                if P not in predicates:
-                    predicates.append(P)
+
+    for token in doc:
+        if token.dep_ == "nsubj":
+            S = token
+            P = token.head
+            if P not in predicates:
+                predicates.append(P)
+            else:
+                continue
+
+            if is_multiple_subject_linked_to_subject(S):
+                spn = get_multiple_subject(S, "conj", exceptions)
+            elif is_multiple_subject_linked_to_predicate(P):
+                spn = get_multiple_subject(P, "nsubj", exceptions)
+            else:
+                if S.tag_[0] == "P":
+                    spn = get_pronoun(S.tag_)
                 else:
+                    spn = get_noun(S.tag_)
+
+            multiple_predicates = get_multiple_predicates(P)
+
+            #all parts from multiple_predicates shoud be in the same relation with the subject
+            for single_predicate in multiple_predicates:
+                if single_predicate.tag_[0] == "V":
+                    check_verbal_predicate(par_index, S, single_predicate, spn, corrections)
+                else:
+                    check_copulative_verb(par_index, S, single_predicate, spn, corrections)
+                    check_predicative_name(par_index, S, single_predicate, spn, corrections)
+    return corrections
+
+def check_noun_and_adjective_relation(par_index, doc):
+    corrections = []
+    for token in doc:
+        if token.tag_[:2] == "Af":
+            (is_linked, noun) = is_in_adjective_noun_relation(token)
+            if is_linked:
+                A = token
+                N = noun
+                spa = get_adjective(A.tag_)
+                spn = get_noun(N.tag_)
+                if spa[1] == spn[1] and spa[2] == spn[2]:
                     continue
-
-                if is_multiple_subject_linked_to_subject(S):
-                    spn = get_multiple_subject(S, "conj", exceptions)
-                elif is_multiple_subject_linked_to_predicate(P):
-                    spn = get_multiple_subject(P, "nsubj", exceptions)
                 else:
-                    if S.tag_[0] == "P":
-                        spn = get_pronoun(S.tag_)
-                    else:
-                        spn = get_noun(S.tag_)
-
-                multiple_predicates = get_multiple_predicates(P)
-
-                #all parts from multiple_predicates shoud be in the same relation with the subject
-                for single_predicate in multiple_predicates:
-                    if single_predicate.tag_[0] == "V":
-                        last = check_verbal_predicate(S, single_predicate, spn, corrections, last, text, paragraph_index)
-                    else:
-                        last = check_copulative_verb(S, single_predicate, spn, corrections, last, text, paragraph_index)
-                        last = check_predicative_name(single_predicate, spn, corrections, last, text, paragraph_index)
+                    mistake = {
+                        'mistake': 'Acord substantiv - adjectiv',
+                        'index': [[par_index, A.i], [par_index, N.i]]
+                    }
+                    corrections.append(mistake)
     return corrections
 
-def check_noun_and_adjective_relation(text):
-    last = 0
+def check_noun_and_numeral_relation(par_index, doc):
     corrections = []
-    for paragraph_index, sentence in enumerate(text.split("\n")):
-        doc = rom_spacy(sentence)
-        for token in doc:
-            if token.tag_[:2] == "Af":
-                (is_linked, noun) = is_in_adjective_noun_relation(token)
-                if is_linked:
-                    A = token
-                    N = noun
-                    spa = get_adjective(A.tag_)
-                    spn = get_noun(N.tag_)
-                    if spa[1] == spn[1] and spa[2] == spn[2]:
-                        continue
-                    else:
-                        #it is not correct
-                        person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, A.text)
-                        message = "Adjectivul trebuie sa fie la numarul " + number + ", genul " + gender
-                        corrections.append({"message": message, "paragraph_index": paragraph_index,
-                                 "title": "Acord substantiv - adjectiv", "word_index": word_index})
-                        last = word_index
+    for token in doc:
+        if token.dep_ == "nummod":
+            if token.tag_[:2] == "Mc" or token.tag_[:2] == "Mo":
+                Nr = token
+                N = token.head
+                spnr = get_numeral(Nr.tag_)
+                spn = get_noun(N.tag_)
+                if spnr[1] == spn[1] and spnr[2] == spn[2]:
+                    continue
+                if spnr[2] == "-" and spnr[1] == spn[1]:
+                    continue
+                else:
+                    #it is not correct
+                    mistake = {
+                        'mistake': 'Acord substantiv - numeral',
+                        'index': [[par_index, Nr.i], [par_index, N.i]]
+                    }
+                    corrections.append(mistake)
     return corrections
 
-def check_noun_and_numeral_relation(text):
-    last = 0
+def check_noun_and_unstated_article_relation(par_index, doc):
     corrections = []
-    for paragraph_index, sentence in enumerate(text.split("\n")):
-        doc = rom_spacy(sentence)
-        for token in doc:
-            if token.dep_ == "nummod":
-                if token.tag_[:2] == "Mc" or token.tag_[:2] == "Mo":
-                    Nr = token
-                    N = token.head
-                    spnr = get_numeral(Nr.tag_)
-                    spn = get_noun(N.tag_)
-                    if spnr[1] == spn[1] and spnr[2] == spn[2]:
-                        continue
-                    if spnr[2] == "-" and spnr[1] == spn[1]:
-                        continue
-                    else:
-                        #it is not correct
-                        person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, Nr.text)
-                        message = "Numeralul trebuie sa fie la numarul " + number + ", genul " + gender
-                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - numeral", "word_index": word_index})
-                        last = word_index
-    return corrections
+    for token in doc:
+        if token.dep_ == "det":
+            if token.tag_[:2] == "Ti":
+                UA = token
+                N = token.head
+                spar = get_unstated_article(UA.tag_)
+                spn = get_noun(N.tag_)
+                if spar[1] == spn[1] and spar[2] == spn[2]:
+                    continue
+                if spar[2] == "-" and spar[1] == spn[1]:
+                    continue
+                else:
+                    #it is not correct
 
-def check_noun_and_unstated_article_relation(text):
-    last = 0
-    corrections = []
-    for paragraph_index, sentence in enumerate(text.split("\n")):
-        doc = rom_spacy(sentence)
-        for token in doc:
-            if token.dep_ == "det":
-                if token.tag_[:2] == "Ti":
-                    UA = token
-                    N = token.head
-                    spar = get_unstated_article(UA.tag_)
-                    spn = get_noun(N.tag_)
-                    if spar[1] == spn[1] and spar[2] == spn[2]:
-                        continue
-                    if spar[2] == "-" and spar[1] == spn[1]:
-                        continue
-                    else:
-                        #it is not correct
-                        person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, token.text)
-                        message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
-                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
-                        last = word_index
-                elif token.tag_[:3] == "Di3":
-                    UA = token.head
-                    N = token.head
-                    spn = get_noun(N.tag_)
-                    if spn[2] == "p":
-                        continue
-                    else:
-                        #it is not correct
-                        person, number, gender = get_person_number_gender(spn)
-                        word_index = get_index(text, last, token.text)
-                        message = "Articolul nehotarat trebuie sa fie la numarul " + number + ", genul " + gender
-                        corrections.append({"message": message, "paragraph_index": paragraph_index, "title": "Acord substantiv - acord nehotarat", "word_index": word_index})
-                        last = word_index
-
+                    mistake = {
+                        'mistake': "Acord substantiv - acord nehotarat",
+                        'index': [[par_index, token.i], [par_index, N.i]]
+                    }
+                    corrections.append(mistake)
+            elif token.tag_[:3] == "Di3":
+                UA = token.head
+                N = token.head
+                spn = get_noun(N.tag_)
+                if spn[2] == "p":
+                    continue
+                else:
+                    #it is not correct
+                    mistake = {
+                        'mistake': "Acord substantiv - acord nehotarat",
+                        'index': [[par_index, token.i], [par_index, N.i]]
+                    }
+                    corrections.append(mistake)
     return corrections
 
 
@@ -638,7 +578,11 @@ def get_index(text, last, token):
     strip = lambda s: "".join([c for c in s if c not in string.punctuation or c == '-'])
     text = [strip(word.text) for word in rom_spacy(text)]
     # text = [strip(word) for word in split_text(text)]
-    return last + text[last:].index(token)
+    try:
+        index = last + text[last:].index(token)
+    except:
+        index = None
+    return index
 
 def create_output(category, message, paragraph_index, word_index):
     output = {}
@@ -658,8 +602,7 @@ def create_output_list(result, case, default_suggestion = None):
     output_list = []
     if case == "Cacofonie":
         for item in result:
-            message = "Reformulare. Expresia (" + item["mistake"] + ") este o cacofonie."
-            paragraph_index = item["paragraph"]
+            message = "Reformulare. Cacofonie."
             output_list.append(create_output(case, message, paragraph_index, item["word_index"][0]))
             output_list.append(create_output(case, message, paragraph_index, item["word_index"][1]))
         return output_list
@@ -952,7 +895,8 @@ def fix_punctuation(output):
                 error['word_index'][i] += offset
 
 
-def change_format(output):
+def change_format(par_index, output):
+    print(output['split_text'])
     for error_l in output["correction"]:
         if isinstance(error_l, list):
             for error in error_l:
@@ -983,9 +927,6 @@ def change_format(output):
 
 
 def simplify_format(output):
-
-    if 'split_text' in output:
-        del output['split_text']
     
     new_corrections = []
 
@@ -1001,118 +942,108 @@ def simplify_format(output):
                 refact_cor['correction_index'] = correction_index_list
                 new_corrections.append(refact_cor)
         else:
+            error_l['correction_index'] = [error_l['correction_index']]
             if 'paragraph_index' in error_l:
                 del error_l['paragraph_index']
             if 'word_index' in error_l:
                 del error_l['word_index']
             new_corrections.append(error_l)
-    return new_corrections
+    res = {}
+    res['corrections'] = new_corrections
+    res['split_text'] = output['split_text']
+    print(res)
+    return res
 
-def identify_mistake(sentence):
+def identify_mistake(par_index, sentence):
 
     doc = rom_spacy(sentence)
-    
-    # for token in doc:
-    #     print(token, token.tag_, token.head, token.dep_)
-    
-    output = {}
-    output["split_text"] = split_text(sentence)
+    print(dir(doc[0]))
+    for i, token in enumerate(doc):
+        print('index', token.text, token.pos_, token.is_stop, token.is_punct, token.i)
+
     output_list = []
     correct = True
     #Step1
-    result = check_cacophony(sentence.lower())
-    if (result != []):
-        correct = False
-        output_list = create_output_list(result, "Cacofonie")
+    result = check_cacophony(par_index, doc)
+    output_list += result
     
     #Step2 - ca si
-    result = check_si_parazitar(sentence)
-    if (result != []):
-        correct = False
-        output_list += create_output_list(result, "şi parazitar")
+    # result = check_si_parazitar(par_index, sentence) - does not work all the time
+    # output_list += result
         
     #Step3 - Repetitions
-    result = check_repetitions(sentence.lower())
-    if (result != {}):
-        correct = False
-        output_list += create_output_list(result, "Repetiţie")
+    result = check_repetitions(par_index, doc)
+    output_list += result
     
-    #Step4 - Conjunctii coordonatoare
-    result = check_coordinative_conjunctions(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Conjuncţie coordonatoare", corrects_coordonative_error(result, sentence))
+    #Step4 - Conjunctii coordonatoare - does not work all the time
+    # result = check_coordinative_conjunctions(sentence) 
+    # if result != []:
+    #     correct = False
+    #     output_list += create_output_list(result, "Conjuncţie coordonatoare", corrects_coordonative_error(result, sentence))
 
     #Step5 - Conjunctii adversative
-    result = check_adversative_conjunctions(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Conjuncţie adversativă", corrects_adversative_error(result, sentence))
+    # result = check_adversative_conjunctions(sentence)
+    # if result != []:
+    #     correct = False
+    #     output_list += create_output_list(result, "Conjuncţie adversativă", corrects_adversative_error(result, sentence))
 
     #Step6 - Repetitie sinonime
-    result = check_synonyms_repetitions(sentence.lower())
-    if result != {}:
-        correct = False
-        output_list += create_output_list(result, "Repetiţie sinonime")
+    # result = check_synonyms_repetitions(sentence.lower())
+    # if result != {}:
+    #     correct = False
+    #     output_list += create_output_list(result, "Repetiţie sinonime")
     
     #Step7 - Voi
-    result = check_voi_verb(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Verbul 'a voi'", corrects_voi_verb(result, sentence))
+    result = check_voi_verb(par_index, doc)
+    output_list += result
     
-    #Step8 - Comparativ de superioritate
-    result = check_comparative(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Comparativ de superioritate", corrects_comparative(result, sentence))
+    #Step8 - Comparativ de superioritate - does not work all the time
+    # result = check_comparative(sentence)
+    # if result != []:
+    #     correct = False
+    #     output_list += create_output_list(result, "Comparativ de superioritate", corrects_comparative(result, sentence))
 
     #Step9 - Totusi
-    result = check_totusi(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Totuşi", corrects_coordonative_error(result, sentence))
+    result = check_totusi(par_index, doc)
+    output_list += result
     
-    #Step10 - Adverbe la inceput
-    result = check_adverbs_at_the_beginning(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Adverbe la începutul propoziţiei", corrects_adverbs_at_the_beginning(result, sentence))
+    output_list += check_adverbs_at_the_beginning(par_index, doc) 
 
     #Step11 - Adverbe intercalate
-    result = check_adverbs_in_middle(sentence)
-    if result != []:
-        correct = False
-        output_list += create_output_list(result, "Adverbe intercalate", corrects_adverbs_in_middle(result, sentence))
+    # result = check_adverbs_in_middle(sentence)
+    # if result != []:
+    #     correct = False
+    #     output_list += create_output_list(result, "Adverbe intercalate", corrects_adverbs_in_middle(result, sentence))
 
     #Step12 - Subject and predicate
-    output_list.extend(check_subject_and_predicate_relation(sentence))
+    
+    output_list += check_subject_and_predicate_relation(par_index, doc)
 
-    #Step13 - Noun and adjective relation
-    output_list.extend(check_noun_and_adjective_relation(sentence))
+    # #Step13 - Noun and adjective relation
+    output_list += check_noun_and_adjective_relation(par_index, doc)
 
-    #Step14 - Noun and numeral relation
-    output_list.extend(check_noun_and_numeral_relation(sentence))
+    # #Step14 - Noun and numeral relation
+    output_list += check_noun_and_numeral_relation(par_index, doc)
 
-    #Step15 - Noun and unstated article relation
-    output_list.extend(check_noun_and_unstated_article_relation(sentence))
+    # #Step15 - Noun and unstated article relation
+    output_list += check_noun_and_unstated_article_relation(par_index, doc)
 
-    output["correction"] = output_list
-    output = change_format(output)
-    output = simplify_format(output)
-
-    return output
+    return output_list, [token.text for token in doc]
 
 
 def correct_text_ro(text):
-    p = re.compile('\s\s+')
-    text = p.sub(' ', text)
+    p_newline_after = re.compile('\n\s+')
+    p_newline_before = re.compile('\s+\n')
+    text = p_newline_after.sub('\n', text)
+    text = p_newline_before.sub('\n', text)
     paragraphs = text.split('\n')
-    output = []
+    paragraphs = [p for p in paragraphs if len(p) > 0]
+
+    output = {'split_text': [], 'corrections': []} 
     for i, paragraph in enumerate(paragraphs):
-        mistakes = identify_mistake(paragraph)
-        if len(mistakes) > 0:
-            output += mistakes
+        mistakes, text_splitted = identify_mistake(i, paragraph)
+        output['split_text'].append(text_splitted)
+        output['corrections'] += mistakes
     return output
 
 if __name__ == "__main__":
