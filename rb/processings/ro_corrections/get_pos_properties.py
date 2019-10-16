@@ -1,4 +1,4 @@
-from rb.ro_corrections.get_exceptions import *
+from rb.processings.ro_corrections.get_exceptions import *
 
 def get_pronoun(tag):
 	return tag[2], tag[4], tag[3]

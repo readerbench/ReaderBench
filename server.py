@@ -14,7 +14,7 @@ from werkzeug import secure_filename
 import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
-from rb.ro_corrections.ro_correct import correct_text_ro
+from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
@@ -53,17 +53,11 @@ def check_connection():
 def ro_correct():
     data = request.get_json()
     text = data['text']
-
-    #text = text.replace('    ', '\t').replace('\t', '\n')
     res = correct_text_ro(text)
-    # for error in res:
-    #     print(f'error {error["title"]}: ')
-    #     for indices in error['correction_index']:
-    #         print(text[indices[0]: indices[1] + 1])
-    for mistake in res['corrections']:
-        print(f'mistake: {mistake["mistake"]}')
-        for m in mistake['index']:
-            print(res['split_text'][m[0]][m[1]])
+    # for mistake in res['corrections']:
+    #     print(f'mistake: {mistake["mistake"]}')
+    #     for m in mistake['index']:
+    #         print(res['split_text'][m[0]][m[1]])
 
     return jsonify(res)
 

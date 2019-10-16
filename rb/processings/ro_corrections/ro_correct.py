@@ -10,9 +10,9 @@ from rb.parser.spacy_parser import SpacyParser
 from rb.parser.spacy_parser import convertToPenn
 from rb.core.lang import Lang
 from nltk.stem.snowball import SnowballStemmer
-from rb.ro_corrections.get_pos_properties import *
-from rb.ro_corrections.get_exceptions import *
-from rb.ro_corrections.utils import *
+from rb.processings.ro_corrections.get_pos_properties import *
+from rb.processings.ro_corrections.get_exceptions import *
+from rb.processings.ro_corrections.utils import *
 import os
 
 from nltk.stem.snowball import SnowballStemmer
