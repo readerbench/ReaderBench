@@ -13,9 +13,12 @@ from nltk.stem.snowball import SnowballStemmer
 from rb.processings.ro_corrections.get_pos_properties import *
 from rb.processings.ro_corrections.get_exceptions import *
 from rb.processings.ro_corrections.utils import *
+from rb.utils.rblogger import Logger
 import os
 
 from nltk.stem.snowball import SnowballStemmer
+
+logger = Logger.get_logger()
 
 stemmer = SnowballStemmer("romanian")
 rom_spacy = SpacyParser.get_instance().get_model(Lang.RO)
@@ -952,17 +955,24 @@ def identify_mistake(par_index, sentence):
     output_list = []
     correct = True
     #Step1
-    result = check_cacophony(par_index, doc)
-    output_list += result
+    try:
+        result = check_cacophony(par_index, doc)
+        output_list += result
+    except:
+        logger.warning('Cachophony check failed')
+        
     
     #Step2 - ca si
     # result = check_si_parazitar(par_index, sentence) - does not work all the time
     # output_list += result
         
     #Step3 - Repetitions
-    result = check_repetitions(par_index, doc)
-    output_list += result
-    
+    try:
+        result = check_repetitions(par_index, doc)
+        output_list += result
+    except:
+        logger.warning('Repetitions check failed')
+        
     #Step4 - Conjunctii coordonatoare - does not work all the time
     # result = check_coordinative_conjunctions(sentence) 
     # if result != []:
@@ -982,9 +992,13 @@ def identify_mistake(par_index, sentence):
     #     output_list += create_output_list(result, "Repetiţie sinonime")
     
     #Step7 - Voi
-    result = check_voi_verb(par_index, doc)
-    output_list += result
-    
+    try:
+        result = check_voi_verb(par_index, doc)
+        output_list += result
+    except:
+        logger.warning('Voi verb check failed')
+
+        
     #Step8 - Comparativ de superioritate - does not work all the time
     # result = check_comparative(sentence)
     # if result != []:
@@ -992,11 +1006,16 @@ def identify_mistake(par_index, sentence):
     #     output_list += create_output_list(result, "Comparativ de superioritate", corrects_comparative(result, sentence))
 
     #Step9 - Totusi
-    result = check_totusi(par_index, doc)
-    output_list += result
-    
-    output_list += check_adverbs_at_the_beginning(par_index, doc) 
+    try:
+        result = check_totusi(par_index, doc)
+        output_list += result
+    except:
+        logger.warning('Totusi check failed')
 
+    try:
+        output_list += check_adverbs_at_the_beginning(par_index, doc) 
+    except:
+         logger.warning('Adverbs at the beginning check failed')
     #Step11 - Adverbe intercalate
     # result = check_adverbs_in_middle(sentence)
     # if result != []:
@@ -1004,18 +1023,26 @@ def identify_mistake(par_index, sentence):
     #     output_list += create_output_list(result, "Adverbe intercalate", corrects_adverbs_in_middle(result, sentence))
 
     #Step12 - Subject and predicate
-    
-    output_list += check_subject_and_predicate_relation(par_index, doc)
-
+    try:
+        output_list += check_subject_and_predicate_relation(par_index, doc)
+    except:
+        logger.warning('Subject and predicate relation check failed')
     # #Step13 - Noun and adjective relation
-    output_list += check_noun_and_adjective_relation(par_index, doc)
+    try:
+        output_list += check_noun_and_adjective_relation(par_index, doc)
+    except:
+        logger.warning('Noun and adjective relation check failed')
 
     # #Step14 - Noun and numeral relation
-    output_list += check_noun_and_numeral_relation(par_index, doc)
-
+    try:
+        output_list += check_noun_and_numeral_relation(par_index, doc)
+    except:
+        logger.warning('Noun and numeral relation check failed')
     # #Step15 - Noun and unstated article relation
-    output_list += check_noun_and_unstated_article_relation(par_index, doc)
-
+    try:
+        output_list += check_noun_and_unstated_article_relation(par_index, doc)
+    except:
+        logger.warning('Noun and unstated article relation check failed')
     return output_list, [token.text for token in doc]
 
 
