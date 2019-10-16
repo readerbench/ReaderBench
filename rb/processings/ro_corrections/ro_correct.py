@@ -341,45 +341,48 @@ def check_adverbs_in_middle(sentence):
     return build_response(mistakes, sentence, "Adverbe intercalate")
 
 def check_verbal_predicate(par_index, S, P, spn, corrections):
-    if P.tag_[:3] == "Vmi":
-        spv = get_verb(P.tag_)
-        if is_collective_subject(S, spv, exceptions):
-            return None
+    try:
+        if P.tag_[:3] == "Vmi":
+            spv = get_verb(P.tag_)
+            if is_collective_subject(S, spv, exceptions):
+                return None
 
-        if spn[:2] == spv:
-            return None
-        if spn[0] == spv[0] and spv[1] == "":
-            return None
-        if spn[1] == spv[1] and spv[0] == "-":
-            return None
-        
-        person, number, gender = get_person_number_gender(spn)
-        mistake = {
-            'mistake': 'Acordul verbului cu subiectul',
-            'index': [[par_index, S.i], [par_index, P.i]]
-        }
-        corrections.append(mistake)
-        
-    elif P.tag_[:3] == "Vmp" or P.tag_[:4] == "Vmnp":
-        for child in P.children:
-            if child.dep_ == "aux":
-                if child.tag_ == "Vanp":
-                    return None
+            if spn[:2] == spv:
+                return None
+            if spn[0] == spv[0] and spv[1] == "":
+                return None
+            if spn[1] == spv[1] and spv[0] == "-":
+                return None
+            
+            person, number, gender = get_person_number_gender(spn)
+            mistake = {
+                'mistake': 'Acordul verbului cu subiectul',
+                'index': [[par_index, S.i], [par_index, P.i]]
+            }
+            corrections.append(mistake)
+            
+        elif P.tag_[:3] == "Vmp" or P.tag_[:4] == "Vmnp":
+            for child in P.children:
+                if child.dep_ == "aux":
+                    if child.tag_ == "Vanp":
+                        return None
 
-                aux = get_verb(child.tag_)
-                if is_collective_subject(S, aux, exceptions):
-                    return None
+                    aux = get_verb(child.tag_)
+                    if is_collective_subject(S, aux, exceptions):
+                        return None
 
-                if aux == spn[:2]:
-                    return None
-                if aux[0] == spn[0] and aux[1] == "":
-                    return None
+                    if aux == spn[:2]:
+                        return None
+                    if aux[0] == spn[0] and aux[1] == "":
+                        return None
 
-                mistake = {
-                    'mistake': 'Acordul verbului cu subiectul',
-                    'index': [[par_index, S.i], [par_index, child.i]]
-                }
-                corrections.append(mistake)
+                    mistake = {
+                        'mistake': 'Acordul verbului cu subiectul',
+                        'index': [[par_index, S.i], [par_index, child.i]]
+                    }
+                    corrections.append(mistake)
+    except:
+        return None
 
 def check_copulative_verb(par_index, S, P, spn, corrections):
     #check copulativ verb with subject
@@ -456,7 +459,6 @@ def check_predicative_name(par_index, S, NP, spn, corrections):
         'index': [[par_index, S.i], [par_index, NP.i]]
     }
     corrections.append(mistake)
-    return last
 
 
 def check_subject_and_predicate_relation(par_index, doc):
@@ -571,18 +573,6 @@ def check_noun_and_unstated_article_relation(par_index, doc):
                     corrections.append(mistake)
     return corrections
 
-
-def get_index(text, last, token):
-    import string
-
-    strip = lambda s: "".join([c for c in s if c not in string.punctuation or c == '-'])
-    text = [strip(word.text) for word in rom_spacy(text)]
-    # text = [strip(word) for word in split_text(text)]
-    try:
-        index = last + text[last:].index(token)
-    except:
-        index = None
-    return index
 
 def create_output(category, message, paragraph_index, word_index):
     output = {}
@@ -896,7 +886,6 @@ def fix_punctuation(output):
 
 
 def change_format(par_index, output):
-    print(output['split_text'])
     for error_l in output["correction"]:
         if isinstance(error_l, list):
             for error in error_l:
@@ -951,15 +940,14 @@ def simplify_format(output):
     res = {}
     res['corrections'] = new_corrections
     res['split_text'] = output['split_text']
-    print(res)
     return res
 
 def identify_mistake(par_index, sentence):
 
     doc = rom_spacy(sentence)
-    print(dir(doc[0]))
-    for i, token in enumerate(doc):
-        print('index', token.text, token.pos_, token.is_stop, token.is_punct, token.i)
+    # print(dir(doc[0]))
+    # for i, token in enumerate(doc):
+    #     print('index', token.text, token.pos_, token.is_stop, token.is_punct, token.i)
 
     output_list = []
     correct = True
