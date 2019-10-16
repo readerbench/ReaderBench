@@ -5,6 +5,7 @@ from rb.complexity.cohesion.adj_cohesion import AdjCohesion
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
+from rb.cna.cna_graph import CnaGraph
 from typing import Tuple, List
 from sklearn.svm import SVR
 import pickle
@@ -32,18 +33,20 @@ class Fluctuations:
         else:
             avg = -1
             stdev = -1
-        return (max(0, avg + 2.5 * stdev), max(0, avg - 2.5 * stdev))
+        return (max(0, avg + 2.0 * stdev), max(0, avg - 2.0 * stdev))
 
 
     def compute_indices(self, text: str, lang: Lang) -> List[List]:
-        
+        doc = Document(lang=lang, text=text)
         if lang is Lang.RO:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](name=CorporaEnum.README.value, lang=lang)
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                name=CorporaEnum.README.value, lang=lang)
         elif lang is Lang.EN:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](name=CorporaEnum.COCA.value, lang=lang)
+            vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+                name=CorporaEnum.COCA.value, lang=Lang.EN)
 
-        doc = Document(lang=lang, text=text, vector_model=vector_model)
-        compute_indices(doc)
+        cna_graph = CnaGraph(doc=doc, models=[vector_model])
+        compute_indices(doc=doc, cna_graph=cna_graph)
 
         indices_sent = {
                         'AvgSentUnqPOSMain_noun': 

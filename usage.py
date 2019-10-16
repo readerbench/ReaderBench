@@ -9,7 +9,7 @@ from rb.complexity.word.name_entity_enum import NamedEntityONEnum
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
 from rb.similarity.vector_model_instance import VECTOR_MODELS
 from rb.cna.cna_graph import CnaGraph
-from rb.ro_corrections.ro_correct import correct_text_ro
+from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from nltk.corpus import wordnet as wn
 from flask import jsonify
 import argparse

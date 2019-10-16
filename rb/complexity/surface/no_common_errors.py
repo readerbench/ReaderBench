@@ -5,7 +5,7 @@ from rb.complexity.complexity_index import ComplexityIndex
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import MeasureFunction
 from rb.core.text_element_type import TextElementType
-from rb.ro_corrections.ro_correct import identify_mistake
+from rb.processings.ro_corrections.ro_correct import identify_mistake
 from typing import Callable, List
 from rb.utils.rblogger import Logger
 
