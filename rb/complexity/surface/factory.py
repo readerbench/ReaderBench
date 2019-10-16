@@ -40,9 +40,9 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.AVG))
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.STDEV))
 
-    if lang is Lang.RO:
-        indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
-        indices.append(NoCommonErrors(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
+    # if lang is Lang.RO:
+    #     #indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
+    #     indices.append(NoCommonErrors(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
     
     return indices
 

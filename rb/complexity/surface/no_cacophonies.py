@@ -11,7 +11,7 @@ from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
-"""only for RO"""
+"""only for RO, not used for now"""
 class NoCacophonies(ComplexityIndex):
     
     
