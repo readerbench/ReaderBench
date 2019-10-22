@@ -12,6 +12,7 @@ class CnaGraph:
         self.graph = nx.MultiGraph()
         self.add_element(doc)
         self.models = models
+        self.add_lexical_links()
         self.add_semantic_links()
         doc.cna_graph = self
         
@@ -30,7 +31,19 @@ class CnaGraph:
                     sim = model.similarity(a, b)
                     self.graph.add_edge(a, b, type=EdgeType.SEMANTIC, model=model, value=sim)
                     self.graph.add_edge(b, a, type=EdgeType.SEMANTIC, model=model, value=sim)
-    
+
+    def add_lexical_links(self):
+        non_words: List[TextElement] = [node for node in self.graph.nodes if not node.is_word()]
+        for i, a in enumerate(non_words[:-1]):
+            for b in non_words[i+1:]:
+                words_a = {word.lemma for word in a.get_words()}
+                words_b = {word.lemma for word in b.get_words()}
+                weight = len(words_a & words_b) / len(words_a | words_b)
+                self.graph.add_edge(a, b, type=EdgeType.LEXICAL, value=weight)
+                self.graph.add_edge(b, a, type=EdgeType.LEXICAL, value=weight)
+                    
+
+
     def edges(self, 
             node: Union[TextElement, Tuple[TextElement, TextElement]], 
             edge_type: EdgeType = None, 
