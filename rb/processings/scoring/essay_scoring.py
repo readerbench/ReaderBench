@@ -11,6 +11,7 @@ import os
 import csv
 from werkzeug import secure_filename
 import uuid
+from rb.cna.cna_graph import CnaGraph
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -51,8 +52,8 @@ class EssayScoring:
             csv_writer.writerows(csv_stats)
 
 
-    def compute_indices(self, base_folder: str = 'essays_ro', write_file: str='measurements.csv',
-            stats: str = 'stats.csv', lang: Lang = Lang.RO, nr_docs: int = None) -> List[List]:
+    def compute_indices(self, base_folder: str='essays_ro', write_file: str='measurements.csv',
+            stats: str='stats.csv', lang: Lang = Lang.RO, nr_docs: int=None) -> List[List]:
         
         indices = []
         if lang is Lang.RO:
@@ -81,10 +82,11 @@ class EssayScoring:
                 continue
 
             with open(os.path.join(base_folder, file_name), 'rt', encoding='utf-8') as f:
-                content = f.read() 
+                content = f.read()
             
-            doc = Document(lang=lang, text=content, vector_model=vector_model)
-            compute_indices(doc)
+            doc = Document(lang=lang, text=content)
+            cna_graph = CnaGraph(doc=doc, models=[vector_model])
+            compute_indices(doc=doc, cna_graph=cna_graph)
 
             row = []
             if len(first_row) == 2:
@@ -150,15 +152,17 @@ class EssayScoring:
 
     def predict(self, content: str, file_to_svr_model: str, lang=Lang.RO) -> float:
         svr = pickle.load(open(file_to_svr_model, "rb"))
+
+        doc = Document(lang=lang, text=content)
         if lang is Lang.RO:
             vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
                 name=CorporaEnum.README.value, lang=lang)
         elif lang is Lang.EN:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                name=CorporaEnum.COCA.value, lang=lang)
+            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                name=CorporaEnum.README.value, lang=lang)
 
-        doc = Document(lang=lang, text=content, vector_model=vector_model)
-        compute_indices(doc)
+        cna_graph = CnaGraph(doc=doc, models=[vector_model])
+        compute_indices(doc=doc, cna_graph=cna_graph)
 
         indices = []
         if lang is Lang.RO:

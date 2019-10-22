@@ -54,11 +54,6 @@ def ro_correct():
     data = request.get_json()
     text = data['text']
     res = correct_text_ro(text)
-    # for mistake in res['corrections']:
-    #     print(f'mistake: {mistake["mistake"]}')
-    #     for m in mistake['index']:
-    #         print(res['split_text'][m[0]][m[1]])
-
     return jsonify(res)
 
 @app.route('/scoring', methods=['POST'])

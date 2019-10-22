@@ -48,9 +48,10 @@ def load_docs(folder: str) -> Iterable[str]:
                     yield current
 
 def str_to_lang(s: str) -> Lang:
-    if s.strip() == "ro" or s.strip() == "rou":
+    s = s.lower()
+    if s.strip() == "ro" or s.strip() == "rou" or s.strip() == "romanian":
         return Lang.RO
-    elif s.strip() == "en" or s.strip() == "eng":
+    elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
         return Lang.EN
     return Lang.EN
     
