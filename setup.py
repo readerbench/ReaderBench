@@ -7,7 +7,6 @@ from subprocess import check_call
 def do_post_install_tasks():
     # download spacy thing
     check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz --user".split())
-
     # download nltk stuff
     from os import getenv, path
 
@@ -49,7 +48,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.4.8',
+    version='0.5.0',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -68,7 +67,8 @@ setuptools.setup(
           'wget',
           'pymorphy2',
           'neuralcoref',
-          'joblib'
+          'joblib',
+          'networkx',
       ],
     cmdclass={
         'develop': PostDevelopmentCommand,
