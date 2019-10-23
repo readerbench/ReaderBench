@@ -21,6 +21,16 @@ class VectorModelType(Enum):
     FASTTEXT = 3
     GLOVE = 4
 
+    @classmethod
+    def from_str(cls, label: str) -> "VectorModelType":
+        try:
+            return cls(label.upper())
+        except:
+            pass
+        if "2" in label:
+            return cls.WORD2VEC
+        return None
+
 
 class CorporaEnum(Enum):
     README = 'readme'

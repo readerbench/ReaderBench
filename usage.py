@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     if args.indices_en:
         doc = Document(lang=Lang.EN, text=txt_eng)
-        en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.WORD2VEC, "coca")
+        en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
         """you can compute indices without the cna graph, but this means 
            some indices won't be computed"""
         cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
