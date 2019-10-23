@@ -1,16 +1,15 @@
-from rb.core.lang import Lang
-from rb.core.text_element import TextElement
+from typing import List
+
 from rb.core.block import Block
+from rb.core.lang import Lang
 from rb.core.sentence import Sentence
+from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.word import Word
-from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_instance import VECTOR_MODELS
-from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
+from rb.similarity.vector_model import (CorporaEnum, VectorModel,
+                                        VectorModelType)
+from rb.utils.downloader import download_tags
 
-
-from rb.utils.downloader import download_tags 
-from typing import List
 
 class Document(TextElement):
     
@@ -38,4 +37,3 @@ class Document(TextElement):
 
     def __str__(self):
         return self.text
-    

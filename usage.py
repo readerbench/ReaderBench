@@ -7,7 +7,7 @@ from rb.similarity.wordnet import path_similarity, get_hypernyms, get_all_paths_
 from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from rb.complexity.word.name_entity_enum import NamedEntityONEnum
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_instance import VECTOR_MODELS
+from rb.similarity.vector_model_factory import create_vector_model
 from rb.cna.cna_graph import CnaGraph
 from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from nltk.corpus import wordnet as wn
@@ -61,8 +61,7 @@ if __name__ == "__main__":
 
     if args.indices_en:
         doc = Document(lang=Lang.EN, text=txt_eng)
-        en_coca_word2vec = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-            name=CorporaEnum.COCA.value, lang=Lang.EN)
+        en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.WORD2VEC, "coca")
         """you can compute indices without the cna graph, but this means 
            some indices won't be computed"""
         cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
