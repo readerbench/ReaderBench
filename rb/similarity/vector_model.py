@@ -40,18 +40,18 @@ class CorporaEnum(Enum):
 class VectorModel:
 
     
-    def __init__(self, type: VectorModelType, name: str, lang: Lang, size: int = 300):
+    def __init__(self, type: VectorModelType, corpus: str, lang: Lang, size: int = 300):
         self.lang = lang
         self.type = type
-        self.name = name
+        self.corpus = corpus
+        self.name = "{}({})".format(self.type.name, self.corpus)
         self.size = size
         self.vectors: Dict[str, Vector] = {}
         self.base_vectors: List[Vector] = []
         self.word_clusters: Dict[int, List[str]] = {}
-        corpus = "resources/{}/models/{}".format(lang.value, name)
-        if check_version(lang, name):
-            if not download_model(lang, name):
-                raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
+        if check_version(lang, self.corpus):
+            if not download_model(lang, self.corpus):
+                raise FileNotFoundError("Requested model ({}) not found for {}".format(self.corpus, lang.value))
         self.load_vectors()
         if len(self.vectors) > 100000:
             try:
@@ -62,7 +62,7 @@ class VectorModel:
         
 
     def load_vectors(self):
-        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.name, self.type.name))
+        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.corpus, self.type.name))
 
     def get_vector(self, elem: Union[str, TextElement]) -> Vector:
         if isinstance(elem, str):
@@ -135,7 +135,7 @@ class VectorModel:
             self.word_clusters[hash].append(w) 
 
     def save_clusters(self):
-        folder = "resources/{}/models/{}".format(self.lang.value, self.name)
+        folder = "resources/{}/models/{}".format(self.lang.value, self.corpus)
         os.makedirs(folder, exist_ok=True)     
     
         with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
@@ -148,7 +148,7 @@ class VectorModel:
                     f.write("{} {}\n".format(word, hash))
 
     def load_clusters(self):
-        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.name, self.type.name), "rt") as f:
+        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.corpus, self.type.name), "rt") as f:
             n = int(f.readline())
             for i in range(n):
                 line = f.readline()
