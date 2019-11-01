@@ -15,6 +15,7 @@ from rb.similarity.word2vec import Word2Vec
 from joblib import Parallel, delayed
 from rb.similarity.vector_model import VectorModel
 from rb.cna.cna_graph import CnaGraph
+from rb.utils.downloader import download_wordlist
 
 logger = Logger.get_logger()
 
@@ -86,6 +87,7 @@ def compute_index(index: ComplexityIndex, element: TextElement) -> float:
 # computed indices and saves for each TextElement in indices dictionary
 def compute_indices(doc: Document, cna_graph: CnaGraph = None):
     logger.info('Starting computing all indices for {0} type element'.format(type(doc).__name__))
+    download_wordlist(doc.lang)
     num_cores = cpu_count()
     Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
         for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))

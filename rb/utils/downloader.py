@@ -25,7 +25,11 @@ LINKS = {
             },
         },
         'spacy': {},
-        'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download'
+        'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download',
+        'wordlists': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/XyeiJCSripBWpx7/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/xyyGMqeLwTkBRms/download'
+        }
     },
     Lang.RO: {
         'models': {
@@ -48,7 +52,11 @@ LINKS = {
                 'version': 'https://nextcloud.readerbench.com/index.php/s/afE4ZYAMoya9Ekp/download'
             }
         },
-        'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download"
+        'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
+        'wordlists': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
+                'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
+        }
     },
     Lang.RU: {
         'spacy': {
@@ -103,6 +111,27 @@ def download_model(lang: Lang, name: Union[str, List[str]]) -> bool:
     folder = "resources/{}/{}".format(lang.value, "/".join(name[:-1]))
     download_folder(link, folder)
     return True
+    
+# TODO check version?
+def download_wordlist(lang: Lang) -> bool:
+    base_path = os.path.join('resources', lang.value)
+    path = os.path.join(base_path, 'wordlists')
+    version_path = os.path.join(path, '/version.txt')
+    
+    if os.path.isfile(version_path):
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported for tags'.format(lang.value))
+        return False
+    if 'wordlists' not in LINKS[lang]:
+        logger.info('No wordlists exist for {}'.format(lang.value))
+        return False
+    
+    link = LINKS[lang]['wordlists']['link']
+    logger.info('Downloading wordlists for {} ...'.format(lang.value))
+    download_folder(link, base_path)
+    logger.info('Downloaded wordlists for {} succesfully'.format(lang.value))
+    return True
 
 def download_tags(lang: Lang) -> bool:
     path = "resources/{}/{}".format(lang.value, 'spacy')
@@ -110,8 +139,6 @@ def download_tags(lang: Lang) -> bool:
     version_path = full_path + '/version.txt'
     if os.path.isfile(version_path):
         return True
-    
-
     if lang not in LINKS:
         logger.info('{} not supported for tags'.format(lang.value))
         return False
@@ -123,7 +150,7 @@ def download_tags(lang: Lang) -> bool:
         return False
     link = LINKS[lang]['spacy']['ud_tags']['link']
     # if you chnage this path you also have to change it in ro_pos_feature_extractor
-    logger.info('Downloading tags for {} ...'.format(lang.RO))
+    logger.info('Downloading tags for {} ...'.format(lang.value))
     
     download_folder(link, path)
     logger.info('Downloaded tags for {} succesfully'.format(lang.value))

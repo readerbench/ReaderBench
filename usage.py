@@ -25,7 +25,7 @@ log = open('log.log', 'w', encoding='utf-8')
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='RUn a specific task')
+    parser = argparse.ArgumentParser(description='Run a specific task')
     parser.add_argument('--parser_ro', dest='parser_ro', action='store_true', default=False)
     parser.add_argument('--parser_en', dest='parser_en', action='store_true', default=False)
     parser.add_argument('--indices_ro', dest='indices_ro', action='store_true', default=False)
@@ -82,8 +82,7 @@ if __name__ == "__main__":
                     print(comp.text, key, v, file=log)
 
     if args.indices_ro:
-        ro_readme_word2vec = VECTOR_MODELS[Lang.RO][CorporaEnum.README][VectorModelType.WORD2VEC](
-            name=CorporaEnum.README.value, lang=Lang.RO)
+        ro_readme_word2vec = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme") 
         doc = Document(lang=Lang.RO, text=txt_ro)
         """you can compute indices without the cna graph, but this means 
            some indices won't be computed"""

@@ -2,7 +2,6 @@ import os
 
 from rb.core.lang import Lang
 from rb.similarity.vector_model import VectorModel, VectorModelType
-from rb.utils.downloader import download_model, check_version
 
 
 class LDA(VectorModel):

@@ -14,8 +14,6 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.surface.wd_entropy import WdEntropy
     from rb.complexity.surface.ch_entropy import ChEntropy
     from rb.complexity.surface.ch_ngram_entropy import ChNgramEntropyEnum, ChNgramEntropy
-    from rb.complexity.surface.no_cacophonies import NoCacophonies
-    from rb.complexity.surface.no_common_errors import NoCommonErrors
 
     indices = []
 
@@ -29,7 +27,10 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
     indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
     indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.STDEV))

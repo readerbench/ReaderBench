@@ -13,7 +13,7 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.syntax.dep_enum import DepEnum
     from rb.complexity.morphology.pos_main import PosMain
     from rb.complexity.morphology.unq_pos_main import UnqPosMain
-
+    
     indices = []
 
     indices.append(PosMain(lang, PosEum.NOUN, TextElementType.SENT.value, MeasureFunction.AVG))
