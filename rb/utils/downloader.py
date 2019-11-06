@@ -54,8 +54,8 @@ LINKS = {
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
         'wordlists': {
-                'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
-                'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
+            'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
+            'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
         }
     },
     Lang.RU: {

@@ -19,7 +19,11 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.word.no_wd_paths_hypernym_tree import NoWdPathsHypTree
     from rb.complexity.word.polysemy import Polysemy
     from rb.complexity.word.wd_syllab import WdSyllab
-    
+    from rb.complexity.word.aoa import Aoa
+    from rb.complexity.word.aoa_enum import AoaTypeEnum
+    from rb.complexity.word.aoe import Aoe
+    from rb.complexity.word.aoe_enum import AoeTypeEnum
+
     indices = []
 
     indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.AVG))
@@ -41,6 +45,17 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(Polysemy(lang, reduce_depth=TextElementType.WORD.value, 
                                     reduce_function=MeasureFunction.AVG))
 
+    if lang is Lang.EN:
+        for at in AoaTypeEnum:
+            indices.append(Aoa(lang, at, reduce_depth=TextElementType.WORD.value, 
+                                    reduce_function=MeasureFunction.AVG))
+            indices.append(Aoa(lang, at, reduce_depth=TextElementType.WORD.value, 
+                                    reduce_function=MeasureFunction.STDEV))
+        for at in AoeTypeEnum:
+            indices.append(Aoe(lang, at, reduce_depth=TextElementType.WORD.value, 
+                                    reduce_function=MeasureFunction.AVG))
+            indices.append(Aoe(lang, at, reduce_depth=TextElementType.WORD.value, 
+                                    reduce_function=MeasureFunction.STDEV))
 
     for named_ent_type in NamedEntityONEnum:
         indices.append(NoNamedEntity(lang, named_ent_type=named_ent_type, reduce_depth=TextElementType.WORD.value, 
