@@ -6,22 +6,15 @@ If you only want to use the package do the following:
 
 1. `python3 -m venv rbenv` (create virutal environment named rbenv)
 2. `source rbenv/bin/activate` (actiavte virtual env)
-3. `pip3 uninstall setuptools`
-4. `pip3 install setuptools`
-5. `pip3 install --upgrade pip`
-6. `pip3 install --no-cache-dir rbpy-rb` (install the package)
-6. `./install.sh` (install all other things which are not python packages (semantic models))
+3. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
 
 If you want to contribute to the code base of package:
-1. `git clone git@git.readerbench.com:ReaderBench/readerbenchpy.git` 
-2. `cd readerbechpy`
-3. `python3 -m venv rbenv` (create virutal environment named rbenv)
-4. `source rbenv/bin/activate` (actiavte virtual env)
-3. `pip3 uninstall setuptools`
-4. `pip3 install setuptools`
-5. `pip3 install --upgrade pip`
-5. `python3 -r requirements.txt` 
-6. `./install.sh` (install all other things which are not python packages (semantic models))
+1. `git clone git@git.readerbench.com:ReaderBench/readerbenchpy.git && cd readerbenchpy/`
+2. `python3 -m venv rbenv` (create virutal environment named rbenv)
+3. `source rbenv/bin/activate` (actiavte virtual env)
+4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip`
+6. `pip3 install -r requirements.txt` 
+7. `./install.sh` (install all other things which are not python packages (semantic models))
 
 You may also need some spacy models which are downloaded through spacy.     
 You have to download these spacy models by yourself, using the command:    
@@ -34,7 +27,8 @@ If you change the version of spacy (you had a previous version) you need to rein
 For neural coref errors install it as follows: https://github.com/huggingface/neuralcoref#spacystringsstringstore-size-changed-error
 
 ## Usage
-For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py`
+For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py` from 
+https://git.readerbench.com/ReaderBench/readerbenchpy
 
 ## Developer instructions
 
@@ -48,7 +42,7 @@ logger.warning("warning msg")
 logger.error()
 ```
 ## How to push the wheel on pip
-```sh
-    .\upload_to_pypi.sh
-```
+1. `rm -r dist/`
+2. `pip3 install twine wheel`
+3. `./upload_to_pypi.sh`
 

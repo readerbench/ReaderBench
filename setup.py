@@ -6,7 +6,7 @@ from subprocess import check_call
 def do_post_install_tasks():
     # download spacy thing
    
-    check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz --user".split())
+    check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
     # download nltk stuff
     from os import getenv, path
 
@@ -44,7 +44,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.5.4',
+    version='0.6.5',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -57,11 +57,12 @@ setuptools.setup(
     install_requires=[
         'spacy==2.1.3',
         'pymorphy2-dicts==2.4.393442.3710985',
-        'pkg-resources==0.0.0',
+        'pymorphy2',
         'nltk==3.4.5',
         'gensim==3.8.1',
-        'setuptools==41.6.0',
-        'blis',
+        'networkxx',
+        'joblib',
+        'blis<0.3.0',
         'boto',
         'boto3',
         'botocore',
@@ -78,21 +79,21 @@ setuptools.setup(
         'itsdangerous',
         'Jinja2',
         'jmespath',
-        'jsonschema',
+        'jsonschema<3.0.0',
         'MarkupSafe',
         'murmurhash',
         'neuralcoref',
-        'plac',
-        'preshed',
+        'plac<1.0.0',
+        'preshed<2.1.0',
         'Pyphen',
-        'python-dateutil',
+        'python-dateutil<2.8.1',
         'requests',
         's3transfer',
         'scipy',
         'six',
         'smart-open',
         'srsly',
-        'thinc',
+        'thinc<7.1.0',
         'tqdm',
         'urllib3',
         'wasabi',
