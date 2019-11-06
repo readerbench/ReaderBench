@@ -13,12 +13,12 @@ If you want to contribute to the code base of package:
 2. `python3 -m venv rbenv` (create virutal environment named rbenv)
 3. `source rbenv/bin/activate` (actiavte virtual env)
 4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip`
-6. `pip3 install -r requirements.txt` 
-7. `./install.sh` (install all other things which are not python packages (semantic models))
+5. `pip3 install -r requirements.txt` 
+6. `python3 -m spacy download xx_ent_wiki_sm`
 
 You may also need some spacy models which are downloaded through spacy.     
 You have to download these spacy models by yourself, using the command:    
-`python3 -m spacy download name_of_the_model`   
+`python3 -m spacy download name_of_the_model`   (do not install them with sudo if you are in a virtual environment)
 The logger will also write instructions on which models you need, and how to download them.  
 
 Be careful, you need to have spacy 2.1.3. 
