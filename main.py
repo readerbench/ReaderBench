@@ -62,7 +62,7 @@ def do_train_model():
         
     elif model is VectorModelType.LSA:
         train_lsa(sentences, args.train_base_folder)
-        test_load_lsa(path_lsa=os.path.join(args.train_model, 'lsa.bin'))
+        test_load_lsa(path_lsa=os.path.join(args.train_base_folder, 'lsa.bin'))
 
     elif model is VectorModelType.WORD2VEC:
         train_w2v(sentences, args.train_base_folder)
