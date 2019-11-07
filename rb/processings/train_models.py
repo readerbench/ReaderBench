@@ -57,7 +57,7 @@ class Preprocess(object):
 def train_w2v(sentences: Preprocess, outputFolder: str):
     global logger
     logger.info("Starting training word2vec...")
-    model = Word2Vec(size=300, window=5, min_count=1, workers=16)
+    model = Word2Vec(size=300, window=5, min_count=5, workers=16)
     model.build_vocab(sentences=sentences)
     total_words = model.corpus_total_words  # number of words in the corpus
     total_examples = model.corpus_count # examples aka sentences
