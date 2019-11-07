@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument('--train_model', dest='train_model', default='None', nargs='?',
                         choices=[VectorModelType.LDA.name, VectorModelType.LSA.name, VectorModelType.WORD2VEC.name, 'None'])
     parser.add_argument('--train_lang', dest='train_lang', default=Lang.RO.value, nargs='?', 
-                        choices=[Lang.RO.value, Lang.EN.value], 
+                        choices=[Lang.RO.value, Lang.ES.value, Lang.EN.value], 
                         help='Language for model')
     parser.add_argument('--train_base_folder', dest='train_base_folder', action='store', default='.',
                         help='Base folder for files.')
