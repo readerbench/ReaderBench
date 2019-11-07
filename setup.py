@@ -60,6 +60,7 @@ setuptools.setup(
         'pymorphy2',
         'nltk==3.4.5',
         'gensim==3.8.1',
+        'sklearn',
         'networkxx',
         'joblib',
         'blis<0.3.0',
@@ -98,7 +99,8 @@ setuptools.setup(
         'urllib3',
         'wasabi',
         'Werkzeug',
-        'wget'
+        'wget',
+        'pyLDAvis'
       ],
     cmdclass={
         'develop': PostDevelopmentCommand,

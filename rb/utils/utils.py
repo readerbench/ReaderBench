@@ -5,6 +5,7 @@ from nltk.tokenize import sent_tokenize, WordPunctTokenizer
 from os.path import isdir, isfile, join
 from os import listdir
 from rb.core.lang import Lang
+from rb.similarity.vector_model_factory import VectorModelType
 
 from spacy.lang.ro.lemmatizer import LOOKUP
 #from spacy.lang.ro.lex_attrs import words
@@ -54,7 +55,17 @@ def str_to_lang(s: str) -> Lang:
     elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
         return Lang.EN
     return Lang.EN
-    
+
+def str_to_vmodel(s: str) -> VectorModelType:
+    s = s.lower()
+    if s.strip() == "lda":
+        return VectorModelType.LDA
+    elif s.strip() == "lsa":
+        return VectorModelType.LSA
+    elif s.strip() == "word2vec":
+        return VectorModelType.WORD2VEC
+    return VectorModelType.WORD2VEC
+
 if __name__ == "__main__":
     pass
     # with open("dict_ro.txt", "wt") as out:

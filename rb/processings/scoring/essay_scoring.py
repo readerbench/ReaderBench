@@ -3,7 +3,7 @@ from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_instance import VECTOR_MODELS
+from rb.similarity.vector_model_factory import VECTOR_MODELS
 from typing import Tuple, List
 from sklearn.svm import SVR
 import pickle

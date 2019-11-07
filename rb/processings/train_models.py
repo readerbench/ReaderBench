@@ -26,7 +26,8 @@ logger = Logger.get_logger()
 logging.getLogger("gensim").setLevel(logging.WARNING)
 
 class Preprocess(object):
-    def __init__(self, parser: SpacyParser, folder: str, lang: Lang, split_sent: bool = True, only_dict_words: bool = False) -> None:
+    def __init__(self, parser: SpacyParser, folder: str, 
+                lang: Lang, split_sent: bool = True, only_dict_words: bool = False) -> None:
         if only_dict_words:
             self.test = lambda x: not x.is_oov
         else:
@@ -56,7 +57,7 @@ class Preprocess(object):
 def train_w2v(sentences: Preprocess, outputFolder: str):
     global logger
     logger.info("Starting training word2vec...")
-    model = Word2Vec(size=300, window=5, min_count=5, workers=16)
+    model = Word2Vec(size=300, window=5, min_count=1, workers=16)
     model.build_vocab(sentences=sentences)
     total_words = model.corpus_total_words  # number of words in the corpus
     total_examples = model.corpus_count # examples aka sentences
@@ -70,12 +71,15 @@ def train_w2v(sentences: Preprocess, outputFolder: str):
 # load_word2vec_format should be True if the model was saved with saved  model.wv.save_word2vec_format(path, binary=False)
 # if the model was saved simply with model.save(path) load_word2vec_format should be False
 def test_load_w2v(path_w2vec: str, load_word2vec_format=False):
-    test_word = "caragiale"
+    test_words = ["alunec", 'merg', 'ajung', 'plec', 'coleg']
     if load_word2vec_format == True:
         model = KeyedVectors.load_word2vec_format(path_w2vec, binary=False)
     else:
         model = Word2Vec.load(path_w2vec)
-    logger.info('Word vector for {} {}'.format(test_word, model.wv[test_word]))
+    for tw in test_words:
+        if tw in model.wv:
+            logger.info('Word vector for {} {}'.format(tw, model.wv[tw]))
+    logger.info('word2vec loaded successfully')
 
 def train_fast_text(sentences: Preprocess, outputFolder: str):
     logger.info("Starting training fast text ...")
@@ -99,7 +103,7 @@ def test_load_fast_text(path_fast_text: str):
 def train_lda(docs: List, outputFolder: str):
     docs = list(docs)
     id2word = Dictionary(docs)
-    id2word.filter_extremes(no_below=7, no_above=0.1, keep_n=1000000)
+    id2word.filter_extremes(no_below=8, no_above=0.1, keep_n=1000000)
     logger.info('Starting trainin lda model with {} docs {} tokens'.format(id2word.num_docs, id2word.num_pos))
     corpus = [id2word.doc2bow(doc) for doc in docs]
     # saved for visualuzations
@@ -120,7 +124,8 @@ def train_lda(docs: List, outputFolder: str):
 def test_load_lda(path_to_model: str):
     model = LdaModel.load(path_to_model)
     for i in range(10):
-        print(model.show_topic(i, 30))
+        logger.info(model.show_topic(i, 30))
+    logger.info('LDA loaded successfully')
 
 def visualize_lda(path_to_lda: str, path_to_corpus_lda: str):
     logger.info('Loadin lda model ...')
@@ -169,9 +174,11 @@ def train_lsa(docs: Iterable, outputFolder: str):
 def test_load_lsa(path_lsa: str):
     model = LsiModel.load(path_lsa)
     logger.info(model.projection.s)
+    logger.info('LSA loaded successfully')
 
 # parse tokens, get lemmas, only lowercase letters
-def preprocess(parser: SpacyParser, folder: str, lang: Lang, split_sent: bool = True, only_dict_words: bool = False) -> Iterable[List]:
+def preprocess(parser: SpacyParser, folder: str, lang: Lang,
+     split_sent: bool = True, only_dict_words: bool = False) -> Iterable[List]:
     if only_dict_words:
         test = lambda x: not x.is_oov
     else:
