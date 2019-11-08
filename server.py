@@ -22,6 +22,7 @@ from rb.utils.downloader import download_model
 from rb.processings.scoring.essay_scoring import EssayScoring
 from rb.processings.fluctuations.fluctuations import Fluctuations
 from rb.utils.rblogger import Logger
+from rb.utils.downloader import download_scoring
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -53,7 +54,35 @@ def check_connection():
 def ro_correct():
     data = request.get_json()
     text = data['text']
-    res = correct_text_ro(text)
+    res = correct_text_ro(text, spellchecking=True)
+    return jsonify(res)
+
+@app.route('/en_correct', methods=['POST'])
+def en_correct():
+
+    import hunspell
+    en_hunspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic', '/usr/share/hunspell/en_US.aff')
+
+    data = request.get_json()
+    text = data['text']
+    paragraphs = text.split('\n')
+    paragraphs = [p for p in paragraphs if len(p) > 0]
+    corrections, split_text = [], []
+
+    for p_index, text in enumerate(paragraphs):
+        doc = spacyInstance.parse(text, Lang.EN)
+        p_list = []
+        for i, token in enumerate(doc):
+            p_list.append(token.text)
+            if token.is_punct == False and en_hunspell.spell(token.text) == False:
+                corrections.append({
+                   'mistake': "Spellchecking",
+                   'index': [ [p_index, i], [p_index, i + 1] ],
+                   "suggestions": en_hunspell.suggest(token.text)
+                })
+        split_text.append(p_list)
+
+    res = {'corrections': corrections, 'split_text': split_text}
     return jsonify(res)
 
 @app.route('/scoring', methods=['POST'])
@@ -61,7 +90,8 @@ def scoring():
     data = request.get_json()
     text = data['text']
     essay_scoring = EssayScoring()
-    score = essay_scoring.predict(text, file_to_svr_model='svr_gamma.p')
+    download_scoring(Lang.RO)
+    score = essay_scoring.predict(text, file_to_svr_model='resources/ro/scoring/svr_gamma.p')
     return jsonify(str(score))
 
 @app.route('/fluctuations', methods=['POST'])

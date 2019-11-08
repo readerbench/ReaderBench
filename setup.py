@@ -60,6 +60,7 @@ setuptools.setup(
         'pymorphy2',
         'nltk==3.4.5',
         'gensim==3.8.1',
+        'tensorflow==1.14',
         'sklearn',
         'networkxx',
         'joblib',
@@ -100,7 +101,9 @@ setuptools.setup(
         'wasabi',
         'Werkzeug',
         'wget',
-        'pyLDAvis'
+        'pyLDAvis',
+        'keras',
+        'unidecode'
       ],
     cmdclass={
         'develop': PostDevelopmentCommand,
