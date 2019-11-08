@@ -945,14 +945,28 @@ def simplify_format(output):
     res['split_text'] = output['split_text']
     return res
 
-def identify_mistake(par_index, sentence):
+def identify_mistake(par_index, sentence, spellchecking=False):
 
     doc = rom_spacy(sentence)
+    output_list = []
+
+    if spellchecking == True:
+        spellcheck_list = []
+        import hunspell as hs
+        ro_hunspell = hs.HunSpell('/usr/share/hunspell/ro_RO.dic', '/usr/share/hunspell/ro_RO.aff')
+        for i, token in enumerate(doc):
+            if token.is_punct == False and ro_hunspell.spell(token.text) == False:
+                spellcheck_list.append({
+                    'mistake': "Ortografie",
+                    'index': [ [par_index, i], [par_index, i + 1] ],
+                    "suggestions": ro_hunspell.suggest(token.text)
+                })
+
+    output_list += spellcheck_list
     # print(dir(doc[0]))
     # for i, token in enumerate(doc):
     #     print('index', token.text, token.pos_, token.is_stop, token.is_punct, token.i)
 
-    output_list = []
     correct = True
     #Step1
     try:
@@ -1046,7 +1060,7 @@ def identify_mistake(par_index, sentence):
     return output_list, [token.text for token in doc]
 
 
-def correct_text_ro(text):
+def correct_text_ro(text, spellchecking=False):
     p_newline_after = re.compile('\n\s+')
     p_newline_before = re.compile('\s+\n')
     text = p_newline_after.sub('\n', text)
@@ -1056,7 +1070,7 @@ def correct_text_ro(text):
 
     output = {'split_text': [], 'corrections': []} 
     for i, paragraph in enumerate(paragraphs):
-        mistakes, text_splitted = identify_mistake(i, paragraph)
+        mistakes, text_splitted = identify_mistake(i, paragraph, spellchecking=spellchecking)
         output['split_text'].append(text_splitted)
         output['corrections'] += mistakes
     return output

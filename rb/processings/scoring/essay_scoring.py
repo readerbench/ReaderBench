@@ -151,6 +151,7 @@ class EssayScoring:
         print('loss: {}'.format(loss))
 
     def predict(self, content: str, file_to_svr_model: str, lang=Lang.RO) -> float:
+
         svr = pickle.load(open(file_to_svr_model, "rb"))
 
         doc = Document(lang=lang, text=content)
@@ -172,10 +173,10 @@ class EssayScoring:
         values_indices = []
         for ind in indices: 
             for key, v in doc.indices.items():
-                if str(key) == ind:
+                if repr(key) == ind:
                     values_indices.append(v)
 
         grade = svr.predict([values_indices])[0]
-        return grade
+        return max(grade - 7, 0.1)
 
         

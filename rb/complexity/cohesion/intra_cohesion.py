@@ -37,7 +37,8 @@ class IntraCohesion(ComplexityIndex):
             part_of_edges = self.cna_graph.edges(node=element, edge_type=EdgeType.PART_OF, vector_model=None)
             for edge in part_of_edges:
                 sim_edge = self.cna_graph.edges(node=(edge[0], edge[1]), edge_type=EdgeType.SEMANTIC, vector_model=None)
-                sim_values.append(sim_edge[0][2])
+                if len(sim_edge) > 0 and len(sim_edge[0]) >= 3:
+                    sim_values.append(sim_edge[0][2])
             return sim_values
         elif element.depth <= self.reduce_depth:
             res = []

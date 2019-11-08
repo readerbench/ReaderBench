@@ -1,16 +1,26 @@
 
 import argparse
+import csv
 import os
+
+from rb.cna.cna_graph import CnaGraph
+from rb.complexity.complexity_index import ComplexityIndex, compute_indices
+from rb.core.document import Document
 from rb.core.lang import Lang
-from rb.utils.utils import str_to_lang
-from rb.utils.rblogger import Logger
-from rb.processings.scoring.essay_scoring import EssayScoring
-from rb.processings.fluctuations.fluctuations import Fluctuations
-from rb.similarity.vector_model import VectorModelType
-from rb.processings.train_models import (Preprocess, train_w2v, test_load_w2v, train_fast_text,
-             test_load_fast_text, train_lda, test_load_lda, visualize_lda, train_lsa, test_load_lsa)
-from rb.utils.utils import str_to_lang, str_to_vmodel
 from rb.parser.spacy_parser import SpacyParser
+from rb.processings.fluctuations.fluctuations import Fluctuations
+from rb.processings.scoring.essay_scoring import EssayScoring
+from rb.processings.train_models import (Preprocess, test_load_fast_text,
+                                         test_load_lda, test_load_lsa,
+                                         test_load_w2v, train_fast_text,
+                                         train_lda, train_lsa, train_w2v,
+                                         visualize_lda)
+from rb.similarity.vector_model import (CorporaEnum, VectorModel,
+                                        VectorModelType)
+from rb.similarity.vector_model_factory import create_vector_model
+from rb.utils.rblogger import Logger
+from rb.utils.utils import load_docs_all, str_to_lang, str_to_vmodel
+from rb.utils.downloader import download_scoring
 
 logger = Logger.get_logger()
 
@@ -29,17 +39,19 @@ test = """I. Evaluarea performantelor profesionale
 def do_scoring():
     global args, logger, test
     essay_scoring = EssayScoring()
-    #essay_scoring.create_files_from_csv(path_to_csv_file='essays.csv', path_to_folder=args.base_folder)
+    if args.predict_score == False:
+        essay_scoring.create_files_from_csv(path_to_csv_file='essays.csv', path_to_folder=args.scoring_base_folder)
 
-    essay_scoring.compute_indices(base_folder=args.scoring_base_folder,
-                                  write_file=args.scoring_indices_output_csv_file, 
-                                  stats=args.stats_file, lang=args.scoring_lang, 
-                                  nr_docs=None)
-    results = essay_scoring.read_indices(base_folder=args.scoring_base_folder, 
-                    path_to_csv_file=args.scoring_indices_output_csv_file)
-    essay_scoring.train_svr(results, save_model_file=args.model_file)
-    essay_scoring.predict(test, file_to_svr_model=args.model_file)
-
+        essay_scoring.compute_indices(base_folder=args.scoring_base_folder,
+                                    write_file=args.scoring_indices_output_csv_file, 
+                                    stats=args.stats_file, lang=args.scoring_lang, 
+                                    nr_docs=100)
+        results = essay_scoring.read_indices(base_folder=args.scoring_base_folder, 
+                        path_to_csv_file=args.scoring_indices_output_csv_file)
+        essay_scoring.train_svr(results, save_model_file=args.model_file)
+    else:
+        download_scoring(args.scoring_lang)
+        essay_scoring.predict(test, file_to_svr_model=args.model_file)
 
 def do_fluctuations():
     global args, logger, test
@@ -49,7 +61,7 @@ def do_fluctuations():
 
 def do_train_model():
     global args, logger, test
-    lang = str_to_lang(args.train_lang)
+    lang = args.train_lang
     model = str_to_vmodel(args.train_model)
     parser = SpacyParser.get_instance()
     logger.info("Loading dataset from {}".format(args.train_base_folder))
@@ -71,14 +83,54 @@ def do_train_model():
     else:
         logger.info('Model name not found')
 
+def do_indices():
+    if args.indices_lang is Lang.RO:
+        model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+    elif args.indices_lang is Lang.EN:
+        model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+    else:
+        logger.info(f'No module for lang {args.indices_lang}')
+        return
+
+    all_rows, indices_abbr = [], []
+    for i, pair_file_content in enumerate(load_docs_all(args.indices_base_folder)):
+        filename = pair_file_content[0]
+        content = pair_file_content[1]
+
+        doc = Document(lang=args.indices_lang, text=content)
+        """you can compute indices without the cna graph, but this means 
+           some indices won't be computed"""
+        cna_graph = CnaGraph(doc=doc, models=[model])
+        compute_indices(doc=doc, cna_graph=cna_graph)
+        
+        if i == 0: # first rowwith indices name
+            for key, v in doc.indices.items():
+                indices_abbr.append(repr(key))
+            all_rows.append(['filename'] + indices_abbr)
+
+        row = [filename]
+        "TODO O(n * m) can be done in O(m)"
+        for ind in indices_abbr:
+            for key, v in doc.indices.items():
+                if repr(key) == ind:
+                    row.append(v)
+        all_rows.append(row)
+
+        with open(os.path.join(args.indices_base_folder, 'stats.csv'), 'wt', encoding='utf-8') as stats_csv:
+            csv_writer = csv.writer(stats_csv)
+            csv_writer.writerows(all_rows)
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run different tasks through this file')
 
-    """parameters for scoring""" 
+    """parameters for scoring
+       if you want to train: download essays.csv from nextcloud in Readerbench/corpora/RO/eseu_referate_ro and put in root folder
+       and then run it to train an svm""" 
     parser.add_argument('--scoring', dest='scoring', action='store_true', default=False)
     parser.add_argument('--scoring_base_folder', dest='scoring_base_folder', action='store', default='essays_ro',
                         help='Base folder for files.')
+    parser.add_argument('--predict_score', dest='predict_score', action='store_true', default=False)
     parser.add_argument('--scoring_indices_output_csv_file', dest='scoring_indices_output_csv_file',
                         action='store', default='measurements.csv',
                         help='Csv file for with indices.')
@@ -86,7 +138,7 @@ if __name__ == "__main__":
                         action='store', default='stats.csv',
                         help='Csv file with stats about files.')
     parser.add_argument('--model_file', dest='model_file',
-                        action='store', default='svr_gamma.p',
+                        action='store', default='resources/ro/scoring/svr_gamma.p',
                         help='Pickle file for the model')
     parser.add_argument('--scoring_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value], help='Language for scoring (only ro supported)')
@@ -96,18 +148,32 @@ if __name__ == "__main__":
     parser.add_argument('--fluctuations_lang', dest='fluctuations_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value, Lang.EN.value], help='Language for fluctuations (only ro and en supported)')
 
-    """parameters for training models (LDA, LSA word2vec) """
+    """parameters for training models (LDA, LSA word2vec) 
+       default parameters for training are good.
+       TODO add parameters for training"""
     parser.add_argument('--train_model', dest='train_model', default='None', nargs='?',
                         choices=[VectorModelType.LDA.name, VectorModelType.LSA.name, VectorModelType.WORD2VEC.name, 'None'])
     parser.add_argument('--train_lang', dest='train_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value, Lang.ES.value, Lang.EN.value], 
                         help='Language for model')
     parser.add_argument('--train_base_folder', dest='train_base_folder', action='store', default='.',
-                        help='Base folder for files.')
+                        help='Base folder for .txt files. Only files ended in .txt count')
+
+    """compute indices
+       by default we use only word2vec
+       TODO add parameters for the other models"""
+    parser.add_argument('--indices', dest='indices', action='store_true', default=False)
+    parser.add_argument('--indices_lang', dest='indices_lang', default=Lang.RO.value, nargs='?', 
+                        choices=[Lang.RO.value, Lang.EN.value], 
+                        help='Language for indices')
+    parser.add_argument('--indices_base_folder', dest='indices_base_folder', action='store', default='.',
+                        help='Base folder for files. Only files ended in .txt count. Each file is considered a document')
 
     args = parser.parse_args()
     args.scoring_lang: Lang = str_to_lang(args.scoring_lang)
     args.fluctuations_lang: Lang = str_to_lang(args.fluctuations_lang)
+    args.train_lang = str_to_lang(args.train_lang)
+    args.indices_lang = str_to_lang(args.indices_lang)
 
     for k in args.__dict__:
         if args.__dict__[k] is not None:
@@ -119,3 +185,5 @@ if __name__ == "__main__":
         do_fluctuations()
     elif args.train_model != 'None':
         do_train_model()
+    elif args.indices:
+        do_indices()

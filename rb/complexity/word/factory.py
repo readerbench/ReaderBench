@@ -23,6 +23,8 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.word.aoa_enum import AoaTypeEnum
     from rb.complexity.word.aoe import Aoe
     from rb.complexity.word.aoe_enum import AoeTypeEnum
+    from rb.complexity.word.valence import Valence
+    from rb.complexity.word.valence_type import ValenceTypeEnum
 
     indices = []
 
@@ -56,6 +58,11 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
                                     reduce_function=MeasureFunction.AVG))
             indices.append(Aoe(lang, at, reduce_depth=TextElementType.WORD.value, 
                                     reduce_function=MeasureFunction.STDEV))
+        for vt in ValenceTypeEnum:
+            indices.append(Valence(lang, vt, reduce_depth=TextElementType.SENT.value, 
+                                    reduce_function=MeasureFunction.AVG))
+            indices.append(Valence(lang, vt, reduce_depth=TextElementType.BLOCK.value, 
+                                    reduce_function=MeasureFunction.AVG))
 
     for named_ent_type in NamedEntityONEnum:
         indices.append(NoNamedEntity(lang, named_ent_type=named_ent_type, reduce_depth=TextElementType.WORD.value, 

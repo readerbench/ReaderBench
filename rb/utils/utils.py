@@ -31,7 +31,16 @@ def tokenize_docs(fileName: str) -> Iterable[List[str]]:
         for line in f.readlines():
             yield [token for token in tokenizer.tokenize(line)
                 if token.isalpha and not token == '.']
-            
+
+def load_docs_all(folder: str) -> List[List[str]]:
+    all_docs = []
+    for f in listdir(folder):
+        if isfile(join(folder, f)) and f.endswith(".txt"):
+            with open(join(folder, f), "rt", encoding='utf-8', errors='replace') as fin:
+                content = fin.read()
+                all_docs.append([f, content])
+    return all_docs
+
 def load_docs(folder: str) -> Iterable[str]:
     for f in listdir(folder):
         if isfile(join(folder, f)) and f.endswith(".txt"):

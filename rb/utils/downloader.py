@@ -40,7 +40,7 @@ LINKS = {
             'readme': {
                 "link": "https://nextcloud.readerbench.com/index.php/s/Sj94ysrmDDxX8YH/download",
                 "version": "https://nextcloud.readerbench.com/index.php/s/QXd8847qLz5tNAa/download"
-            },
+            }
         },
         'spacy': {
             'ro_ud_ft_ner': {
@@ -56,6 +56,10 @@ LINKS = {
         'wordlists': {
             'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
             'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
+        },
+        'scoring': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/H85ejaXWcZHS6GE/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/iTETzcskXZGsBWo/download'
         }
     },
     Lang.RU: {
@@ -182,7 +186,24 @@ def download_aoa(lang: Lang) -> bool:
         return False
     link = LINKS[lang]['aoa']
     download_file(link, "resources/{}/aoa/".format(lang.value))
-        
+    return True
+
+def download_scoring(lang: Lang) -> bool:
+    path = "resources/{}/scoring/svr_gamma.p".format(lang.value)
+    if os.path.isfile(path):
+        logger.info('File already downloaded')
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported.'.format(lang))
+        return False
+    if 'scoring' not in LINKS[lang]:
+        logger.info('No scoring model found')
+        return False
+    link = LINKS[lang]['scoring']['link']
+    download_file(link, "resources/{}/scoring/".format(lang.value))
+    return True
+
+
 def check_spacy_version(lang: Lang, name: str) -> bool:
     return check_version(lang, ['spacy', name])
 

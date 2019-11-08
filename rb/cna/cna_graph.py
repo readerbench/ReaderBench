@@ -52,7 +52,7 @@ class CnaGraph:
             for b in elements[i+1:]:
                 words_a = {word.lemma for word in a.get_words() if test(word)}
                 words_b = {word.lemma for word in b.get_words() if test(word)}
-                weight = len(words_a & words_b) / len(words_a | words_b)
+                weight = len(words_a & words_b) / (1e-5 + len(words_a | words_b))
                 self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                 self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                     

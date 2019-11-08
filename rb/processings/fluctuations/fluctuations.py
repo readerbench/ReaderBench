@@ -4,7 +4,7 @@ from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.complexity.cohesion.adj_cohesion import AdjCohesion
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_factory import VECTOR_MODELS
+from rb.similarity.vector_model_factory import VECTOR_MODELS, create_vector_model
 from rb.cna.cna_graph import CnaGraph
 from typing import Tuple, List
 from sklearn.svm import SVR
@@ -39,11 +39,9 @@ class Fluctuations:
     def compute_indices(self, text: str, lang: Lang) -> List[List]:
         doc = Document(lang=lang, text=text)
         if lang is Lang.RO:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                name=CorporaEnum.README.value, lang=lang)
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
         elif lang is Lang.EN:
-            vector_model = VECTOR_MODELS[Lang.EN][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                name=CorporaEnum.COCA.value, lang=Lang.EN)
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
 
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
@@ -89,7 +87,7 @@ class Fluctuations:
                  'level': 'sentence', 'values': [], 'text': []}
             for sent in doc.get_sentences():
                 for key, v in sent.indices.items():
-                    if str(key) == ind_sent:
+                    if repr(key) == ind_sent:
                         d['values'].append(v)
                         d['text'].append(sent.text)
             maxt, mint = self.compute_thresholds(d['values'])
@@ -106,7 +104,7 @@ class Fluctuations:
                  'level': 'paragraph', 'values': [], 'text': []}
             for block in doc.get_blocks():
                 for key, v in block.indices.items():
-                    if str(key) == ind_block:
+                    if repr(key) == ind_block:
                         d['values'].append(v)
                         d['text'].append(block.text)
             maxt, mint = self.compute_thresholds(d['values'])
