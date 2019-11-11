@@ -125,7 +125,7 @@ def do_indices():
         all_rows.append(row)
 
         with open(os.path.join(args.indices_base_folder, 'stats.csv'), 'wt', encoding='utf-8') as stats_csv:
-            csv_writer = csv.writer(stats_csv, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            csv_writer = csv.writer(stats_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerows(all_rows)
 
 if __name__ == "__main__":
