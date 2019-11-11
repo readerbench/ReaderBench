@@ -29,6 +29,7 @@ For neural coref errors install it as follows: https://github.com/huggingface/ne
 If you want to install spellchecking also you need this non-python lib:
 `sudo apt-get install libhunspell-1.6-0 libhunspell-dev`
 and then `pip3 install hunspell`
+If you want to use it for RO you need to provide the dictionary for the hunspell (in /usr/share/hunspell)
 ## Usage
 For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py` from 
 https://git.readerbench.com/ReaderBench/readerbenchpy

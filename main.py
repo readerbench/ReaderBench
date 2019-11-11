@@ -36,6 +36,8 @@ test = """I. Evaluarea performantelor profesionale
         Evaluarea ca notiune are un caracter complex, determinat de diversi factori functie de care se realizeaza. Astfel, unii autori2 considera evaluarea personalului ca fiind"actul prin care un responsabil ierarhic efectueaza o apreciere formalizata a subordonatilor sai", iar daca aceste aprecieri au loc anual atunci este vorba despre"un sistem de apreciere" al organizatiei. Alti autori fac referire doar la performantele obtinute, fiind considerata"activitatea de baza a managementului resurselor umane, desfasurata in vederea determinarii gradului in care angajatii unei organizatii indeplinesc eficient sarcinile si responsabilitatile care le revin"3
 """
 
+ff = open('debug.txt', 'w', encoding='utf-8')
+
 def do_scoring():
     global args, logger, test
     essay_scoring = EssayScoring()
@@ -103,17 +105,22 @@ def do_indices():
         cna_graph = CnaGraph(doc=doc, models=[model])
         compute_indices(doc=doc, cna_graph=cna_graph)
         
-        if i == 0: # first rowwith indices name
+        if i == 0: # first row ith indices name
             for key, v in doc.indices.items():
                 indices_abbr.append(repr(key))
             all_rows.append(['filename'] + indices_abbr)
+        
 
+        assert len(indices_abbr) == len(doc.indices.items()), 'wrong nr of indices'
         row = [filename]
+
         "TODO O(n * m) can be done in O(m)"
+
         for ind in indices_abbr:
             for key, v in doc.indices.items():
                 if repr(key) == ind:
                     row.append(v)
+                    break
         all_rows.append(row)
 
         with open(os.path.join(args.indices_base_folder, 'stats.csv'), 'wt', encoding='utf-8') as stats_csv:

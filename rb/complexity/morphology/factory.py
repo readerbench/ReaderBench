@@ -30,9 +30,23 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.SENT.value, MeasureFunction.AVG))
+
+
+    indices.append(PosMain(lang, PosEum.NOUN, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(PosMain(lang, PosEum.VERB, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(PosMain(lang, PosEum.ADJ, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(PosMain(lang, PosEum.ADV, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(PosMain(lang, PosEum.PRON, TextElementType.BLOCK.value, MeasureFunction.AVG))
+
+    indices.append(UnqPosMain(lang, PosEum.NOUN, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(UnqPosMain(lang, PosEum.VERB, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.BLOCK.value, MeasureFunction.AVG))
     
     if lang is Lang.RO or lang is Lang.EN:
         for pt in PronounTypeEnum:
             indices.append(Pronoun(lang, pt, TextElementType.SENT.value, MeasureFunction.AVG))
+            indices.append(Pronoun(lang, pt, TextElementType.BLOCK.value, MeasureFunction.AVG))
 
     return indices

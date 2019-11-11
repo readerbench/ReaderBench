@@ -20,20 +20,35 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
+    indices.append(NoWord(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(NoWord(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
+
     indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
-    indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoSentences(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+    indices.append(NoSentences(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(NoSentences(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
 
     indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
+    indices.append(NoPunctuations(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(NoPunctuations(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
+
     indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
+    indices.append(NoCommas(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(NoCommas(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
+
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.AVG))
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
+
+    indices.append(WdEntropy(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
+    indices.append(WdEntropy(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
+
+    indices.append(WdEntropy(lang, TextElementType.DOC.value, MeasureFunction.AVG))
+    indices.append(WdEntropy(lang, TextElementType.DOC.value, MeasureFunction.STDEV))
 
     indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.AVG))
     indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.STDEV))

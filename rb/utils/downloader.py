@@ -134,7 +134,7 @@ def download_wordlist(lang: Lang) -> bool:
     link = LINKS[lang]['wordlists']['link']
     logger.info('Downloading wordlists for {} ...'.format(lang.value))
     download_folder(link, base_path)
-    logger.info('Downloaded wordlists for {} succesfully'.format(lang.value))
+    logger.info('Downloaded wordlists for {} successfully'.format(lang.value))
     return True
 
 def download_tags(lang: Lang) -> bool:
@@ -157,7 +157,7 @@ def download_tags(lang: Lang) -> bool:
     logger.info('Downloading tags for {} ...'.format(lang.value))
     
     download_folder(link, path)
-    logger.info('Downloaded tags for {} succesfully'.format(lang.value))
+    logger.info('Downloaded tags for {} successfully'.format(lang.value))
     return True
 
 def download_spacy_model(lang: Lang, name: str) -> bool:

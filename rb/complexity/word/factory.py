@@ -29,10 +29,13 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices = []
 
     indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.STDEV))
+    indices.append(WdLen(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
 
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.AVG))
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.STDEV))
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.SENT.value, reduce_function=MeasureFunction.AVG))
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.SENT.value, reduce_function=MeasureFunction.STDEV))
+
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG))
+    indices.append(WdSyllab(lang, reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.STDEV))
 
     indices.append(WdDiffLemma(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.AVG))
     
