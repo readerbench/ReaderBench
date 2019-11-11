@@ -36,7 +36,7 @@ test = """I. Evaluarea performantelor profesionale
         Evaluarea ca notiune are un caracter complex, determinat de diversi factori functie de care se realizeaza. Astfel, unii autori2 considera evaluarea personalului ca fiind"actul prin care un responsabil ierarhic efectueaza o apreciere formalizata a subordonatilor sai", iar daca aceste aprecieri au loc anual atunci este vorba despre"un sistem de apreciere" al organizatiei. Alti autori fac referire doar la performantele obtinute, fiind considerata"activitatea de baza a managementului resurselor umane, desfasurata in vederea determinarii gradului in care angajatii unei organizatii indeplinesc eficient sarcinile si responsabilitatile care le revin"3
 """
 
-ff = open('debug.txt', 'w', encoding='utf-8')
+ff = open('debug2.txt', 'w', encoding='utf-8')
 
 def do_scoring():
     global args, logger, test
@@ -119,12 +119,13 @@ def do_indices():
         for ind in indices_abbr:
             for key, v in doc.indices.items():
                 if repr(key) == ind:
-                    row.append(v)
+                    row.append(str(v))
+                    print(ind, v, file=ff)
                     break
         all_rows.append(row)
 
         with open(os.path.join(args.indices_base_folder, 'stats.csv'), 'wt', encoding='utf-8') as stats_csv:
-            csv_writer = csv.writer(stats_csv)
+            csv_writer = csv.writer(stats_csv, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerows(all_rows)
 
 if __name__ == "__main__":

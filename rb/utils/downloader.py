@@ -120,9 +120,9 @@ def download_model(lang: Lang, name: Union[str, List[str]]) -> bool:
 def download_wordlist(lang: Lang) -> bool:
     base_path = os.path.join('resources', lang.value)
     path = os.path.join(base_path, 'wordlists')
-    version_path = os.path.join(path, '/version.txt')
+    version_path = os.path.join(path, 'version.txt')
     
-    if os.path.isfile(version_path):
+    if os.path.isfile(version_path) and os.path.isdir(path):
         return True
     if lang not in LINKS:
         logger.info('{} not supported for tags'.format(lang.value))

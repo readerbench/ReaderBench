@@ -11,7 +11,6 @@ from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
-
 class NoCommas(ComplexityIndex):
     
     
@@ -23,7 +22,8 @@ class NoCommas(ComplexityIndex):
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
+        x = self.reduce_function(self.compute_above(element))
+        return x
 
     def compute_below(self, element: TextElement) -> float:
         if element.is_sentence() == True:
