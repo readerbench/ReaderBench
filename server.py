@@ -21,7 +21,9 @@ from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
 from rb.processings.scoring.essay_scoring import EssayScoring
 from rb.processings.fluctuations.fluctuations import Fluctuations
+from rb.processings.readme_feedback.feedback import Feedback
 from rb.utils.rblogger import Logger
+from rb.utils.utils import str_to_lang
 from rb.utils.downloader import download_scoring
 
 app = Flask(__name__)
@@ -45,6 +47,11 @@ def create_spacy_doc():
     response = jsonify({'doc': doc})
     return response, 200
 
+@app.route('/test2', methods=['POST'])
+def test():
+    return jsonify({'x': [1, 2, [5, 6]]})
+
+
 @app.route('/isalive', methods=['GET'])
 def check_connection():
     response = jsonify("alive")
@@ -55,6 +62,16 @@ def ro_correct():
     data = request.get_json()
     text = data['text']
     res = correct_text_ro(text, spellchecking=True)
+    return jsonify(res)
+
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    data = request.get_json()
+    text = data['text']
+    lang = data['lang']
+    feedback = Feedback()
+    lang = str_to_lang(lang)
+    res = feedback.compute_indices_and_tokenization(text, lang)
     return jsonify(res)
 
 @app.route('/en_correct', methods=['POST'])

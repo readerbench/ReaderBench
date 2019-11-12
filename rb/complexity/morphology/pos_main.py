@@ -43,6 +43,7 @@ class PosMain(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = [self.compute_below(element)]
+            element.indices[self] = values[0]
         else:
             logger.error('wrong reduce depth value.')
         return values

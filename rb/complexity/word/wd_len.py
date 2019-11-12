@@ -26,6 +26,7 @@ class WdLen(ComplexityIndex):
     def compute_below(self, element: TextElement) -> List[float]:
         if element.is_word() == True:
             res = len(element.text)
+            element.indices[self] = res
             return [res]
         elif element.depth <= self.reduce_depth:
             res = []
