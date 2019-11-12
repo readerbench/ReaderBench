@@ -58,7 +58,7 @@ LINKS = {
             'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
         },
         'scoring': {
-            'link': 'https://nextcloud.readerbench.com/index.php/s/H85ejaXWcZHS6GE/download',
+            'link': 'https://nextcloud.readerbench.com/index.php/s/eMri3i2GHLrQZ24/download',
             'version': 'https://nextcloud.readerbench.com/index.php/s/iTETzcskXZGsBWo/download'
         }
     },

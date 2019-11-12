@@ -41,19 +41,37 @@ ff = open('debug2.txt', 'w', encoding='utf-8')
 def do_scoring():
     global args, logger, test
     essay_scoring = EssayScoring()
-    if args.predict_score == False:
-        essay_scoring.create_files_from_csv(path_to_csv_file='essays.csv', path_to_folder=args.scoring_base_folder)
 
+    """ score is computed based on a predfined list of indices defined in rb/processings/scoring/*.txt)
+        if you change the indicies in that list you have to reatrin the model (SVM)  """
+    if args.scoring_actualize_indices:
+        if args.scoring_lang is Lang.RO:
+            model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+        elif args.scoring_lang is Lang.EN:
+            model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        else:
+            logger.info(f'Unsopported lang {args.scoring_lang}')
+
+        doc = Document(lang=args.indices_lang, text=test)
+        cna_graph = CnaGraph(doc=doc, models=[model])
+        compute_indices(doc=doc, cna_graph=cna_graph)
+        indices = [repr(key) for key, _ in doc.indices.items()]
+        with open(f'rb/processings/scoring/indices_{args.scoring_lang.value}_scoring.txt', 'wt', encoding='utf-8') as f:
+            for ind in indices:
+                f.write(ind + '\n')
+    elif args.scoring_predict == False:
+        essay_scoring.create_files_from_csv(path_to_csv_file='essays.csv', path_to_folder=args.scoring_base_folder)
         essay_scoring.compute_indices(base_folder=args.scoring_base_folder,
                                     write_file=args.scoring_indices_output_csv_file, 
-                                    stats=args.stats_file, lang=args.scoring_lang, 
-                                    nr_docs=100)
+                                    stats=args.scoring_stats_file, lang=args.scoring_lang, 
+                                    nr_docs=None)
         results = essay_scoring.read_indices(base_folder=args.scoring_base_folder, 
                         path_to_csv_file=args.scoring_indices_output_csv_file)
-        essay_scoring.train_svr(results, save_model_file=args.model_file)
-    else:
+        essay_scoring.train_svr(results, save_model_file=args.scoring_model_file)
+    else: # just predict
         download_scoring(args.scoring_lang)
-        essay_scoring.predict(test, file_to_svr_model=args.model_file)
+        score = essay_scoring.predict(test, file_to_svr_model=args.scoring_model_file)
+        logger.info(f'Score for text {score}')
 
 def do_fluctuations():
     global args, logger, test
@@ -136,16 +154,18 @@ if __name__ == "__main__":
        if you want to train: download essays.csv from nextcloud in Readerbench/corpora/RO/eseu_referate_ro and put in root folder
        and then run it to train an svm""" 
     parser.add_argument('--scoring', dest='scoring', action='store_true', default=False)
+    parser.add_argument('--scoring_actualize_indices', dest='scoring_actualize_indices', action='store_true', default=False,
+                        help="Change the indices used in scoring model. You have to retrain the model if you do so")
     parser.add_argument('--scoring_base_folder', dest='scoring_base_folder', action='store', default='essays_ro',
                         help='Base folder for files.')
-    parser.add_argument('--predict_score', dest='predict_score', action='store_true', default=False)
+    parser.add_argument('--scoring_predict', dest='scoring_predict', action='store_true', default=False)
     parser.add_argument('--scoring_indices_output_csv_file', dest='scoring_indices_output_csv_file',
                         action='store', default='measurements.csv',
-                        help='Csv file for with indices.')
-    parser.add_argument('--stats_file', dest='stats_file',
+                        help='Csv file for indices')
+    parser.add_argument('--scoring_stats_file', dest='scoring_stats_file',
                         action='store', default='stats.csv',
-                        help='Csv file with stats about files.')
-    parser.add_argument('--model_file', dest='model_file',
+                        help='Csv file with stats about files')
+    parser.add_argument('--scoring_model_file', dest='scoring_model_file',
                         action='store', default='resources/ro/scoring/svr_gamma.p',
                         help='Pickle file for the model')
     parser.add_argument('--scoring_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 

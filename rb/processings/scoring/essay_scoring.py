@@ -148,7 +148,7 @@ class EssayScoring:
             loss += abs(r - grade)
         loss /= len(res)
 
-        print('loss: {}'.format(loss))
+        logger.info('Scoring loss: {}'.format(loss))
 
     def predict(self, content: str, file_to_svr_model: str, lang=Lang.RO) -> float:
 
