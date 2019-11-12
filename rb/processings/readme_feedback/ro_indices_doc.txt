@@ -1,0 +1,3 @@
+AvgDocIntraCoh_DOC
+AvgDocAdjCoh_DOC
+StDevDocAdjCoh_DOC

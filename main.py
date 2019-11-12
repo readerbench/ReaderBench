@@ -15,6 +15,8 @@ from rb.processings.train_models import (Preprocess, test_load_fast_text,
                                          test_load_w2v, train_fast_text,
                                          train_lda, train_lsa, train_w2v,
                                          visualize_lda)
+from rb.processings.readme_feedback.feedback import Feedback
+
 from rb.similarity.vector_model import (CorporaEnum, VectorModel,
                                         VectorModelType)
 from rb.similarity.vector_model_factory import create_vector_model
@@ -146,6 +148,19 @@ def do_indices():
             csv_writer = csv.writer(stats_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerows(all_rows)
 
+
+def do_feedback():
+    feedback = Feedback()
+    feedback.compute_extreme_values(path_to_csv='categories_readme/en_stats.csv',
+                                    output_file='readme_en.txt')
+    feedback.compute_extreme_values(path_to_csv='categories_readme/general_stats.csv',
+                                    output_file='readme_general.txt')
+    feedback.compute_extreme_values(path_to_csv='categories_readme/literature_stats.csv',
+                                    output_file='readme_literature.txt')
+    feedback.compute_extreme_values(path_to_csv='categories_readme/science_stats.csv',
+                                    output_file='readme_science.txt')
+                
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run different tasks through this file')
@@ -197,6 +212,9 @@ if __name__ == "__main__":
     parser.add_argument('--indices_base_folder', dest='indices_base_folder', action='store', default='.',
                         help='Base folder for files. Only files ended in .txt count. Each file is considered a document')
 
+    """ generate extreme values for indices"""
+    parser.add_argument('--feedback_readme', dest='feedback_readme', action='store_true', default=False)
+
     args = parser.parse_args()
     args.scoring_lang: Lang = str_to_lang(args.scoring_lang)
     args.fluctuations_lang: Lang = str_to_lang(args.fluctuations_lang)
@@ -215,3 +233,5 @@ if __name__ == "__main__":
         do_train_model()
     elif args.indices:
         do_indices()
+    elif args.feedback_readme:
+        do_feedback()
