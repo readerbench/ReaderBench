@@ -69,6 +69,7 @@ class Valence(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = [len(self.compute_below(element))]
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values

@@ -67,20 +67,24 @@ if __name__ == "__main__":
         cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
         compute_indices(doc=doc, cna_graph=cna_graph_en)
 
-        print('\n\nindices at the doc level (en): \n\n', file=log)
+        print('\n\nindices at doc level (en): \n\n', file=log)
         for key, v in doc.indices.items():
             print(key, v, file=log)
 
-        print('\n\nindices at the block level (en): \n\n', file=log)
+        print('\n\nindices at block level (en): \n\n', file=log)
         for comp in doc.get_blocks():
             for key, v in comp.indices.items():
                 print(comp.text, key, v, file=log)
 
-        print('\n\nindices at the sent level (en): \n\n', file=log)
+        print('\n\nindices at sent level (en): \n\n', file=log)
         for comp in doc.get_sentences():
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
 
+        print('\n\nindices at word level (en): \n\n', file=log)
+        for comp in doc.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
     if args.indices_ro:
         ro_readme_word2vec = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme") 
         doc = Document(lang=Lang.RO, text=txt_ro)
@@ -100,6 +104,11 @@ if __name__ == "__main__":
 
         print('\n\nindices at the sent level (ro): \n\n', file=log)
         for comp in doc.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
+
+        print('\n\nindices at word level (ro): \n\n', file=log)
+        for comp in doc.get_words():
                 for key, v in comp.indices.items():
                     print(comp.text, key, v, file=log)
 
