@@ -17,6 +17,8 @@ logger = Logger.get_logger()
 
 class Feedback:
 
+    vector_model_ro = None
+    vector_model_en = None
 
     def __init__(self):
         pass
@@ -102,9 +104,13 @@ class Feedback:
 
         doc = Document(lang=lang, text=text)
         if lang is Lang.RO:
-            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+            if Feedback.vector_model_ro is None:
+                Feedback.vector_model_ro = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+            vector_model = Feedback.vector_model_ro
         elif lang is Lang.EN:
-            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+            if Feedback.vector_model_ro is None:
+                Feedback.vector_model_en = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+            vector_model = Feedback.vector_model_ro
         else:
             logger.info(f'Language {lang.value} is not supported')
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
