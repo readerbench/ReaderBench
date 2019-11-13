@@ -19,7 +19,8 @@ logger = Logger.get_logger()
 
 class EssayScoring:
 
-
+    vector_model_ro = None
+    vector_model_en = None
     def __init__(self):
         pass
     
@@ -61,11 +62,16 @@ class EssayScoring:
                 for line in f:
                     indices.append(line.strip())    
         if lang is Lang.RO:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                name=CorporaEnum.README.value, lang=lang)
+            if EssayScoring.vector_model_ro is None:
+                EssayScoring.vector_model_ro =  VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                    name=CorporaEnum.README.value, lang=lang)
+            vector_model = EssayScoring.vector_model_ro
+
         elif lang is Lang.EN:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                name=CorporaEnum.COCA.value, lang=lang)
+            if EssayScoring.vector_model_en is None:
+                EssayScoring.vector_model_en = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+                    name=CorporaEnum.COCA.value, lang=lang)
+            vector_model = EssayScoring.vector_model_en
             
         all_rows = []
         first_row = ['filename', 'grade']
@@ -156,11 +162,15 @@ class EssayScoring:
 
         doc = Document(lang=lang, text=content)
         if lang is Lang.RO:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                name=CorporaEnum.README.value, lang=lang)
+            if EssayScoring.vector_model_ro is None:
+                EssayScoring.vector_model_ro =  VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
+                    name=CorporaEnum.README.value, lang=lang)
+            vector_model = EssayScoring.vector_model_ro
         elif lang is Lang.EN:
-            vector_model = VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                name=CorporaEnum.README.value, lang=lang)
+            if EssayScoring.vector_model_en is None:
+                EssayScoring.vector_model_en = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
+                    name=CorporaEnum.COCA.value, lang=lang)
+            vector_model = EssayScoring.vector_model_en
 
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
