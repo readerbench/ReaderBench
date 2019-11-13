@@ -90,6 +90,13 @@ class Feedback:
             TextElementType.DOC.name: {}
         }
 
+        KEY_TEXT = "text"
+        KEY_DOC = "doc"
+        KEY_BLOCK = "block"
+        KEY_SENT = "sentence"
+        KEY_WORD = "word"
+        KEY_VALUES = "values"
+
         indices = self.get_used_indices()
         # indices = [vv for v in list(indices.values()) for vv in v]
 
@@ -112,8 +119,8 @@ class Feedback:
             for ind_name, ind_v in doc.indices.items():
                 if repr(ind_name) == ind:
                     d_ind_list.append(ind_v)
-        docs.append([doc.text, d_ind_list])
-
+        docs.append({KEY_TEXT: doc.text, KEY_BLOCK: 0, KEY_SENT: 0,
+                             KEY_WORD: 0, KEY_VALUES: d_ind_list, KEY_DOC: 0})
         t_doc = []
         for i_block, block in enumerate(doc.get_blocks()):
             # block 
@@ -122,7 +129,8 @@ class Feedback:
                 for ind_name, ind_v in block.indices.items():
                     if repr(ind_name) == ind:
                         b_ind_list.append(ind_v)
-            blocks.append([block.text, i_block, b_ind_list])
+            blocks.append({KEY_TEXT: block.text, KEY_BLOCK: i_block, KEY_SENT: 0,
+                             KEY_WORD: 0, KEY_VALUES: b_ind_list, KEY_DOC: 0})
 
             t_block = []
             for i_sent, sent in enumerate(block.get_sentences()):
@@ -132,7 +140,9 @@ class Feedback:
                     for ind_name, ind_v in sent.indices.items():
                         if repr(ind_name) == ind:
                             s_ind_list.append(ind_v)
-                sents.append([sent.text, i_block, i_sent, s_ind_list])
+                sents.append({
+                    KEY_TEXT: sent.text, KEY_BLOCK: i_block, KEY_SENT: i_sent, KEY_VALUES: s_ind_list,
+                    KEY_WORD: 0, KEY_DOC: 0})
 
                 t_sent = []
                 for i_word, word in enumerate(sent.get_words()):
@@ -142,7 +152,8 @@ class Feedback:
                         for ind_name, ind_v in word.indices.items():
                             if repr(ind_name) == ind:
                                 w_ind_list.append(ind_v)
-                    words.append([word.text, i_block, i_sent, i_word, w_ind_list])
+                    words.append({KEY_TEXT: word.text, KEY_BLOCK: i_block, KEY_SENT: i_sent,
+                             KEY_WORD: i_word, KEY_VALUES: w_ind_list, KEY_DOC: 0})
                     t_sent.append(word.text)
                 t_block.append(t_sent)
             t_doc.append(t_block)
