@@ -28,6 +28,7 @@ If you want to install spellchecking (hunspell) also you need this non-python li
 ## Usage
 For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py` from 
 https://git.readerbench.com/ReaderBench/readerbenchpy
+Check main.py (`python3 main.py --help`) to see main processings available.
 
 ## Tips
 You may also need some spacy models which are downloaded through spacy.     
