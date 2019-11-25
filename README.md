@@ -2,24 +2,24 @@
 
 ## Install
 We recommend using virtual environments, as some packages require an exact version.   
-If you only want to use the package do the following:
-0. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`
-1. `python3 -m venv rbenv` (create virutal environment named rbenv)
-2. `source rbenv/bin/activate` (actiavte virtual env)
-3. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
-
-If you want to contribute to the code base of package:  
-0. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`
-1. `git clone git@git.readerbench.com:ReaderBench/readerbenchpy.git && cd readerbenchpy/`
+If you only want to use the package do the following:  
+1. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`    
 2. `python3 -m venv rbenv` (create virutal environment named rbenv)
 3. `source rbenv/bin/activate` (actiavte virtual env)
-4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip`
-5. `pip3 install -r requirements.txt` 
-6. `python3 -m spacy download xx_ent_wiki_sm`
-7. `python3 nltk_download.py`  
+4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
+
+If you want to contribute to the code base of package:   
+1. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`    
+2. `git clone git@git.readerbench.com:ReaderBench/readerbenchpy.git && cd readerbenchpy/`  
+3. `python3 -m venv rbenv` (create virutal environment named rbenv)
+4. `source rbenv/bin/activate` (actiavte virtual env)
+5. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip`
+6. `pip3 install -r requirements.txt` 
+7. `python3 -m spacy download xx_ent_wiki_sm`
+8. `python3 nltk_download.py`  
 Optional: prei-install model for en (otherwise most of the english processings would fail
     and ask to run this command):
-8. `sudo python3 -m spacy download en_core_web_lg`
+9. `sudo python3 -m spacy download en_core_web_lg`
 
 If you want to install spellchecking (hunspell) also you need this non-python libraries:
 1. `sudo apt-get install libhunspell-1.6-0 libhunspell-dev hunspell-ro`
