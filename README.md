@@ -8,7 +8,7 @@ If you only want to use the package do the following:
 2. `source rbenv/bin/activate` (actiavte virtual env)
 3. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
 
-If you want to contribute to the code base of package:
+If you want to contribute to the code base of package:  
 0. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`
 1. `git clone git@git.readerbench.com:ReaderBench/readerbenchpy.git && cd readerbenchpy/`
 2. `python3 -m venv rbenv` (create virutal environment named rbenv)
@@ -16,8 +16,8 @@ If you want to contribute to the code base of package:
 4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip`
 5. `pip3 install -r requirements.txt` 
 6. `python3 -m spacy download xx_ent_wiki_sm`
-7. `python3 nltk_download.py`
-Optional - prei-install model for en (otherwise most of the english processings would fail
+7. `python3 nltk_download.py`  
+Optional: prei-install model for en (otherwise most of the english processings would fail
     and ask to run this command):
 8. `sudo python3 -m spacy download en_core_web_lg`
 
