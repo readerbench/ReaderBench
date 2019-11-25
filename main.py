@@ -151,13 +151,13 @@ def do_indices():
 
 def do_feedback():
     feedback = Feedback()
-    feedback.compute_extreme_values(path_to_csv='categories_readme/en_stats.csv',
+    feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_en.csv',
                                     output_file='readme_en.txt')
-    feedback.compute_extreme_values(path_to_csv='categories_readme/general_stats.csv',
+    feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_general.csv',
                                     output_file='readme_general.txt')
-    feedback.compute_extreme_values(path_to_csv='categories_readme/literature_stats.csv',
+    feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_literature.csv',
                                     output_file='readme_literature.txt')
-    feedback.compute_extreme_values(path_to_csv='categories_readme/science_stats.csv',
+    feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_science.csv',
                                     output_file='readme_science.txt')
                 
 

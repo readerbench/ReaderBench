@@ -48,3 +48,4 @@ pyLDAvis
 keras
 tensorflow==1.14
 unidecode
+wheel

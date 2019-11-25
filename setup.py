@@ -44,7 +44,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.6.5',
+    version='0.6.6',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -62,7 +62,7 @@ setuptools.setup(
         'gensim==3.8.1',
         'tensorflow==1.14',
         'sklearn',
-        'networkxx',
+        'networkx',
         'joblib',
         'blis<0.3.0',
         'boto',
