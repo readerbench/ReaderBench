@@ -7,6 +7,7 @@ If you only want to use the package do the following:
 2. `python3 -m venv rbenv` (create virutal environment named rbenv)
 3. `source rbenv/bin/activate` (actiavte virtual env)
 4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
+5. Use it as in: https://git.readerbench.com/ReaderBench/readerbenchpy/blob/master/usage.py  
 
 If you want to contribute to the code base of package:   
 1. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`    

@@ -60,6 +60,10 @@ LINKS = {
         'scoring': {
             'link': 'https://nextcloud.readerbench.com/index.php/s/eMri3i2GHLrQZ24/download',
             'version': 'https://nextcloud.readerbench.com/index.php/s/iTETzcskXZGsBWo/download'
+        },
+        'classifier': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/DKPXSXfXmtC2445/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/sMMEqkpiMeX4Pbx/download'
         }
     },
     Lang.RU: {
@@ -203,6 +207,21 @@ def download_scoring(lang: Lang) -> bool:
     download_file(link, "resources/{}/scoring/".format(lang.value))
     return True
 
+
+def download_classifier(lang: Lang) -> bool:
+    path = "resources/{}/classifier/svr.p".format(lang.value)
+    if os.path.isfile(path):
+        logger.info('File already downloaded')
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported.'.format(lang))
+        return False
+    if 'classifier' not in LINKS[lang]:
+        logger.info('No classifier model found')
+        return False
+    link = LINKS[lang]['classifier']['link']
+    download_file(link, "resources/{}/classifier/".format(lang.value))
+    return True
 
 def check_spacy_version(lang: Lang, name: str) -> bool:
     return check_version(lang, ['spacy', name])

@@ -16,13 +16,13 @@ from rb.processings.train_models import (Preprocess, test_load_fast_text,
                                          train_lda, train_lsa, train_w2v,
                                          visualize_lda)
 from rb.processings.readme_feedback.feedback import Feedback
-
+from rb.processings.text_classifier.text_classifier import TextClassifier
 from rb.similarity.vector_model import (CorporaEnum, VectorModel,
                                         VectorModelType)
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.utils.rblogger import Logger
 from rb.utils.utils import load_docs_all, str_to_lang, str_to_vmodel
-from rb.utils.downloader import download_scoring
+from rb.utils.downloader import download_scoring, download_classifier
 
 logger = Logger.get_logger()
 
@@ -73,7 +73,26 @@ def do_scoring():
     else: # just predict
         download_scoring(args.scoring_lang)
         score = essay_scoring.predict(test, file_to_svr_model=args.scoring_model_file)
-        logger.info(f'Score for text {score}')
+        logger.info(f'Class for text {score}')
+
+def do_classifier():
+    global args, logger, test
+
+    txt_class = TextClassifier()
+    if args.classifier_predict == False:
+        results = txt_class.read_indices()
+        txt_class.train_svm(results, save_model_file=args.classifier_file)
+    else:
+        download_classifier(args.scoring_lang)
+        class_text = txt_class.predict(test, file_to_svr_model=args.scoring_model_file)
+        if class_text == 0:
+            class_text = 'general'
+        elif class_text == 1:
+            class_text = 'literature'
+        else:
+            class_text = 'science'
+        logger.info(f'Class of text is {class_text}')
+        
 
 def do_fluctuations():
     global args, logger, test
@@ -186,6 +205,16 @@ if __name__ == "__main__":
     parser.add_argument('--scoring_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value], help='Language for scoring (only ro supported)')
 
+    """params for scoring"""
+    parser.add_argument('--classifier', dest='classifier', action='store_true', default=False)
+    parser.add_argument('--classifier_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 
+                        choices=[Lang.RO.value], help='Language for text classifier (only ro supported)')
+    parser.add_argument('--classifier_predict', dest='classifier_predict', action='store_true', 
+                         help='predict classifier')
+    parser.add_argument('--classifier_file', dest='classifier_file', default='resources/ro/classifier/svr.p', 
+                         help='classifier model')
+
+
     """parameters for fluctuations"""
     parser.add_argument('--fluctuations', dest='fluctuations', action='store_true', default=False)
     parser.add_argument('--fluctuations_lang', dest='fluctuations_lang', default=Lang.RO.value, nargs='?', 
@@ -235,3 +264,6 @@ if __name__ == "__main__":
         do_indices()
     elif args.feedback_readme:
         do_feedback()
+    elif args.classifier:
+        do_classifier()
+

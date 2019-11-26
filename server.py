@@ -22,9 +22,10 @@ from rb.utils.downloader import download_model
 from rb.processings.scoring.essay_scoring import EssayScoring
 from rb.processings.fluctuations.fluctuations import Fluctuations
 from rb.processings.readme_feedback.feedback import Feedback
+from rb.processings.text_classifier.text_classifier import TextClassifier
 from rb.utils.rblogger import Logger
 from rb.utils.utils import str_to_lang
-from rb.utils.downloader import download_scoring
+from rb.utils.downloader import download_scoring, download_classifier
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -110,6 +111,22 @@ def scoring():
     download_scoring(Lang.RO)
     score = essay_scoring.predict(text, file_to_svr_model='resources/ro/scoring/svr_gamma.p')
     return jsonify(str(score))
+
+@app.route('/classification', methods=['POST'])
+def classification():
+    data = request.get_json()
+    text = data['text']
+    text_classification = TextClassifier()
+    download_classifier(Lang.RO)
+    class_txt = text_classification.predict(text, file_to_svr_model='resources/ro/classifier/svr.p')
+
+    if class_txt == 0:
+        class_txt = 'general'
+    elif class_txt == 1:
+        class_txt = 'literature'
+    else:
+        class_txt = 'science'
+    return jsonify(str(class_txt))
 
 @app.route('/fluctuations', methods=['POST'])
 def fluctuations():
