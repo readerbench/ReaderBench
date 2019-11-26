@@ -23,6 +23,7 @@ from rb.processings.scoring.essay_scoring import EssayScoring
 from rb.processings.fluctuations.fluctuations import Fluctuations
 from rb.processings.readme_feedback.feedback import Feedback
 from rb.processings.text_classifier.text_classifier import TextClassifier
+from rb.processings.keywords.keywords_extractor import KeywordExtractor
 from rb.utils.rblogger import Logger
 from rb.utils.utils import str_to_lang
 from rb.utils.downloader import download_scoring, download_classifier
@@ -144,6 +145,29 @@ def fluctuations():
         res = fl.compute_indices(text, lang=Lang.EN)
 
     return jsonify(res)
+
+@app.route('/keywords', methods=['POST'])
+def keywords():
+    data = request.get_json()
+    text = data['text']
+    
+    lang = str_to_lang(data['lang'])
+
+    keywords_extractor = KeywordExtractor()
+    keywords = keywords_extractor.extract_keywords(text=text, lang=lang)
+    # scores = [w[0] for w in keywords]
+    # keywords = [w[1] for w in keywords]
+    return jsonify(keywords_extractor.transform_for_visualization(keywords, lang=lang))
+
+@app.route('/keywords-heatmap', methods=['POST'])
+def keywords_heatmap():
+    data = request.get_json()
+    text = data['text']
+    
+    lang = str_to_lang(data['lang'])
+
+    keywords_extractor = KeywordExtractor()
+    return jsonify(keywords_extractor.keywords_heatmap(text=text, lang=lang))
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():

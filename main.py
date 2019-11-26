@@ -17,6 +17,7 @@ from rb.processings.train_models import (Preprocess, test_load_fast_text,
                                          visualize_lda)
 from rb.processings.readme_feedback.feedback import Feedback
 from rb.processings.text_classifier.text_classifier import TextClassifier
+from rb.processings.keywords.keywords_extractor import KeywordExtractor
 from rb.similarity.vector_model import (CorporaEnum, VectorModel,
                                         VectorModelType)
 from rb.similarity.vector_model_factory import create_vector_model
@@ -179,6 +180,11 @@ def do_feedback():
     feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_science.csv',
                                     output_file='readme_science.txt')
                 
+def do_keywords():
+    global args
+    keywords_extractor = KeywordExtractor()
+    keywords = keywords_extractor.extract_keywords(text=test, lang=args.keywords_lang)
+    print(keywords)
 
 if __name__ == "__main__":
 
@@ -207,7 +213,7 @@ if __name__ == "__main__":
 
     """params for scoring"""
     parser.add_argument('--classifier', dest='classifier', action='store_true', default=False)
-    parser.add_argument('--classifier_lang', dest='scoring_lang', default=Lang.RO.value, nargs='?', 
+    parser.add_argument('--classifier_lang', dest='classifier_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value], help='Language for text classifier (only ro supported)')
     parser.add_argument('--classifier_predict', dest='classifier_predict', action='store_true', 
                          help='predict classifier')
@@ -220,6 +226,10 @@ if __name__ == "__main__":
     parser.add_argument('--fluctuations_lang', dest='fluctuations_lang', default=Lang.RO.value, nargs='?', 
                         choices=[Lang.RO.value, Lang.EN.value], help='Language for fluctuations (only ro and en supported)')
 
+    """parameters for keywords"""
+    parser.add_argument('--keywords', dest='keywords', action='store_true', default=False)
+    parser.add_argument('--keywords_lang', dest='keywords_lang', default=Lang.RO.value, nargs='?', 
+                        choices=[Lang.RO.value, Lang.EN.value], help='Language for keywords')
     """parameters for training models (LDA, LSA word2vec) 
        default parameters for training are good.
        TODO add parameters for training"""
@@ -249,6 +259,8 @@ if __name__ == "__main__":
     args.fluctuations_lang: Lang = str_to_lang(args.fluctuations_lang)
     args.train_lang = str_to_lang(args.train_lang)
     args.indices_lang = str_to_lang(args.indices_lang)
+    args.keywords_lang = str_to_lang(args.keywords_lang)
+    args.classifier_lang = str_to_lang(args.classifier_lang)
 
     for k in args.__dict__:
         if args.__dict__[k] is not None:
@@ -266,4 +278,6 @@ if __name__ == "__main__":
         do_feedback()
     elif args.classifier:
         do_classifier()
+    elif args.keywords:
+        do_keywords()
 
