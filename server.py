@@ -28,6 +28,7 @@ from rb.utils.rblogger import Logger
 from rb.utils.utils import str_to_lang
 from rb.core.text_element_type import TextElementType
 from rb.utils.downloader import download_scoring, download_classifier
+from rb.similarity.similar_concepts import get_similar_concepts
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -170,6 +171,15 @@ def keywords_heatmap():
 
     keywords_extractor = KeywordExtractor()
     return jsonify(keywords_extractor.keywords_heatmap(text=text, lang=lang, granularity=granularity))
+
+
+@app.route('/similar-concepts', methods=['POST'])
+def similar_concepts():
+    data = request.get_json()
+    word = data['text']
+    lang = str_to_lang(data['lang'])
+    return jsonify(get_similar_concepts(word, lang))
+    
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():
