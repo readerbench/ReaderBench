@@ -17,12 +17,20 @@ logger = Logger.get_logger()
 
 class Feedback:
 
-    vector_model_ro = None
-    vector_model_en = None
 
     def __init__(self):
         pass
     
+    def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
+        global logger
+        if lang is Lang.RO:
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+        elif lang is Lang.EN:
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        else:
+            logger.error(f'Language {lang.value} is not supported for feedback task')
+            vector_model = None
+        return vector_model
 
     def get_used_indices(self) -> Dict[TextElementType, List[str]]:
         indices_files = ['ro_indices_word.txt', 'ro_indices_sent.txt', 'ro_indices_block.txt', 'ro_indices_doc.txt']
@@ -100,19 +108,8 @@ class Feedback:
         KEY_VALUES = "values"
 
         indices = self.get_used_indices()
-        # indices = [vv for v in list(indices.values()) for vv in v]
-
         doc = Document(lang=lang, text=text)
-        if lang is Lang.RO:
-            if Feedback.vector_model_ro is None:
-                Feedback.vector_model_ro = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
-            vector_model = Feedback.vector_model_ro
-        elif lang is Lang.EN:
-            if Feedback.vector_model_ro is None:
-                Feedback.vector_model_en = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
-            vector_model = Feedback.vector_model_ro
-        else:
-            logger.info(f'Language {lang.value} is not supported')
+        vector_model = self.get_vector_model(lang=lang)
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
         words, sents, blocks, docs = [], [], [], []

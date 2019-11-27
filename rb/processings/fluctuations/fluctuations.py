@@ -18,11 +18,23 @@ import numpy as np
 
 logger = Logger.get_logger()
 
+
 class Fluctuations:
 
     def __init__(self):
         pass
     
+    def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
+        global logger
+        if lang is Lang.RO:
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+        elif lang is Lang.EN:
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        else:
+            logger.error(f'Language {lang.value} is not supported for fluctuations task')
+            vector_model = None
+        return vector_model
+
     def compute_thresholds(self, values: List[float]) -> Tuple[int, int]:
         if len(values) > 1:
             stdev = np.std(values)
@@ -38,11 +50,7 @@ class Fluctuations:
 
     def compute_indices(self, text: str, lang: Lang) -> List[List]:
         doc = Document(lang=lang, text=text)
-        if lang is Lang.RO:
-            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
-        elif lang is Lang.EN:
-            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
-
+        vector_model = self.get_vector_model(lang=lang)
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
 

@@ -3,7 +3,7 @@ from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_factory import VECTOR_MODELS
+from rb.similarity.vector_model_factory import VECTOR_MODELS, create_vector_model
 from typing import Tuple, List
 from sklearn.svm import SVR
 from sklearn import svm
@@ -21,11 +21,20 @@ logger = Logger.get_logger()
 
 class TextClassifier:
 
-    vector_model_ro = None
-    vector_model_en = None
+
     def __init__(self):
         pass
     
+    def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
+        global logger
+        if lang is Lang.RO:
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+        elif lang is Lang.EN:
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        else:
+            logger.error(f'Language {lang.value} is not supported for essay scoring task')
+            vector_model = None
+        return vector_model
     
     def read_indices(self, base_folder: str = 'categories_readme', lang=Lang.RO) -> List[List[float]]:
 
@@ -92,16 +101,7 @@ class TextClassifier:
         svr = pickle.load(open(file_to_svr_model, "rb"))
 
         doc = Document(lang=lang, text=content)
-        if lang is Lang.RO:
-            if TextClassifier.vector_model_ro is None:
-                TextClassifier.vector_model_ro =  VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.README.value, lang=lang)
-            vector_model = TextClassifier.vector_model_ro
-        elif lang is Lang.EN:
-            if TextClassifier.vector_model_en is None:
-                TextClassifier.vector_model_en = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.COCA.value, lang=lang)
-            vector_model = TextClassifier.vector_model_en
+        vector_model = self.get_vector_model(lang=lang)
 
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
