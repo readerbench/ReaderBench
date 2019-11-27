@@ -1,0 +1,2 @@
+AvgDocIntraCoh_DOC
+AvgDocAdjCoh_DOC

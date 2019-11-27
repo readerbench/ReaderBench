@@ -5,13 +5,13 @@ from rb.complexity.complexity_index import ComplexityIndex
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import MeasureFunction
 from rb.core.text_element_type import TextElementType
-from rb.ro_corrections.ro_correct import identify_mistake
+from rb.processings.ro_corrections.ro_correct import identify_mistake
 from typing import Callable, List
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
-"""only for RO"""
+"""only for RO, not used for now"""
 class NoCommonErrors(ComplexityIndex):
     
     
@@ -19,7 +19,7 @@ class NoCommonErrors(ComplexityIndex):
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="CmnErrors", reduce_depth=reduce_depth, 
+                                 abbr="NoCommonErrors", reduce_depth=reduce_depth, 
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:
@@ -50,6 +50,7 @@ class NoCommonErrors(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = [self.compute_below(element)]
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values

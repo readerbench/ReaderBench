@@ -15,6 +15,6 @@ class Word2Vec(VectorModel):
         
 
     def load_vectors(self):
-        model = KeyedVectors.load_word2vec_format("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.name, self.size), binary=False)
+        model = KeyedVectors.load_word2vec_format("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.corpus, self.size), binary=False)
         self.vectors = {word: Vector(model[word]) for idx, word in enumerate(model.index2word)}
         

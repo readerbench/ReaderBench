@@ -26,7 +26,7 @@ class NoPunctuations(ComplexityIndex):
 
     def compute_below(self, element: TextElement) -> float:
         if element.is_sentence() == True:
-            res = sum(1 for word in element.components if word.pos == POS.PUNCT.value)
+            res = sum(1 for word in element.components if word.pos == POS.PUNCT)
             return res
         elif element.depth <= self.reduce_depth:
             res = 0
@@ -42,6 +42,7 @@ class NoPunctuations(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = [self.compute_below(element)]
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values

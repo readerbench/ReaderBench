@@ -12,6 +12,7 @@ from spacy.tokens import Doc
 Dependency = Tuple[Word, Word, str]
 Dependencies = List[Dependency]
 
+
 class Sentence(TextElement):
 
 
@@ -44,6 +45,9 @@ class Sentence(TextElement):
             
     def get_sentences(self) -> List["Sentence"]:
         return [self]
+    
+    def get_words(self) -> List[Word]:
+        return self.components
 
     def __str__(self):
         return self.text

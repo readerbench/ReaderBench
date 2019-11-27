@@ -9,7 +9,10 @@ from rb.core.word import Word
 
 
 class Span(TextElement):
-    def __init__(self, lang: Lang, text: str, words: List[Word], depth: int = TextElementType.SPAN.value, container: TextElement=None):
+
+
+    def __init__(self, lang: Lang, text: str, words: List[Word],
+         depth: int = TextElementType.SPAN.value, container: TextElement=None):
         super().__init__(lang, text, depth, container=container)
         self.components = words
 

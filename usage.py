@@ -1,69 +1,120 @@
-from rb.parser.spacy_parser import SpacyParser
 from rb.core.lang import Lang
 from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.core.text_element_type import TextElementType
 from rb.core.pos import POS
 from rb.similarity.wordnet import path_similarity, get_hypernyms, get_all_paths_lengths_to_root, lang_dict
+from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from rb.complexity.word.name_entity_enum import NamedEntityONEnum
+from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
+from rb.similarity.vector_model_factory import create_vector_model
+from rb.cna.cna_graph import CnaGraph
+from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from nltk.corpus import wordnet as wn
+from flask import jsonify
+import argparse
 
-txt1 = """This is a sample document. It Romanian, (him) can contain, multiple sentences and paragraphs and repeating sentencesm Romania.
+txt_eng = """This is a sample document. It Romanian, (him) can contain, multiple sentences and paragraphs and repeating sentencesm Romania.
 This is considered a new block (paragraph).
 Therefore in total are 3 blocks."""
 
-txt2 = """S-a născut repede la 1 februarie 1852,[3] în satul Haimanale (care astăzi îi poartă numele), fiind primul născut al lui Luca Ștefan Caragiale și al Ecaterinei Chiriac Karaboas. Conform unor surse, familia sa ar fi fost de origine aromână.[6] Tatăl său, Luca (1812 - 1870), și frații acestuia, Costache și Iorgu, s-au născut la Constantinopol, 
+txt_ro = """S-a născut repede la 1 februarie 1852,[3] în satul Haimanale (care astăzi îi poartă numele), fiind primul născut al lui Luca Ștefan Caragiale și al Ecaterinei Chiriac Karaboas. Conform unor surse, familia sa ar fi fost de origine aromână.[6] Tatăl său, Luca (1812 - 1870), și frații acestuia, Costache și Iorgu, s-au născut la Constantinopol, 
 fiind fiii lui Ștefan, un bucătar angajat la sfârșitul anului 1812 de Ioan Vodă Caragea în suita sa."""
 
-print(NamedEntityONEnum.PERSON.name)
-docs_en = Document(Lang.EN, txt1)
-parser = SpacyParser.get_instance().get_model(Lang.EN)
-parsed = parser(txt1)
+log = open('log.log', 'w', encoding='utf-8')
 
+if __name__ == "__main__":
 
-"""how to use wordnet for RO"""
+    parser = argparse.ArgumentParser(description='Run a specific task')
+    parser.add_argument('--parser_ro', dest='parser_ro', action='store_true', default=False)
+    parser.add_argument('--parser_en', dest='parser_en', action='store_true', default=False)
+    parser.add_argument('--indices_ro', dest='indices_ro', action='store_true', default=False)
+    parser.add_argument('--indices_en', dest='indices_en', action='store_true', default=False)
+    parser.add_argument('--wordnet_ro', dest='wordnet_ro', action='store_true', default=False)
+    parser.add_argument('--wordnet_en', dest='wordnet_en', action='store_true', default=False)
+    parser.add_argument('--ro_correct_anda', dest='ro_correct_anda', action='store_true', default=False)
+    parser.add_argument('--pos_features_ro', dest='pos_features_ro', action='store_true', default=False)
 
-print(POS.NOUN.to_wordnet())
-print('hypernyms ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()))
-print('hypernyms eng', get_hypernyms('human', lang=lang_dict[Lang.EN]))
-print('om', get_all_paths_lengths_to_root('om', lang=Lang.RO))
-print('pe', get_all_paths_lengths_to_root('pe', lang=Lang.RO))
-"""how to parse text"""
-for sent in parsed.sents:
-        print(sent, sent.root)
+    args = parser.parse_args()
+    
+    if args.parser_ro:
+        print('parser for ro: ', file=log)
+        doc = Document(lang=Lang.RO, text=txt_ro)
+        for word in doc.get_words():
+            print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
 
+    if args.parser_en:
+        print('parser for en: ', file=log)
+        doc = Document(lang=Lang.EN, text=txt_eng)
+        for word in doc.get_words():
+            print(word.lemma, word.is_stop, word.pos, word.ent_type, word.tag, file=log)
 
-"""how to compute indices"""
-compute_indices(docs_en)
+    if args.wordnet_ro:
+        print('wordnet for ro: ', file=log)
+        print(POS.NOUN.to_wordnet(), file=log)
+        print('hypernyms (for om) ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
+        print('paths lengths for om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
 
-print('\n\nindices at the doc level: \n\n')
-for key, v in docs_en.indices.items():
-    print(docs_en.text, key, v)
+    if args.wordnet_en:
+        print('wordnet for en: ', file=log)
+        print('hypernyms eng for human', get_hypernyms('human', lang=Lang.EN), file=log)
 
-print('\n\nindices at the block level: \n\n')
-# indices at the block level
-for comp in docs_en.components:
-    for key, v in comp.indices.items():
-        print(comp.text, key, v)
+    if args.indices_en:
+        doc = Document(lang=Lang.EN, text=txt_eng)
+        en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        """you can compute indices without the cna graph, but this means 
+           some indices won't be computed"""
+        cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
+        compute_indices(doc=doc, cna_graph=cna_graph_en)
 
+        print('\n\nindices at doc level (en): \n\n', file=log)
+        for key, v in doc.indices.items():
+            print(key, v, file=log)
 
-print('\n\nindices at the sent level: \n\n')
-# indices at the sentence level
-for comp in docs_en.components:
-    for comp2 in comp.components:
-        for key, v in comp2.indices.items():
-            print(comp2.text, key, v)
+        print('\n\nindices at block level (en): \n\n', file=log)
+        for comp in doc.get_blocks():
+            for key, v in comp.indices.items():
+                print(comp.text, key, v, file=log)
 
+        print('\n\nindices at sent level (en): \n\n', file=log)
+        for comp in doc.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
 
-"""how to use named entity for ro, how to extract content words"""
-print('parsed text, lemmas, content words, ent types, etc.')
-docs_ro = Document(Lang.RO, txt2)
-for comp1 in docs_ro.components:
-	# comp is para
-    for comp2 in comp1.components:
-		# comp2 is sent
-        for ent in comp2.entities:
-            print(ent.text, 'x')
-        # key is word
-        for key in comp2.components:
-            print(key.lemma, key.is_stop, key.pos, key.ent_type, key.ent_type_, key.tag, key.is_content_word())
+        print('\n\nindices at word level (en): \n\n', file=log)
+        for comp in doc.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
+    if args.indices_ro:
+        ro_readme_word2vec = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme") 
+        doc = Document(lang=Lang.RO, text=txt_ro)
+        """you can compute indices without the cna graph, but this means 
+           some indices won't be computed"""
+        cna_graph_ro = CnaGraph(doc=doc, models=[ro_readme_word2vec])
+        compute_indices(doc=doc, cna_graph=cna_graph_ro)
+
+        print('\n\nindices at the doc level (ro): \n\n', file=log)
+        for key, v in doc.indices.items():
+            print(key, v, file=log)
+
+        print('\n\nindices at the block level (ro): \n\n', file=log)
+        for comp in doc.get_blocks():
+            for key, v in comp.indices.items():
+                print(comp.text, key, v, file=log)
+
+        print('\n\nindices at the sent level (ro): \n\n', file=log)
+        for comp in doc.get_sentences():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
+
+        print('\n\nindices at word level (ro): \n\n', file=log)
+        for comp in doc.get_words():
+                for key, v in comp.indices.items():
+                    print(comp.text, key, v, file=log)
+
+    if args.pos_features_ro:
+        POSFeatureExtractor.create(Lang.RO).print_ud_dict('log.log')
+    
+    if args.ro_correct_anda:
+        txt = "Fiind protejate de stratul de gheaţă, apele mai adânci nu îngheaţă până la fund, ci au, sub stratul de gheaţă, temperatura de 4 grade la care viaţa poate continua"
+        print(correct_text_ro(txt), file=log)

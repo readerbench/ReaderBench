@@ -3,11 +3,10 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call
 
-
 def do_post_install_tasks():
     # download spacy thing
-    check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz --user".split())
-
+   
+    check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
     # download nltk stuff
     from os import getenv, path
 
@@ -38,18 +37,14 @@ class PostInstallCommand(install):
     """Post-instalation for install mode."""
     def run(self):
         do_post_install_tasks()
-
-        # run
         install.run(self)
-
-
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.4.8',
+    version='0.6.6',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -60,15 +55,55 @@ setuptools.setup(
     include_package_data=True,
     dependency_links=['https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz'],
     install_requires=[
-          'wheel',
-          'spacy==2.1.3',
-          'nltk',
-          'gensim',
-          'numpy',
-          'wget',
-          'pymorphy2',
-          'neuralcoref',
-          'joblib'
+        'spacy==2.1.3',
+        'pymorphy2-dicts==2.4.393442.3710985',
+        'pymorphy2',
+        'nltk==3.4.5',
+        'gensim==3.8.1',
+        'tensorflow==1.14',
+        'sklearn',
+        'networkx',
+        'joblib',
+        'blis<0.3.0',
+        'boto',
+        'boto3',
+        'botocore',
+        'certifi',
+        'chardet',
+        'Click',
+        'cymem',
+        'DAWG-Python',
+        'decorator',
+        'docopt',
+        'docutils',
+        'Flask',
+        'idna',
+        'itsdangerous',
+        'Jinja2',
+        'jmespath',
+        'jsonschema<3.0.0',
+        'MarkupSafe',
+        'murmurhash',
+        'neuralcoref',
+        'plac<1.0.0',
+        'preshed<2.1.0',
+        'Pyphen',
+        'python-dateutil<2.8.1',
+        'requests',
+        's3transfer',
+        'scipy',
+        'six',
+        'smart-open',
+        'srsly',
+        'thinc<7.1.0',
+        'tqdm',
+        'urllib3',
+        'wasabi',
+        'Werkzeug',
+        'wget',
+        'pyLDAvis',
+        'keras',
+        'unidecode'
       ],
     cmdclass={
         'develop': PostDevelopmentCommand,

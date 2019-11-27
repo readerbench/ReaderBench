@@ -5,6 +5,7 @@ from rb.core.pos import POS
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.parser.spacy_parser import SpacyParser
+from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from spacy.tokens import Token
 
 
@@ -21,18 +22,19 @@ class Word(TextElement):
         self.pos = POS(token.pos_)
         self.detailed_pos = token.tag_
         self.head: "Word"
-        self.dep = token.dep_
-        self.ent_type_ = token.ent_type_
+        self.dep: str = token.dep_
+        self.ent_type_: str  = token.ent_type_
         self.ent_type = token.ent_type
         self.ent_id_ = token.ent_id_
         self.ent_id = token.ent_id
         self.is_stop = token.is_stop
         self.is_alpha = token.is_alpha
         self.children: List["Word"] = []
-        self.tag = token.tag_
-        self.index_in_doc = token.i
+        self.tag: str = token.tag_
+        self.index_in_doc: int = token.i
         self.in_coref = False
         self.coref_clusters = []
+        self.pos_features = None#POSFeatureExtractor.create(lang).get_pos_features(self.pos, self.tag)
 
     @classmethod
     def from_str(cls, lang: Lang, text: str, pos: POS = POS.X) -> "Word":
@@ -41,10 +43,10 @@ class Word(TextElement):
                      'is_alpha': None, 'is_stop': None, 'tag': None, 'i': None})()
         return Word(lang, token, None)
     
-    def is_dict_word(self):
+    def is_dict_word(self) -> bool:
         return SpacyParser.get_instance().is_dict_word(self.lemma, self.lang)
 
-    def is_content_word(self):
+    def is_content_word(self) -> bool:
         return self.is_dict_word() and self.pos in {POS.ADJ, POS.ADV, POS.NOUN, POS.VERB}
         
     def get_sentences(self) -> List["Sentence"]:

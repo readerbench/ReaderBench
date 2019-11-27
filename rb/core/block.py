@@ -5,6 +5,7 @@ from rb.core.text_element import TextElement
 from rb.core.sentence import Sentence
 from rb.core.text_element_type import TextElementType
 from rb.core.coref_cluster import CorefCluster
+from typing import List
 
 from rb.utils.rblogger import Logger
 
@@ -33,8 +34,10 @@ class Block(TextElement):
                     words = {word.index_in_doc: word for sent in self.components for word in sent.components}
                     self.coref_clusters = [CorefCluster(lang, cluster, words, self) for cluster in doc._.coref_clusters]
             except AttributeError:
-                logger.info("Block does not have coref")
-                
+                pass
+
+    def get_sentences(self) -> List[Sentence]:
+        return self.components
 
     def __str__(self):
         return self.text

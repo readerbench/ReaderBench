@@ -25,24 +25,53 @@ LINKS = {
             },
         },
         'spacy': {},
-        'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download'
+        'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download',
+        'wordlists': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/XyeiJCSripBWpx7/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/xyyGMqeLwTkBRms/download'
+        }
     },
     Lang.RO: {
         'models': {
-            'diacritics': "https://nextcloud.readerbench.com/index.php/s/pfC25G64JgxcfZS/download",
-            'readme': "https://nextcloud.readerbench.com/index.php/s/g9etLBeSTmKxjM8/download",
+            'diacritics': {
+                "link": "https://nextcloud.readerbench.com/index.php/s/pfC25G64JgxcfZS/download",
+                "version": "https://nextcloud.readerbench.com/index.php/s/XmW7b3kLMbQtn5C/download"
+            },
+            'readme': {
+                "link": "https://nextcloud.readerbench.com/index.php/s/Sj94ysrmDDxX8YH/download",
+                "version": "https://nextcloud.readerbench.com/index.php/s/QXd8847qLz5tNAa/download"
+            }
         },
         'spacy': {
             'ro_ud_ft_ner': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/5mMb98BXkctjXcP/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/gR6zetbDdfnMMEC/download"
+            },
+            'ud_tags': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/8WEiAWDSP83sBtx/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/afE4ZYAMoya9Ekp/download'
             }
         },
-        'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download"
+        'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
+        'wordlists': {
+            'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
+            'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
+        },
+        'scoring': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/eMri3i2GHLrQZ24/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/iTETzcskXZGsBWo/download'
+        },
+        'classifier': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/DKPXSXfXmtC2445/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/sMMEqkpiMeX4Pbx/download'
+        }
     },
     Lang.RU: {
         'spacy': {
-            'ru_ud_ft': "https://nextcloud.readerbench.com/index.php/s/nbErkdgbxmgiRCG/download"
+            'ru_ud_ft': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/bWCztgwzdnXowc7/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/TsWjd6KoLjypJQC/download"
+            }
         }
     },
     Lang.FR: {
@@ -90,6 +119,50 @@ def download_model(lang: Lang, name: Union[str, List[str]]) -> bool:
     folder = "resources/{}/{}".format(lang.value, "/".join(name[:-1]))
     download_folder(link, folder)
     return True
+    
+# TODO check version?
+def download_wordlist(lang: Lang) -> bool:
+    base_path = os.path.join('resources', lang.value)
+    path = os.path.join(base_path, 'wordlists')
+    version_path = os.path.join(path, 'version.txt')
+    
+    if os.path.isfile(version_path) and os.path.isdir(path):
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported for tags'.format(lang.value))
+        return False
+    if 'wordlists' not in LINKS[lang]:
+        logger.info('No wordlists exist for {}'.format(lang.value))
+        return False
+    
+    link = LINKS[lang]['wordlists']['link']
+    logger.info('Downloading wordlists for {} ...'.format(lang.value))
+    download_folder(link, base_path)
+    logger.info('Downloaded wordlists for {} successfully'.format(lang.value))
+    return True
+
+def download_tags(lang: Lang) -> bool:
+    path = "resources/{}/{}".format(lang.value, 'spacy')
+    full_path = path + '/ud_tags'
+    version_path = full_path + '/version.txt'
+    if os.path.isfile(version_path):
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported for tags'.format(lang.value))
+        return False
+    if 'spacy' not in LINKS[lang]:
+        logger.info('Spacy does not exists for {}'.format(lang.value))
+        return False
+    if 'ud_tags' not in LINKS[lang]['spacy']:
+        logger.info('No tags for {}'.format(lang.value))
+        return False
+    link = LINKS[lang]['spacy']['ud_tags']['link']
+    # if you chnage this path you also have to change it in ro_pos_feature_extractor
+    logger.info('Downloading tags for {} ...'.format(lang.value))
+    
+    download_folder(link, path)
+    logger.info('Downloaded tags for {} successfully'.format(lang.value))
+    return True
 
 def download_spacy_model(lang: Lang, name: str) -> bool:
     return download_model(lang, ['spacy', name])
@@ -117,11 +190,44 @@ def download_aoa(lang: Lang) -> bool:
         return False
     link = LINKS[lang]['aoa']
     download_file(link, "resources/{}/aoa/".format(lang.value))
-        
+    return True
+
+def download_scoring(lang: Lang) -> bool:
+    path = "resources/{}/scoring/svr_gamma.p".format(lang.value)
+    if os.path.isfile(path):
+        logger.info('File already downloaded')
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported.'.format(lang))
+        return False
+    if 'scoring' not in LINKS[lang]:
+        logger.info('No scoring model found')
+        return False
+    link = LINKS[lang]['scoring']['link']
+    download_file(link, "resources/{}/scoring/".format(lang.value))
+    return True
+
+
+def download_classifier(lang: Lang) -> bool:
+    path = "resources/{}/classifier/svr.p".format(lang.value)
+    if os.path.isfile(path):
+        logger.info('File already downloaded')
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported.'.format(lang))
+        return False
+    if 'classifier' not in LINKS[lang]:
+        logger.info('No classifier model found')
+        return False
+    link = LINKS[lang]['classifier']['link']
+    download_file(link, "resources/{}/classifier/".format(lang.value))
+    return True
+
 def check_spacy_version(lang: Lang, name: str) -> bool:
     return check_version(lang, ['spacy', name])
 
 def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
+    logger.info('Checking version for model {}, {}'.format(name, lang.value))
     if isinstance(name, str):
         name = ['models', name]
     path = "/".join(name)
@@ -142,7 +248,7 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
             return False
         root = root[key]
     if isinstance(root, dict):
-        filename = wget.download(root['version'], out="resources/", bar=wget.bar_thermometer)
+        filename = wget.download(root['version'], out="resources/")
         try:
             remote_version = read_version(filename)
         except:
@@ -150,6 +256,7 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
             return False
         return newer_version(remote_version, local_version)
     else:
+        logger.info('Could not find version link in links json')
         return True
     
 def read_version(filename: str) -> str:
@@ -159,11 +266,15 @@ def read_version(filename: str) -> str:
 def newer_version(remote_version: str, local_version: str) -> bool:
     remote_version = remote_version.split(".")
     local_version = local_version.split(".")
+
     for a, b in zip(remote_version, local_version):
         if int(a) > int(b):
+            logger.info('Remote version {} is ahead of local version {}'.format(remote_version, local_version))
             return True
         if int(a) < int(b):
+            logger.info('Remote version {} is behind of local version {}'.format(remote_version, local_version))
             return False
+    logger.info('Remote version {} is the same as local version {}'.format(remote_version, local_version))
     return False   
     
         

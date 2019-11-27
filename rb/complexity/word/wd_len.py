@@ -26,6 +26,7 @@ class WdLen(ComplexityIndex):
     def compute_below(self, element: TextElement) -> List[float]:
         if element.is_word() == True:
             res = len(element.text)
+            element.indices[self] = res
             return [res]
         elif element.depth <= self.reduce_depth:
             res = []
@@ -41,6 +42,7 @@ class WdLen(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = self.compute_below(element)
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values

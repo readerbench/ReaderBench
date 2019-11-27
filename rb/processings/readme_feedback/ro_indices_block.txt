@@ -1,0 +1,6 @@
+AvgBlockNoSent
+AvgBlockIntraCoh_BLOCK
+AvgBlockNoWd
+AvgBlockPOSMain_adv
+AvgBlockPOSMain_adj
+AvgBlockPOSMain_noun

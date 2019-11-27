@@ -31,7 +31,6 @@ class NoRepetitions(ComplexityIndex):
 
         for start in range(max(1, len(sent.components) - self.window_size)):
             word1 = sent.components[start]
-            print(word1.text, word1.ent_type_, word1.ent_type, word1.ent_id_, word1.ent_id)
             for i in range(min(len(sent.components) - 1, start + 1), min(len(sent.components), start + self.window_size)):
                 word2 = sent.components[i]
                 if word1.lemma == word2.lemma:
@@ -58,6 +57,7 @@ class NoRepetitions(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = self.compute_below(element)
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values

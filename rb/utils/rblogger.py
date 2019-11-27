@@ -15,8 +15,13 @@ class Logger():
     def set_up():
         if Logger.logger is None:
             Logger.setup_logging()
-            Logger.logger = logging.getLogger() 
+            Logger.logger = logging.getLogger(__name__) 
             Logger.logger.info('Logger set up done.')
+            
+        for v in logging.Logger.manager.loggerDict.values():
+            if isinstance(v, logging.Logger) and not v.name.startswith('rb'):
+                v.disabled = True
+
         return Logger.logger
 
     @staticmethod
@@ -24,8 +29,7 @@ class Logger():
         default_path='logging.json',
         default_level=logging.INFO,
         env_key='LOG_CFG'):
-        """Setup logging configuration
-        """
+        """Setup logging configuration """
         path = default_path
         if os.path.exists(path):
             with open(path, 'rt') as f:
@@ -33,3 +37,8 @@ class Logger():
             logging.config.dictConfig(config)
         else:
             logging.basicConfig(level=default_level)
+        
+        
+
+            #if v.name.startswith('rb'):
+            # 0   v.disabled = True

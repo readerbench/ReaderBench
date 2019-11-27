@@ -1,0 +1,7 @@
+AvgSentPunct
+AvgSentPOSMain_noun
+AvgSentPOSMain_adj
+AvgSentPOSMain_adv
+AvgSentPOSMain_verb
+AvgSentNoCommas
+AvgSentPOSMain_pron

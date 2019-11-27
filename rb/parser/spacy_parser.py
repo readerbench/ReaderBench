@@ -94,9 +94,12 @@ def convertToPenn(pos: str, lang: Lang) -> str:
         return pos[:2]
     return pos
     
-def computePOS(token: Token, lang: Lang) -> POS:
-    if lang == Lang.RO: 
-        pos = token.tag_.lower()
+def computePOS(token: Union[str, Token], lang: Lang) -> POS:
+    if lang == Lang.RO:
+        if isinstance(token, Token):
+            pos = token.tag_.lower()
+        else:
+            pos = token.lower()
         if pos.startswith("comma") or pos.startswith("period"):
             return POS.PUNCT
         if pos.startswith("n"):
@@ -119,6 +122,7 @@ def computePOS(token: Token, lang: Lang) -> POS:
             return POS.PRON
         return POS.X
     return POS(token.pos_)
+
 
 class SpacyParser:
 

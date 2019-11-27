@@ -22,6 +22,7 @@ class TextElement:
         depth 0 means is a word, depth 1 means sentence
         It can increases as much as you want, the last elements
         in the tree being always of the type Document
+    container: parent textelement
     """
 
     def __init__(self, lang: Lang, text: str,
@@ -49,6 +50,12 @@ class TextElement:
     def is_word(self) -> bool:
         return self.depth == TextElementType.WORD.value
         
+    def get_parent_document(self) -> "Document":
+        if self.is_document():
+            return self
+        else:
+            return self.container.get_parent_document()
+
     def get_vector(self, model: 'VectorModel') -> np.array:
         return self.vectors[model]
 
@@ -59,11 +66,11 @@ class TextElement:
 
     def __eq__(self, other):
         if isinstance(other, TextElement):
-            return self.text == other.text
+            return self.depth == self.depth and self.text == other.text
         return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self.text))
+        return hash((self.depth, self.text))
     
     def get_sentences(self) -> List["Sentence"]:
         from rb.core.sentence import Sentence

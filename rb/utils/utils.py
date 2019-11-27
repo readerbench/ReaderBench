@@ -4,6 +4,8 @@ from typing import List, Iterable
 from nltk.tokenize import sent_tokenize, WordPunctTokenizer
 from os.path import isdir, isfile, join
 from os import listdir
+from rb.core.lang import Lang
+from rb.similarity.vector_model_factory import VectorModelType
 
 from spacy.lang.ro.lemmatizer import LOOKUP
 #from spacy.lang.ro.lex_attrs import words
@@ -29,7 +31,16 @@ def tokenize_docs(fileName: str) -> Iterable[List[str]]:
         for line in f.readlines():
             yield [token for token in tokenizer.tokenize(line)
                 if token.isalpha and not token == '.']
-            
+
+def load_docs_all(folder: str) -> List[List[str]]:
+    all_docs = []
+    for f in listdir(folder):
+        if isfile(join(folder, f)) and f.endswith(".txt"):
+            with open(join(folder, f), "rt", encoding='utf-8', errors='replace') as fin:
+                content = fin.read()
+                all_docs.append([f, content])
+    return all_docs
+
 def load_docs(folder: str) -> Iterable[str]:
     for f in listdir(folder):
         if isfile(join(folder, f)) and f.endswith(".txt"):
@@ -45,6 +56,26 @@ def load_docs(folder: str) -> Iterable[str]:
                     line = fin.readline()
                 if current != "":
                     yield current
+
+def str_to_lang(s: str) -> Lang:
+    s = s.lower()
+    if s.strip() == "ro" or s.strip() == "rou" or s.strip() == "romanian":
+        return Lang.RO
+    elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
+        return Lang.EN
+    elif s.strip() == "es" or s.strip() == "esp" or s.strip() == "spanish":
+        return Lang.ES
+    return Lang.EN
+
+def str_to_vmodel(s: str) -> VectorModelType:
+    s = s.lower()
+    if s.strip() == "lda":
+        return VectorModelType.LDA
+    elif s.strip() == "lsa":
+        return VectorModelType.LSA
+    elif s.strip() == "word2vec":
+        return VectorModelType.WORD2VEC
+    return VectorModelType.WORD2VEC
 
 if __name__ == "__main__":
     pass

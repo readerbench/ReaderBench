@@ -3,8 +3,9 @@ from multiprocessing import Pool, cpu_count
 from typing import Callable, Iterable, List, Tuple
 
 from rb.complexity.index_category import IndexCategory
-from rb.complexity.measure_function import MeasureFunction
+from rb.complexity.measure_function import MeasureFunction, average, standard_deviation
 from rb.core.lang import Lang
+from rb.core.document import Document
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.utils.rblogger import Logger
@@ -12,9 +13,15 @@ from rb.similarity.lda import LDA
 from rb.similarity.lsa import LSA
 from rb.similarity.word2vec import Word2Vec
 from joblib import Parallel, delayed
+from rb.similarity.vector_model import VectorModel
+from rb.cna.cna_graph import CnaGraph
+from rb.utils.downloader import download_wordlist
 
 logger = Logger.get_logger()
 
+
+
+"""TODO check for indices which compute on empty set of values """
 class ComplexityIndex():
     """General class for any complexity index
     
@@ -41,12 +48,30 @@ class ComplexityIndex():
         detailed string representation of the index, should overwritten by each index
     """
 
+    IDENTITY = 0
+
     def __init__(self, lang: Lang, category: IndexCategory, abbr: str, reduce_depth: int, reduce_function: MeasureFunction):
         self.lang = lang
         self.category = category
         self.abbr = abbr
         self.reduce_function = reduce_function
         self.reduce_depth = reduce_depth
+        if self.reduce_function is None:
+            self.reduce_function_abbr =  '' 
+        elif self.reduce_function is average:
+            self.reduce_function_abbr = 'Avg'
+        elif self.reduce_function is standard_deviation:
+            self.reduce_function_abbr =  'StDev'
+        self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
+                self.element_type_from_depth(self.reduce_depth).name)
+
+    def element_type_from_depth(self, depth) -> TextElementType:
+        for el_type in TextElementType:
+            if el_type.value == depth:
+                return el_type
+
+    def element_to_abr(self, s) -> str:
+        return s[0].upper() + s[1:].lower()
 
     # overwritten by each index
     def process(self, element: TextElement) -> float:
@@ -54,20 +79,16 @@ class ComplexityIndex():
 
     # overwritten by each index 
     def __repr__(self):
-        return self.abbr
+        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr
 
 def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
 
 # computed indices and saves for each TextElement in indices dictionary
-def compute_indices(element: TextElement):
-    logger.info('Starting computing all indices for {0} type element'.format(type(element).__name__))
+def compute_indices(doc: Document, cna_graph: CnaGraph = None):
+    logger.info('Starting computing all indices for {0} type element'.format(type(doc).__name__))
+    download_wordlist(doc.lang)
     num_cores = cpu_count()
-    # for cat in IndexCategory:
-    #     for index in cat.value(element.lang):
-    #         index.process(element)
-    # with Pool(processes=num_cores) as pool:
-    # tasks = [(index, element) for cat in IndexCategory for index in cat.create(element.lang)]
-    lda = LDA('coca', Lang.EN)
-    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, element) for cat in IndexCategory for index in cat.create(element.lang))
+    Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
+        for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))
         

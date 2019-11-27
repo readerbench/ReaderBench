@@ -10,8 +10,8 @@ from rb.core.word import Word
 from rb.similarity.vector import Vector
 from rb.utils.downloader import check_version, download_model
 
-WordSimilarity = Tuple[str, float]
 
+WordSimilarity = Tuple[str, float]
 
 
 class VectorModelType(Enum):
@@ -21,22 +21,37 @@ class VectorModelType(Enum):
     FASTTEXT = 3
     GLOVE = 4
 
+    @classmethod
+    def from_str(cls, label: str) -> "VectorModelType":
+        try:
+            return cls(label.upper())
+        except:
+            pass
+        if "2" in label:
+            return cls.WORD2VEC
+        return None
+
+
+class CorporaEnum(Enum):
+    README = 'readme'
+    COCA = 'coca'
+
 
 class VectorModel:
 
     
-    def __init__(self, type: VectorModelType, name: str, lang: Lang, size: int = 300):
+    def __init__(self, type: VectorModelType, corpus: str, lang: Lang, size: int = 300):
         self.lang = lang
         self.type = type
-        self.name = name
+        self.corpus = corpus
+        self.name = "{}({})".format(self.type.name, self.corpus)
         self.size = size
         self.vectors: Dict[str, Vector] = {}
         self.base_vectors: List[Vector] = []
         self.word_clusters: Dict[int, List[str]] = {}
-        corpus = "resources/{}/models/{}".format(lang.value, name)
-        if check_version(lang, name):
-            if not download_model(lang, name):
-                raise FileNotFoundError("Requested model ({}) not found for {}".format(name, lang.value))
+        if check_version(lang, self.corpus):
+            if not download_model(lang, self.corpus):
+                raise FileNotFoundError("Requested model ({}) not found for {}".format(self.corpus, lang.value))
         self.load_vectors()
         if len(self.vectors) > 100000:
             try:
@@ -47,7 +62,7 @@ class VectorModel:
         
 
     def load_vectors(self):
-        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.name, self.type.name))
+        self.load_vectors_from_txt_file("resources/{}/models/{}/{}.model".format(self.lang.value, self.corpus, self.type.name))
 
     def get_vector(self, elem: Union[str, TextElement]) -> Vector:
         if isinstance(elem, str):
@@ -100,7 +115,14 @@ class VectorModel:
     def compute_hash(self, v: Vector) -> int:
         result = 0
         for base in self.base_vectors:
-            result = (result << 1) + int(np.dot(base, v.values) >= 0)
+            # print('base={}'.format(base))
+            # print('values={}'.format(v.values))
+            # print('result={}'.format(result))
+            # print('base.shape={},len(v.values)={}'.format(len(base), len(v.values)))
+            # print('np.dot={}'.format(np.dot(base, v.values)))
+            # print('int={}'.format(int(np.dot(base, v.values) >= 0)))
+            # print('result={}'.format((result << 1) + int(np.dot(base, v.values) >= 0)))
+            result = (result << 1) + int(np.dot(base.values, v.values) >= 0)
         return result
 
     def build_clusters(self, n: int = 12):
@@ -113,20 +135,20 @@ class VectorModel:
             self.word_clusters[hash].append(w) 
 
     def save_clusters(self):
-        folder = "resources/{}/models/{}".format(self.lang.value, self.name)
+        folder = "resources/{}/models/{}".format(self.lang.value, self.corpus)
         os.makedirs(folder, exist_ok=True)     
     
         with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
             f.write("{}\n".format(len(self.base_vectors)))
             for base in self.base_vectors:
-                f.write(" ".join(str(x.values) for x in base) + "\n")
+                f.write(" ".join(str(x) for x in base.values) + "\n")
             f.write("{}\n".format(len(self.vectors)))
             for hash, words in self.word_clusters.items():
                 for word in words:
                     f.write("{} {}\n".format(word, hash))
 
     def load_clusters(self):
-        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.name, self.type.name), "rt") as f:
+        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.corpus, self.type.name), "rt") as f:
             n = int(f.readline())
             for i in range(n):
                 line = f.readline()
@@ -151,7 +173,8 @@ class VectorModel:
         else:
             return [(word, sim) for word, sim in result if sim > threshold]
 
-    def most_similar(self, elem: Union[str, TextElement, Vector], topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
+    def most_similar(self, elem: Union[str, TextElement, Vector], 
+                    topN: int = 10, threshold: float = None) -> List[WordSimilarity]:
         if not isinstance(elem, type(Vector)):
             elem = self.get_vector(elem)
         if elem is None:
@@ -165,3 +188,5 @@ class VectorModel:
                     new_hash = new_hash ^ (1 << (len(self.base_vectors) - j - 1))
                     cluster = cluster + self.get_cluster(new_hash, elem, threshold)
         return sorted(cluster, key=lambda x: x[1], reverse=True)[:topN]
+
+

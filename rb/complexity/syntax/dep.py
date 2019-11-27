@@ -43,10 +43,11 @@ class DepIndex(ComplexityIndex):
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
             values = [self.compute_below(element)]
+            element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
         return values
 
     def __repr__(self):
-        return self.abbr + "_" + self.dep_type.name.lower()
+        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.dep_type.name.lower()
 
