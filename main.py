@@ -179,7 +179,7 @@ def do_feedback():
                                     output_file='readme_literature.txt')
     feedback.compute_extreme_values(path_to_csv='categories_readme/new_stats/stats_science.csv',
                                     output_file='readme_science.txt')
-                
+""" TODO not finished for now """
 def do_keywords():
     global args
     keywords_extractor = KeywordExtractor()

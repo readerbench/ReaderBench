@@ -26,6 +26,7 @@ from rb.processings.text_classifier.text_classifier import TextClassifier
 from rb.processings.keywords.keywords_extractor import KeywordExtractor
 from rb.utils.rblogger import Logger
 from rb.utils.utils import str_to_lang
+from rb.core.text_element_type import TextElementType
 from rb.utils.downloader import download_scoring, download_classifier
 
 app = Flask(__name__)
@@ -152,22 +153,23 @@ def keywords():
     text = data['text']
     
     lang = str_to_lang(data['lang'])
-
     keywords_extractor = KeywordExtractor()
     keywords = keywords_extractor.extract_keywords(text=text, lang=lang)
-    # scores = [w[0] for w in keywords]
-    # keywords = [w[1] for w in keywords]
     return jsonify(keywords_extractor.transform_for_visualization(keywords, lang=lang))
 
 @app.route('/keywords-heatmap', methods=['POST'])
 def keywords_heatmap():
     data = request.get_json()
     text = data['text']
-    
+    granularity = data['granularity']
+    if granularity == "sentence":
+        granularity = TextElementType.SENT
+    else:
+        granularity = TextElementType.BLOCK
     lang = str_to_lang(data['lang'])
 
     keywords_extractor = KeywordExtractor()
-    return jsonify(keywords_extractor.keywords_heatmap(text=text, lang=lang))
+    return jsonify(keywords_extractor.keywords_heatmap(text=text, lang=lang, granularity=granularity))
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():
