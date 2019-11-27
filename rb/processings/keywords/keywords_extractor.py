@@ -57,7 +57,7 @@ class KeywordExtractor():
             if lemma not in taken_words:
                 taken_words.add(lemma)
                 scores.append((sim * freq, ww))
-        scores = sorted(scores, reverse=True)
+        scores = sorted(scores, reverse=True, key=lambda x: x[0])
         return scores[:max_keywords]
 
     def keywords_heatmap(self, text: str, lang=Lang.RO, max_keywords=40) -> Dict:
