@@ -16,6 +16,38 @@ class Graph:
         self.authors_set = set([x for _, x in self.authors_dict.items()])
 
 
+    def get_maximum_coupling(self, author1_details, author2_details, sim_dict):
+        from munkres import Munkres, DISALLOWED, print_matrix
+        author1_articles = author1_details[1]
+        author2_articles = author2_details[1]
+
+        m = [[DISALLOWED for x in range(len(author2_articles))] for y in range(len(author1_articles))]
+
+        for i1, art1 in enumerate(author1_articles):
+            for i2, art2 in enumerate(author2_articles):
+                if (art1, art2) in sim_dict:
+                    if sim_dict[(art1, art2)] > 0.3:
+                        m[i1][i2] = (1 - sim_dict[(art1, art2)]) * 100
+                elif (art2, art1) in sim_dict:
+                    if sim_dict[(art2, art1)] > 0.3:
+                        m[i1][i2] = (1 - sim_dict[(art2, art1)]) * 100
+
+
+        mumu = Munkres()
+        try:
+            indexes = mumu.compute(m)
+        except:
+            return 1.0
+        total = 0
+        for row, column in indexes:
+            value = 1 - (m[row][column] / 100)
+            total += value
+        
+        if total > 0:
+            return total
+        return 1.0
+
+
     def compute_semantic_distance_between_articles(self, article1: Article, article2: Article, semantic_models: List[VectorModel]) -> float:
         if article1 == article2:
             return 0.0
@@ -33,15 +65,19 @@ class Graph:
         if author1 == author2:
             return 0.0
         
-        distance = 0.0
-        count = 0
+        sim_dict = {}
         for article1 in author1.articles:
             for article2 in author2.articles:
-                distance += self.compute_semantic_distance_between_articles(article1, article2, semantic_models)
-                count += 1
+                sim_dict[(article1.title, article2.title)] = 1 - self.compute_semantic_distance_between_articles(article1, article2, semantic_models)
         
-        if count > 0:
-            return distance / count
+        if len(sim_dict) == 1:
+            v = next(iter(sim_dict.values()))
+            return 1 - v if v > 0.3 else 1.0
+
+        a1 = (author1.name, list(set([x[0] for x in sim_dict.keys()])))
+        a2 = (author2.name, list(set([x[1] for x in sim_dict.keys()])))
+        if sim_dict:
+            return self.get_maximum_coupling(a1, a2, sim_dict)
         
         return 1.0
 
@@ -112,4 +148,16 @@ class Graph:
         if max_:
             return sorted(articles, key=lambda x: x[1])[:max_]
         return sorted(articles, key=lambda x: x[1])
+
+    
+    def get_distances_between_articles(self):
+        pairs = []
+        used_articles = set()
+        for article in self.articles_set:
+            for neigh, score, edge_type in self.adjacent_list[article]:
+                if edge_type == 'art-art' and neigh not in used_articles:
+                    pairs.append((article, neigh, score))
+            used_articles.add(article)
+
+        return pairs
 
