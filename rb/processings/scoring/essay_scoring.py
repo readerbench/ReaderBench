@@ -3,7 +3,7 @@ from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
-from rb.similarity.vector_model_factory import VECTOR_MODELS
+from rb.similarity.vector_model_factory import VECTOR_MODELS, create_vector_model
 from typing import Tuple, List
 from sklearn.svm import SVR
 import pickle
@@ -19,10 +19,20 @@ logger = Logger.get_logger()
 
 class EssayScoring:
 
-    vector_model_ro = None
-    vector_model_en = None
+
     def __init__(self):
         pass
+
+    def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
+        global logger
+        if lang is Lang.RO:
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+        elif lang is Lang.EN:
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        else:
+            logger.error(f'Language {lang.value} is not supported for essay scoring task')
+            vector_model = None
+        return vector_model
     
     """ given a csv, transform it into text files and a csv with filename, grade"""
     def create_files_from_csv(self, path_to_csv_file: str, path_to_folder=".", output_stats_csv='stats.csv'):
@@ -60,18 +70,9 @@ class EssayScoring:
         if lang is Lang.RO:
             with open('rb/processings/scoring/indices_ro_scoring.txt', 'rt', encoding='utf-8') as f:
                 for line in f:
-                    indices.append(line.strip())    
-        if lang is Lang.RO:
-            if EssayScoring.vector_model_ro is None:
-                EssayScoring.vector_model_ro =  VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.README.value, lang=lang)
-            vector_model = EssayScoring.vector_model_ro
-
-        elif lang is Lang.EN:
-            if EssayScoring.vector_model_en is None:
-                EssayScoring.vector_model_en = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.COCA.value, lang=lang)
-            vector_model = EssayScoring.vector_model_en
+                    indices.append(line.strip())
+                    
+        vector_model = self.get_vector_model(lang=lang)
             
         all_rows = []
         first_row = ['filename', 'grade']
@@ -161,17 +162,7 @@ class EssayScoring:
         svr = pickle.load(open(file_to_svr_model, "rb"))
 
         doc = Document(lang=lang, text=content)
-        if lang is Lang.RO:
-            if EssayScoring.vector_model_ro is None:
-                EssayScoring.vector_model_ro =  VECTOR_MODELS[lang][CorporaEnum.README][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.README.value, lang=lang)
-            vector_model = EssayScoring.vector_model_ro
-        elif lang is Lang.EN:
-            if EssayScoring.vector_model_en is None:
-                EssayScoring.vector_model_en = VECTOR_MODELS[lang][CorporaEnum.COCA][VectorModelType.WORD2VEC](
-                    name=CorporaEnum.COCA.value, lang=lang)
-            vector_model = EssayScoring.vector_model_en
-
+        vector_model = self.get_vector_model(lang=lang)
         cna_graph = CnaGraph(doc=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
 

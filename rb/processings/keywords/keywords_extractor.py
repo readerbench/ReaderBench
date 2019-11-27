@@ -14,29 +14,23 @@ logger = Logger.get_logger()
 
 class KeywordExtractor():
 
-    vector_model_ro = None
-    vector_model_en = None
 
     def __init__(self):
         pass
 
     def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
+        global logger
         if lang is Lang.RO:
-            if KeywordExtractor.vector_model_ro is None:
-                KeywordExtractor.vector_model_ro = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
-            vector_model = KeywordExtractor.vector_model_ro
+            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
         elif lang is Lang.EN:
-            if KeywordExtractor.vector_model_en is None:
-                KeywordExtractor.vector_model_en = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
-            vector_model = KeywordExtractor.vector_model_en
+            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
         else:
-            logger.error(f'Language {lang.value} is not supported')
+            logger.error(f'Language {lang.value} is not supported for keywords task')
             vector_model = None
         return vector_model
 
     def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40) -> List[Tuple[float, Word]]:
         
-        logger.info('Loading model for keywords extraction...')
         vector_model: VectorModel = self.get_vector_model(lang=lang)
         logger.info('Computing keywords...')
         doc: Document = Document(lang=lang, text=text)

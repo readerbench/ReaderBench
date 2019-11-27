@@ -23,6 +23,9 @@ nltk.download('punkt')
 
 logger = Logger.get_logger()
 
+
+tf.autograph.set_verbosity(0)
+
 class Diacritics:
 
 	def __init__(self):
