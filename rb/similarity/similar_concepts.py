@@ -12,8 +12,8 @@ def create_semantic_models(lang: Lang) -> List[VectorModel]:
     if lang is Lang.EN:
         semantic_models = []
         semantic_models.append(create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca"))
-        semantic_models.append(create_vector_model(Lang.EN, VectorModelType.from_str("lsa"), "coca"))
-        semantic_models.append(create_vector_model(Lang.EN, VectorModelType.from_str("lda"), "coca"))
+        # semantic_models.append(create_vector_model(Lang.EN, VectorModelType.from_str("lsa"), "coca"))
+        # semantic_models.append(create_vector_model(Lang.EN, VectorModelType.from_str("lda"), "coca"))
         return semantic_models
     else:
         return None
