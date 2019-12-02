@@ -176,9 +176,12 @@ def keywords_heatmap():
 @app.route('/similar-concepts', methods=['POST'])
 def similar_concepts():
     data = request.get_json()
+    logger.info(f'data received for similar-concepts: {data}')
     word = data['text']
     lang = str_to_lang(data['lang'])
-    return jsonify(get_similar_concepts(word, lang))
+    similar_concept = get_similar_concepts(word, lang)
+    logger.info(f'data send for similar-concepts: {similar_concept}')
+    return jsonify(similar_concept)
     
 
 @app.route('/diacritics', methods=['POST'])
