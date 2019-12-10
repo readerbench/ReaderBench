@@ -105,12 +105,12 @@ class Clustering:
             n_clusters=3, linkage='average')
         single = cluster.AgglomerativeClustering(
             n_clusters=3, linkage='single')
+        brc = cluster.Birch(n_clusters=3)
 
         clustering_algorithms = (
-            ('Single Linkage', single),
-            ('Average Linkage', average),
             ('Complete Linkage', complete),
             ('Ward Linkage', ward),
+            ('Birch', brc)
         )
         plot_num = 1
         colors = np.array(list(islice(cycle(['#377eb8', '#ff7f00', '#4daf4a']),
@@ -133,14 +133,6 @@ class Clustering:
                 y_pred = algorithm.labels_.astype(np.int)
             else:
                 y_pred = algorithm.predict(X)
-            print(y_pred)
-            c, w = 0, 0
-            for sy, syp in zip(y_pred, y):
-                if sy == syp:
-                    c += 1
-                else:
-                    w += 1
-            print(name, c / (c + w))
 
             plt.subplot(1, len(clustering_algorithms) + 1, plot_num)
             plt.title(name, size=18)
