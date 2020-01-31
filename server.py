@@ -14,6 +14,7 @@ from werkzeug import secure_filename
 import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
+from flask_cors import CORS
 from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
@@ -31,6 +32,7 @@ from rb.utils.downloader import download_scoring, download_classifier
 from rb.similarity.similar_concepts import get_similar_concepts
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = '7d441f27d441f27123d441f2b6176a'
 app.config['UPLOAD_FOLDER'] = '.'
@@ -147,6 +149,11 @@ def fluctuations():
         res = fl.compute_indices(text, lang=Lang.EN)
 
     return jsonify(res)
+
+@app.route("/api/v1/amoc", methods=['OPTIONS'])
+def keywordsOptions():
+    return ""
+
 
 @app.route('/keywords', methods=['POST'])
 def keywords():
