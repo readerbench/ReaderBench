@@ -35,6 +35,7 @@ class VectorModelType(Enum):
 class CorporaEnum(Enum):
     README = 'readme'
     COCA = 'coca'
+    JOSE_ANTONIO = 'jose_antonio'
 
 
 class VectorModel:
