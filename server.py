@@ -14,7 +14,7 @@ from werkzeug import secure_filename
 import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
-from rb.processings.ro_corrections.ro_correct import correct_text_ro
+# from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
@@ -179,7 +179,7 @@ def similar_concepts():
     word = data['text']
     lang = str_to_lang(data['lang'])
     return jsonify(get_similar_concepts(word, lang))
-    
+
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():

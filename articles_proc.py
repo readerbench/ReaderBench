@@ -51,7 +51,9 @@ if __name__ == "__main__":
     print("Build edges done")
 
     graph_metrics = GraphMetrics(graph)
-    graph_metrics.perform_articles_agglomerative_clustering()
+    # graph_metrics.perform_articles_agglomerative_clustering()
+    graph_metrics.perform_authors_agglomerative_clustering()
+    print(len(graph.authors_set))
     # print(graph_metrics.get_top_n_articles_by_closeness(10))
 
 

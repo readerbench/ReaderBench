@@ -12,6 +12,7 @@ import time
 
 from copy import deepcopy
 
+
 def test_comprehension(test_string):
     w2v = Word2Vec('coca', Lang.EN)
     lsa = LSA('coca', Lang.EN)

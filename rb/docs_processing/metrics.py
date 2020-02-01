@@ -3,7 +3,7 @@ import pandas as pd
 from tabulate import tabulate
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
-
+from pprint import pprint
 
 class GraphMetrics:
 
@@ -58,7 +58,7 @@ class GraphMetrics:
                                          distance_threshold)
 
     def perform_authors_agglomerative_clustering(self):
-        distance_threshold = self.graph.authors_mean
+        distance_threshold = self.graph.authors_mean - self.graph.authors_std
         perform_agglomerative_clustering(self.graph.authors_set, self.semantic_distances_between_authors,
                                          distance_threshold)
 
@@ -93,6 +93,13 @@ def build_distance_matrix(distances_pairs, side, position_dictionary):
     return distance_matrix
 
 
+def build_inverse_dictionary(position_dictionary):
+    inverse_dictionary = {}
+    for key, value in position_dictionary.items():
+        inverse_dictionary[value] = key
+    return inverse_dictionary
+
+
 def perform_agglomerative_clustering(entity_set, semantic_distances, distance_threshold):
     position_dictionary = build_position_dictionary(entity_set)
     side = len(entity_set)
@@ -102,10 +109,15 @@ def perform_agglomerative_clustering(entity_set, semantic_distances, distance_th
     results = model.fit(distance_matrix)
     print(max(results.labels_))
     # plot_clustering_labels(results.labels_, side)
+    print_agglomerative_clustering_results(results, build_inverse_dictionary(position_dictionary))
 
 
-def print_agglomerative_clustering_results(results):
-    pass
+def print_agglomerative_clustering_results(results, inverse_position_dictionary):
+    clusters = {}
+    for index, label in enumerate(results.labels_):
+        clusters[label] = clusters.get(label, [])
+        clusters[label].append(inverse_position_dictionary[index].name)
+    pprint(clusters)
 
 
 def plot_clustering_labels(labels, side):
