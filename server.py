@@ -14,7 +14,8 @@ from werkzeug import secure_filename
 import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
-# from rb.processings.ro_corrections.ro_correct import correct_text_ro
+from flask_cors import CORS
+from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from rb.core.lang import Lang
 from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
@@ -31,6 +32,7 @@ from rb.utils.downloader import download_scoring, download_classifier
 from rb.similarity.similar_concepts import get_similar_concepts
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = '7d441f27d441f27123d441f2b6176a'
 app.config['UPLOAD_FOLDER'] = '.'
@@ -148,6 +150,11 @@ def fluctuations():
 
     return jsonify(res)
 
+@app.route("/api/v1/amoc", methods=['OPTIONS'])
+def keywordsOptions():
+    return ""
+
+
 @app.route('/keywords', methods=['POST'])
 def keywords():
     data = request.get_json()
@@ -176,10 +183,13 @@ def keywords_heatmap():
 @app.route('/similar-concepts', methods=['POST'])
 def similar_concepts():
     data = request.get_json()
+    logger.info(f'data received for similar-concepts: {data}')
     word = data['text']
     lang = str_to_lang(data['lang'])
-    return jsonify(get_similar_concepts(word, lang))
-
+    similar_concept = get_similar_concepts(word, lang)
+    logger.info(f'data send for similar-concepts: {similar_concept}')
+    return jsonify(similar_concept)
+    
 
 @app.route('/diacritics', methods=['POST'])
 def restore_diacritics():
@@ -229,4 +239,4 @@ def restore_diacritics():
     return response, 200
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8082, debug=False)
+    app.run(host="0.0.0.0", port=8087, debug=False)

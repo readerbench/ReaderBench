@@ -82,6 +82,14 @@ LINKS = {
             },
         },
     },
+    Lang.ES: {
+        'models': {
+            'jose_antonio': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/GkB6BpSNRP4bnDt/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/E2G3b7PPsPcKGBY/download"
+            },
+        },
+    },
 }
 
 logger = Logger.get_logger()

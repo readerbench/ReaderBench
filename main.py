@@ -18,6 +18,8 @@ from rb.processings.train_models import (Preprocess, test_load_fast_text,
 from rb.processings.readme_feedback.feedback import Feedback
 from rb.processings.text_classifier.text_classifier import TextClassifier
 from rb.processings.keywords.keywords_extractor import KeywordExtractor
+from rb.processings.clustering.clustering import Clustering
+
 from rb.similarity.vector_model import (CorporaEnum, VectorModel,
                                         VectorModelType)
 from rb.similarity.vector_model_factory import create_vector_model
@@ -186,6 +188,10 @@ def do_keywords():
     keywords = keywords_extractor.extract_keywords(text=test, lang=args.keywords_lang)
     print(keywords)
 
+def do_clustering():
+    clustering = Clustering()
+    clustering.compute_clustering()
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run different tasks through this file')
@@ -254,6 +260,9 @@ if __name__ == "__main__":
     """ generate extreme values for indices"""
     parser.add_argument('--feedback_readme', dest='feedback_readme', action='store_true', default=False)
 
+    parser.add_argument('--clustering_readme', dest='clustering_readme', action='store_true', default=False)
+    
+    
     args = parser.parse_args()
     args.scoring_lang: Lang = str_to_lang(args.scoring_lang)
     args.fluctuations_lang: Lang = str_to_lang(args.fluctuations_lang)
@@ -280,4 +289,6 @@ if __name__ == "__main__":
         do_classifier()
     elif args.keywords:
         do_keywords()
+    elif args.clustering_readme:
+        do_clustering()
 
