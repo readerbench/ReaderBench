@@ -203,6 +203,8 @@ class SpacyParser:
 
     def parse(self, sentence: str, lang: Lang) -> Doc:
         model = self.get_model(lang)
+        if model is None:
+            raise Exception("Model not loaded")
         doc = model(sentence)
         for token in doc:
             token.pos_ = computePOS(token, lang).value
