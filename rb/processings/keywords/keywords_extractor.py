@@ -14,23 +14,25 @@ logger = Logger.get_logger()
 
 class KeywordExtractor():
 
-
     def __init__(self):
         pass
 
     def get_vector_model(self, lang: Lang = Lang.RO) -> VectorModel:
         global logger
         if lang is Lang.RO:
-            vector_model = create_vector_model(Lang.RO, VectorModelType.from_str('word2vec'), "readme")
+            vector_model = create_vector_model(
+                Lang.RO, VectorModelType.from_str('word2vec'), "readme")
         elif lang is Lang.EN:
-            vector_model = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+            vector_model = create_vector_model(
+                Lang.EN, VectorModelType.from_str("word2vec"), "coca")
         else:
-            logger.error(f'Language {lang.value} is not supported for keywords task')
+            logger.error(
+                f'Language {lang.value} is not supported for keywords task')
             vector_model = None
         return vector_model
 
     def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40) -> List[Tuple[float, Word]]:
-        
+
         vector_model: VectorModel = self.get_vector_model(lang=lang)
         logger.info('Computing keywords...')
         doc: Document = Document(lang=lang, text=text)
@@ -61,7 +63,8 @@ class KeywordExtractor():
                          max_keywords: int = 40) -> Dict:
 
         logger.info('Loading model for keywords extraction...')
-        keywords: List[Tuple[float, Word]] = self.extract_keywords(text=text, lang=lang)
+        keywords: List[Tuple[float, Word]] = self.extract_keywords(
+            text=text, lang=lang)
         vector_model: VectorModel = self.get_vector_model(lang=lang)
         doc: Document = Document(lang=lang, text=text)
         logger.info('Computing keywords heatmap...')
@@ -75,28 +78,29 @@ class KeywordExtractor():
             for i, sent in enumerate(doc.get_sentences()):
                 elements[str(i + 1)] = sent.text
                 for kw in keywords:
-                    word_scores[kw[1].lemma][str(i + 1)] = str(max(vector_model.similarity(kw[1], sent), 0))
+                    word_scores[kw[1].lemma][str(
+                        i + 1)] = str(max(vector_model.similarity(kw[1], sent), 0))
         else:
             for i, block in enumerate(doc.get_blocks()):
                 elements[str(i + 1)] = block.text
                 for kw in keywords:
-                    word_scores[kw[1].lemma][str(i + 1)] = str(max(vector_model.similarity(kw[1], block), 0))
+                    word_scores[kw[1].lemma][str(
+                        i + 1)] = str(max(vector_model.similarity(kw[1], block), 0))
 
         return {
             "data": {
                 "elements": elements,
                 "heatmap": {
-                    "wordScores": 
+                    "wordScores":
                         word_scores
                 }
             },
             "success": True,
-            "errorMsg":""
+            "errorMsg": ""
         }
 
-
     def transform_for_visualization(self, keywords: List[Tuple[int, Word]], lang: Lang) -> Dict:
-        
+
         vector_model: VectorModel = self.get_vector_model(lang=lang)
         edge_list, node_list = [], []
 
@@ -104,12 +108,12 @@ class KeywordExtractor():
             for j, kw2 in enumerate(keywords):
                 if i != j and vector_model.similarity(kw1[1], kw2[1]) >= 0.3:
                     edge_list.append({
-                        "edgeType":"SemanticDistance",
+                        "edgeType": "SemanticDistance",
                         "score": str(max(vector_model.similarity(kw1[1], kw2[1]), 0)),
                         "sourceUri": kw1[1].lemma,
                         "targetUri": kw2[1].lemma
                     })
-        
+
         for kw in keywords:
             node_list.append({
                 "type": "Word",
@@ -118,13 +122,12 @@ class KeywordExtractor():
                 "active": True,
                 "degree": str(max(0, float(kw[0])))
             })
-        
+
         return {
             "data": {
                 "edgeList": edge_list,
-                "nodeList": node_list,
-                "success": True,
-                "errorMsg": ""
-            }
+                "nodeList": node_list
+            },
+            "success": True,
+            "errorMsg": ""
         }
-
