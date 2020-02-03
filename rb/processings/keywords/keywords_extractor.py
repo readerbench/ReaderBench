@@ -25,6 +25,9 @@ class KeywordExtractor():
         elif lang is Lang.EN:
             vector_model = create_vector_model(
                 Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        elif lang is Lang.ES:
+            vector_model = create_vector_model(
+                Lang.ES, VectorModelType.from_str("word2vec"), "jose_antonio") 
         else:
             logger.error(
                 f'Language {lang.value} is not supported for keywords task')
