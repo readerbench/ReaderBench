@@ -24,7 +24,7 @@ class VectorModelType(Enum):
     @classmethod
     def from_str(cls, label: str) -> "VectorModelType":
         try:
-            return cls(label.upper())
+            return cls[label.upper()]
         except:
             pass
         if "2" in label:
