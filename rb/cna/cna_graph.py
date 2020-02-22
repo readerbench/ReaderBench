@@ -11,9 +11,12 @@ from rb.similarity.vector_model import VectorModel
 
 
 class CnaGraph:
-    def __init__(self, doc: Document, models: List[VectorModel]):
+    def __init__(self, docs: Union[Document, List[Document]], models: List[VectorModel]):
+        if isinstance(docs, Document):
+            docs = [docs]
         self.graph = nx.MultiGraph()
-        self.add_element(doc)
+        for doc in docs:
+            self.add_element(doc)
         self.models = models
         levels = dict()
         for n in self.graph.nodes:
