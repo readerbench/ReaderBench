@@ -1,6 +1,7 @@
-from typing import Callable, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import networkx as nx
+import numpy as np
 from rb.cna.edge_type import EdgeType
 from rb.cna.overlap_type import OverlapType
 from rb.core.document import Document
@@ -31,7 +32,7 @@ class CnaGraph:
             self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.VERB}, OverlapType.TOPIC_OVERLAP)
             self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.PRON}, OverlapType.ARGUMENT_OVERLAP)
             self.add_semantic_links(elements)
-
+        self.importance = self.compute_importance()
         doc.cna_graph = self
         
     def add_element(self, element: TextElement):
@@ -59,6 +60,14 @@ class CnaGraph:
                 self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                 self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                     
+    def compute_importance(self) -> Dict[TextElement, float]:
+        similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
+        mean = np.mean(similarities)
+        stdev = np.std(similarities)
+        importance = {}
+        for node in self.graph.nodes:
+            importance[node] = sum([value for _, _, value in self.edges(node, edge_type=EdgeType.SEMANTIC) if value > mean + stdev])
+        return importance
 
     def edges(self, 
             node: Union[TextElement, Tuple[TextElement, TextElement]], 
