@@ -4,7 +4,9 @@ import networkx as nx
 import numpy as np
 from rb.cna.edge_type import EdgeType
 from rb.cna.overlap_type import OverlapType
+from rb.core.block import Block
 from rb.core.document import Document
+from rb.core.lang import Lang
 from rb.core.pos import POS
 from rb.core.text_element import TextElement
 from rb.core.word import Word
@@ -15,7 +17,7 @@ class CnaGraph:
     def __init__(self, docs: Union[Document, List[Document]], models: List[VectorModel]):
         if isinstance(docs, Document):
             docs = [docs]
-        self.graph = nx.MultiGraph()
+        self.graph = nx.MultiDiGraph()
         for doc in docs:
             self.add_element(doc)
         self.models = models
@@ -33,6 +35,8 @@ class CnaGraph:
             self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.PRON}, OverlapType.ARGUMENT_OVERLAP)
             self.add_semantic_links(elements)
         self.importance = self.compute_importance()
+        if docs[0].lang == Lang.EN:
+            self.add_coref_links()
         doc.cna_graph = self
         
     def add_element(self, element: TextElement):
@@ -60,6 +64,16 @@ class CnaGraph:
                 self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                 self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                     
+    def add_coref_links(self):
+        for node in self.graph.nodes():
+            if isinstance(node, Block):
+                if node.has_coref:
+                    for cluster in node.coref_clusters:
+                        for mention in cluster.mentions:
+                            if mention != cluster.main and mention.container != cluster.main.container:
+                                self.graph.add_edge(mention.container, cluster.main.container, type=EdgeType.COREF)
+
+
     def compute_importance(self) -> Dict[TextElement, float]:
         similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
         mean = np.mean(similarities)

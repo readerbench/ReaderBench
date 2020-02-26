@@ -32,7 +32,7 @@ class Block(TextElement):
                 self.has_coref = doc._.has_coref
                 if self.has_coref:
                     words = {word.index_in_doc: word for sent in self.components for word in sent.components}
-                    self.coref_clusters = [CorefCluster(lang, cluster, words, self) for cluster in doc._.coref_clusters]
+                    self.coref_clusters = [CorefCluster(lang, cluster, words) for cluster in doc._.coref_clusters]
             except AttributeError:
                 pass
 

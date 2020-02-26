@@ -12,8 +12,8 @@ class Span(TextElement):
 
 
     def __init__(self, lang: Lang, text: str, words: List[Word],
-         depth: int = TextElementType.SPAN.value, container: TextElement=None):
-        super().__init__(lang, text, depth, container=container)
+         depth: int = TextElementType.SPAN.value):
+        super().__init__(lang, text, depth, container=words[0].container)
         self.components = words
 
     def get_root(self) -> Word:
@@ -24,7 +24,7 @@ class Span(TextElement):
             ][0]
     
     @classmethod
-    def from_spacy_span(cls, lang: Lang, spacy_span: spacy.tokens.Span, words: Dict[int, Word], container: TextElement) -> "Word":
+    def from_spacy_span(cls, lang: Lang, spacy_span: spacy.tokens.Span, words: Dict[int, Word]) -> "Word":
         text = spacy_span.text
         our_words = [words[i] for i in range(spacy_span.start, spacy_span.end)]
-        return Span(lang=lang, text=text, words=our_words, container=container)
+        return Span(lang=lang, text=text, words=our_words)
