@@ -71,7 +71,11 @@ class CnaGraph:
                     for cluster in node.coref_clusters:
                         for mention in cluster.mentions:
                             if mention != cluster.main and mention.container != cluster.main.container:
-                                self.graph.add_edge(mention.container, cluster.main.container, type=EdgeType.COREF)
+                                edge = self.get_edge(mention.container, cluster.main.container, edge_type=EdgeType.COREF)
+                                if edge is None:
+                                    self.graph.add_edge(mention.container, cluster.main.container, type=EdgeType.COREF, details=[(mention.text, cluster.main.text)])
+                                else:
+                                    edge["details"].append((mention.text, cluster.main.text))
 
 
     def compute_importance(self) -> Dict[TextElement, float]:
@@ -92,3 +96,12 @@ class CnaGraph:
             if (edge_type is None or data["type"] is edge_type) and 
                (vector_model is None or data["model"] is vector_model)
         ]
+
+
+    def get_edge(self, a: TextElement, b: TextElement, edge_type: EdgeType) -> Dict:
+        edge = self.graph[a][b]
+        for data in self.graph[a][b].values():
+            if (data["type"] is edge_type):
+                return data
+        return None   
+             
