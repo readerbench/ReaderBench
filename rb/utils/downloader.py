@@ -67,6 +67,12 @@ LINKS = {
         }
     },
     Lang.RU: {
+        'models': {
+            'rnc_wikipedia': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/N4HcSjLd6gXGYMz/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/d9Jz7XcxRYpJQgq/download"
+            }
+        },
         'spacy': {
             'ru_ud_ft': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/bWCztgwzdnXowc7/download",
