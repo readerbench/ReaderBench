@@ -18,7 +18,7 @@ class WdSyllab(ComplexityIndex):
     def __init__(self, lang: Lang,
             reduce_depth: int, reduce_function: MeasureFunction):
 
-        ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
+        ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
                                  abbr="WdSyll", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if lang is lang.RO:
