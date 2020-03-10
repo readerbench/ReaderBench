@@ -44,7 +44,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.6.19',
+    version='0.6.20',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -103,7 +103,8 @@ setuptools.setup(
         'wget',
         'pyLDAvis',
         'keras',
-        'unidecode'
+        'unidecode',
+        'xlrd',
       ],
     cmdclass={
         'develop': PostDevelopmentCommand,

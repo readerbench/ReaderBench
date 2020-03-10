@@ -69,7 +69,7 @@ LINKS = {
     Lang.RU: {
         'models': {
             'rnc_wikipedia': {
-                'link': "https://nextcloud.readerbench.com/index.php/s/N4HcSjLd6gXGYMz/download",
+                'link': "https://nextcloud.readerbench.com/index.php/s/PJCmkb2focXiMfd/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/d9Jz7XcxRYpJQgq/download"
             }
         },
