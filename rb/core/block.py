@@ -1,5 +1,4 @@
 from rb.parser.spacy_parser import SpacyParser
-
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.sentence import Sentence
