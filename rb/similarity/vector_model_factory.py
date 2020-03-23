@@ -33,6 +33,13 @@ VECTOR_MODELS = {
     }
 }
 
+DEFAULT_MODELS = {
+    Lang.RO: (VectorModelType.WORD2VEC, CorporaEnum.README),
+    Lang.EN: (VectorModelType.WORD2VEC, CorporaEnum.COCA),
+    Lang.ES: (VectorModelType.WORD2VEC, CorporaEnum.JOSE_ANTONIO),
+    Lang.RU: (VectorModelType.WORD2VEC, CorporaEnum.RNC_WIKIPEDIA),    
+}
+
 EXISTING_MODELS = {}
 
 
@@ -61,6 +68,13 @@ def get_existing_model(lang: Lang, model: VectorModelType,  corpus: str, dim: in
         return EXISTING_MODELS[lang][model][corpus][dim]
     return None
 
+def get_default_model(lang: Lang) -> VectorModel:
+    if lang not in DEFAULT_MODELS:
+        return None
+    model, corpus = DEFAULT_MODELS[lang]
+    return create_vector_model(lang, model, corpus=corpus.value)
+
+    
 def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: int = 300) -> VectorModel:
     global logger
     model_abbr = f'{lang.value}-{model.name}-{corpus}-{dim}'

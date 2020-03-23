@@ -37,7 +37,7 @@ class TransCohesion(ComplexityIndex):
             sim_values = []            
             for i, _ in enumerate(blocks[:-1]):
                 current_block_sents = blocks[i].get_sentences()
-                next_block_sents = blocks[i].get_sentences()
+                next_block_sents = blocks[i+1].get_sentences()
                 if len(current_block_sents) == 0 or len(next_block_sents) == 0:
                     continue
                 cur_sent = current_block_sents[-1]
@@ -46,5 +46,5 @@ class TransCohesion(ComplexityIndex):
                                                 vector_model=None)
                 v = sim_edge[0][2]
                 sim_values.append(v)
-            element.indices[self] = sum(sim_values) / len(sim_values)
+            element.indices[self] = sum(sim_values) / len(sim_values) if len(sim_values) > 1 else ComplexityIndex.IDENTITY
             return element.indices[self]

@@ -81,6 +81,12 @@ class ComplexityIndex():
     def __repr__(self):
         return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr
 
+    def __eq__(self, value):
+        return repr(self) == repr(value)
+
+    def __hash__(self):
+        return hash(repr(self))
+
 def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
 
