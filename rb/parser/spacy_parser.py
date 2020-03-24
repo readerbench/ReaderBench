@@ -121,8 +121,10 @@ def computePOS(token: Union[str, Token], lang: Lang) -> POS:
         if pos.startswith("d"):
             return POS.PRON
         return POS.X
-    return POS(token.pos_)
-
+    try:
+        return POS(token.pos_)
+    except:
+        return POS.X
 
 class SpacyParser:
 
