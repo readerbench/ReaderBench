@@ -1,4 +1,5 @@
 import csv
+import math
 import os
 from heapq import heapify, heappop
 from typing import List
@@ -58,7 +59,7 @@ def preprocess(folder: str, targets_file: str) -> Dataset:
     # dataset.save_features("features.csv")
 
 def correlation_with_targets(feature: int, dataset: Dataset) -> float:
-    values = [doc.indices[dataset.features[i]] for doc in dataset.train_docs]
+    values = [doc.indices[dataset.features[feature]] for doc in dataset.train_docs]
     task = dataset.train_tasks[0]
     if task.type is TargetType.FLOAT:
         corr, p = pearsonr(values, task.values)
@@ -93,4 +94,3 @@ def remove_colinear(dataset: Dataset) -> None:
             else:
                 removed.add(i)
     dataset.features = [feature for i, feature in enumerate(dataset.features) if i not in removed]
-
