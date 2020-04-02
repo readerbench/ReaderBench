@@ -25,6 +25,16 @@ VECTOR_MODELS = {
             VectorModelType.LDA: LDA,
             VectorModelType.LSA: LSA
         }
+    },
+    Lang.ES: {
+        CorporaEnum.JOSE_ANTONIO: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
+    },
+    Lang.RU: {
+        CorporaEnum.RNC_WIKIPEDIA: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
     }
 }
 

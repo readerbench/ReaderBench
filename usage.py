@@ -64,7 +64,9 @@ if __name__ == "__main__":
         en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
         """you can compute indices without the cna graph, but this means 
            some indices won't be computed"""
-        cna_graph_en = CnaGraph(doc=doc, models=[en_coca_word2vec])
+        cna_graph_en = CnaGraph(docs=doc, models=[en_coca_word2vec])
+        for node, importance in cna_graph_en.importance.items():
+            print("{}: {}".format(node, importance))
         compute_indices(doc=doc, cna_graph=cna_graph_en)
 
         print('\n\nindices at doc level (en): \n\n', file=log)
@@ -90,7 +92,7 @@ if __name__ == "__main__":
         doc = Document(lang=Lang.RO, text=txt_ro)
         """you can compute indices without the cna graph, but this means 
            some indices won't be computed"""
-        cna_graph_ro = CnaGraph(doc=doc, models=[ro_readme_word2vec])
+        cna_graph_ro = CnaGraph(docs=doc, models=[ro_readme_word2vec])
         compute_indices(doc=doc, cna_graph=cna_graph_ro)
 
         print('\n\nindices at the doc level (ro): \n\n', file=log)

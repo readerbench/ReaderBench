@@ -24,7 +24,7 @@ class VectorModelType(Enum):
     @classmethod
     def from_str(cls, label: str) -> "VectorModelType":
         try:
-            return cls(label.upper())
+            return cls[label.upper()]
         except:
             pass
         if "2" in label:
@@ -35,6 +35,8 @@ class VectorModelType(Enum):
 class CorporaEnum(Enum):
     README = 'readme'
     COCA = 'coca'
+    JOSE_ANTONIO = 'jose_antonio'
+    RNC_WIKIPEDIA = 'rnc_wikipedia'
 
 
 class VectorModel:
@@ -138,7 +140,7 @@ class VectorModel:
         folder = "resources/{}/models/{}".format(self.lang.value, self.corpus)
         os.makedirs(folder, exist_ok=True)     
     
-        with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt") as f:
+        with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt", encoding='utf-8') as f:
             f.write("{}\n".format(len(self.base_vectors)))
             for base in self.base_vectors:
                 f.write(" ".join(str(x) for x in base.values) + "\n")

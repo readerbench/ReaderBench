@@ -65,6 +65,8 @@ def str_to_lang(s: str) -> Lang:
         return Lang.EN
     elif s.strip() == "es" or s.strip() == "esp" or s.strip() == "spanish":
         return Lang.ES
+    elif s.strip() == "ru" or s.strip() == "rus" or s.strip() == "russian":
+        return Lang.RU
     return Lang.EN
 
 def str_to_vmodel(s: str) -> VectorModelType:

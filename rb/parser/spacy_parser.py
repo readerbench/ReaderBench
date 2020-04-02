@@ -121,8 +121,10 @@ def computePOS(token: Union[str, Token], lang: Lang) -> POS:
         if pos.startswith("d"):
             return POS.PRON
         return POS.X
-    return POS(token.pos_)
-
+    try:
+        return POS(token.pos_)
+    except:
+        return POS.X
 
 class SpacyParser:
 
@@ -203,6 +205,8 @@ class SpacyParser:
 
     def parse(self, sentence: str, lang: Lang) -> Doc:
         model = self.get_model(lang)
+        if model is None:
+            raise Exception("Model not loaded")
         doc = model(sentence)
         for token in doc:
             token.pos_ = computePOS(token, lang).value

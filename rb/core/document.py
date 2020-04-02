@@ -15,10 +15,8 @@ class Document(TextElement):
     
 
     def __init__(self, lang: Lang, text: str,
-                 vector_model: VectorModel = None,
                  depth: int = TextElementType.DOC.value,
                  container: TextElement = None):
-        from rb.cna.cna_graph import CnaGraph
         TextElement.__init__(self, lang=lang, text=text,
                              depth=depth, container=container)
         text = text.replace("\n\n", "\n")

@@ -67,6 +67,12 @@ LINKS = {
         }
     },
     Lang.RU: {
+        'models': {
+            'rnc_wikipedia': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/PJCmkb2focXiMfd/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/d9Jz7XcxRYpJQgq/download"
+            }
+        },
         'spacy': {
             'ru_ud_ft': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/bWCztgwzdnXowc7/download",
@@ -79,6 +85,14 @@ LINKS = {
             'le_monde_small': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/6MsKa9TtmnAxCc4/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/2jLd8ZiCfmMo88X/download"
+            },
+        },
+    },
+    Lang.ES: {
+        'models': {
+            'jose_antonio': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/6J9j4NZgmbALxtE/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/D36i64WMJfdRboD/download"
             },
         },
     },

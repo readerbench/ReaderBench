@@ -5,3 +5,4 @@ class EdgeType(Enum):
     ADJACENT = auto()
     SEMANTIC = auto()
     LEXICAL_OVERLAP = auto()
+    COREF = auto()
