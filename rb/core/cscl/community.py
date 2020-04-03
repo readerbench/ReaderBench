@@ -19,11 +19,12 @@ class Community(TextElement):
 		community -> list of JSON objects (crawled from Reddit), with
 					 the same structure as described in Conversation class
 	'''
-	def __init__(self, lang: Lang, container: TextElement = None,
-                 depth: int = TextElementType.COMM.value,
+	def __init__(self, lang: Lang, 
                  community: List[Dict],
-                 start_date: int,
-                 end_date: int):
+				 container: TextElement = None,
+                 depth: int = TextElementType.COMM.value,
+                 start_date: int = None,
+                 end_date: int = None):
 
 		TextElement.__init__(self, lang=lang, text=None,
                              depth=depth, container=container)

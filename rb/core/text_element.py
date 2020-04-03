@@ -5,7 +5,6 @@ import numpy as np
 from typing import List, Dict
 
 from rb.core.lang import Lang
-from rb.core.sentence import Sentence
 
 
 class TextElement:
@@ -30,7 +29,7 @@ class TextElement:
                  depth: int,
                  container: 'TextElement' = None):
         from rb.complexity.complexity_index import ComplexityIndex
-        self.text = text  
+        self.text = text.strip()  
         self.lang = lang
         self.container = container
         self.vectors = {}
@@ -81,7 +80,10 @@ class TextElement:
 
     def __hash__(self):
         return hash((self.depth, self.text))
-    
+
+    def __iter__(self):
+        return iter(self.components)
+
     def get_sentences(self) -> List["Sentence"]:
         if self.depth == TextElementType.SENT.value:
             return [self]
