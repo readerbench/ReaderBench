@@ -21,7 +21,7 @@ class Valence(ComplexityIndex):
                  reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="Valence", reduce_depth=reduce_depth,
+                                 abbr="WdList", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if Valence.valence_dict is None:
             Valence.parse_valence_csv(lang)

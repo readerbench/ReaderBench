@@ -18,7 +18,7 @@ class NoRepetitions(ComplexityIndex):
         reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="NoReps", reduce_depth=reduce_depth,
+                                 abbr="Repetitions", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         self.window_size = window_size
 

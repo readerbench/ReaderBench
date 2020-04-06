@@ -19,7 +19,7 @@ class NoNamedEntity(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="NoNamedEntity", reduce_depth=reduce_depth,
+                                 abbr="NmdEnt", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         self.named_ent_type = named_ent_type
 
