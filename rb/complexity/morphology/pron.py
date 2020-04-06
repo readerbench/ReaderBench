@@ -21,7 +21,7 @@ class Pronoun(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.MORPHOLOGY,
-                                 abbr="Pronoun", reduce_depth=reduce_depth,
+                                 abbr="Pron", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if Pronoun.pronoun_dict is None:
             Pronoun.parse_pronoun_list(lang)
