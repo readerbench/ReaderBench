@@ -30,6 +30,11 @@ VECTOR_MODELS = {
         CorporaEnum.JOSE_ANTONIO: {
             VectorModelType.WORD2VEC: Word2Vec
         }
+    },
+    Lang.RU: {
+        CorporaEnum.RNC_WIKIPEDIA: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
     }
 }
 

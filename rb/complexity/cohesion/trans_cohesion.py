@@ -21,7 +21,7 @@ class TransCohesion(ComplexityIndex):
             cna_graph: CnaGraph = None):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
-                                 abbr="TransCohesion")
+                                 abbr="TransCoh")
         self.cna_graph = cna_graph
         
     def process(self, element: TextElement) -> float:

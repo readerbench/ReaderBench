@@ -29,7 +29,7 @@ class TextElement:
                  depth: int,
                  container: 'TextElement' = None):
         from rb.complexity.complexity_index import ComplexityIndex
-        self.text = text  
+        self.text = text.strip()  
         self.lang = lang
         self.container = container
         self.vectors = {}
@@ -38,6 +38,15 @@ class TextElement:
         self.indices: Dict[ComplexityIndex, float] = {}
         self.depth = depth
     
+    def is_community(self) -> bool:
+        return self.depth >= TextElement.COMM.value
+
+    def is_conversation(self) -> bool:
+        return self.depth >= TextElementType.CONV.value
+
+    def is_contribution(self) -> bool:
+        return self.depth == TextElementType.DOC.value
+
     def is_document(self) -> bool:
         return self.depth >= TextElementType.DOC.value
 
@@ -71,7 +80,12 @@ class TextElement:
 
     def __hash__(self):
         return hash((self.depth, self.text))
-    
+
+    def __iter__(self):
+        return iter(self.components)
+
     def get_sentences(self) -> List["Sentence"]:
-        from rb.core.sentence import Sentence
+        if self.depth == TextElementType.SENT.value:
+            return [self]
+
         return  [sent for child in self.components for sent in child.get_sentences()]

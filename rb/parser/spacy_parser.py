@@ -121,8 +121,10 @@ def computePOS(token: Union[str, Token], lang: Lang) -> POS:
         if pos.startswith("d"):
             return POS.PRON
         return POS.X
-    return POS(token.pos_)
-
+    try:
+        return POS(token.pos_)
+    except:
+        return POS.X
 
 class SpacyParser:
 
@@ -180,6 +182,14 @@ class SpacyParser:
     def tokenize_sentences(self, block: str) -> List[str]:
         return sent_tokenize(block)
     
+    @staticmethod
+    def line_splitter(doc):
+        for token in doc:
+            if "\n" in token.text_with_ws and token.i < len(doc) - 1:
+                token.nbor().sent_start = True
+        return doc
+
+
     def get_model(self, lang: Union[Lang, str]) -> Language:
         if isinstance(lang, str):
             lang = Lang(lang)
@@ -187,6 +197,7 @@ class SpacyParser:
             if lang not in custom_models:
                 try:
                     self.loaded_models[lang] = spacy.load(models[lang])
+                    self.loaded_models[lang].add_pipe(SpacyParser.line_splitter, name='sentence_segmenter', before='parser')
                     if lang is Lang.EN:
                         neuralcoref.add_to_pipe(self.loaded_models[lang])
                 except:
