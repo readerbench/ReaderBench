@@ -9,9 +9,11 @@ from rb.core.text_element import TextElement
 from rb.core.word import Word
 from rb.similarity.vector import Vector
 from rb.utils.downloader import check_version, download_model
-
+from rb.utils.rblogger import Logger
 
 WordSimilarity = Tuple[str, float]
+
+logger = Logger.get_logger()
 
 
 class VectorModelType(Enum):
@@ -54,13 +56,20 @@ class VectorModel:
         if check_version(lang, self.corpus):
             if not download_model(lang, self.corpus):
                 raise FileNotFoundError("Requested model ({}) not found for {}".format(self.corpus, lang.value))
+        logger.info('Loading vectors.. ')
         self.load_vectors()
+        logger.info('Vectors loaded')
         if len(self.vectors) > 100000:
             try:
+                logger.info('Loading clusters.. ')
                 self.load_clusters()
+                logger.info('Clusters loaded')
             except:
+                logger.info('Clusters not found! Building clusters.. ')
                 self.build_clusters(8)
                 self.save_clusters()
+                logger.info('Clusters saved')
+                
         
 
     def load_vectors(self):
@@ -108,11 +117,10 @@ class VectorModel:
             no_of_dimensions = int(line_split[1])
             self.size = no_of_dimensions
 
-            for _ in range(no_of_words):
-                line = f.readline()
+            for line in f.readlines():
                 line_split = line.split()
                 word = line_split[0]
-                self.vectors[word] = Vector(np.array([float(x) for x in line_split[1:]]))
+                self.vectors[word] = Vector(np.array(line_split[1:], dtype=np.float))
             
     def compute_hash(self, v: Vector) -> int:
         result = 0
