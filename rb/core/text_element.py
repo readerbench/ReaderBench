@@ -84,6 +84,17 @@ class TextElement:
     def __iter__(self):
         return iter(self.components)
 
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key != "cna_graph"
+        }
+        
+    def __setstate__(self, state):
+        for key, value in state.items():
+            setattr(self, key, value)
+
     def get_sentences(self) -> List["Sentence"]:
         if self.depth == TextElementType.SENT.value:
             return [self]

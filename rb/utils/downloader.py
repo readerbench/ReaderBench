@@ -52,6 +52,12 @@ LINKS = {
                 'version': 'https://nextcloud.readerbench.com/index.php/s/afE4ZYAMoya9Ekp/download'
             }
         },
+        'bert':{
+            'ro0': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/WGfr98cixHC4D3T/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/zG2qyqbtongNrKW/download'
+            }
+        },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
         'wordlists': {
             'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",

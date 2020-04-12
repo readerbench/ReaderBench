@@ -86,6 +86,17 @@ class ComplexityIndex():
 
     def __hash__(self):
         return hash(repr(self))
+    
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key != "cna_graph"
+        }
+        
+    def __setstate__(self, state):
+        for key, value in state.items():
+            setattr(self, key, value)
 
 def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
