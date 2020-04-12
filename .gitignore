@@ -139,6 +139,7 @@ testem.log
 /RO
 /models 
 /resources
+/summaries
 
 # System Files
 .DS_Store

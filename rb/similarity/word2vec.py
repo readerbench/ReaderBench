@@ -6,6 +6,9 @@ from rb.core.lang import Lang
 from rb.similarity.vector_model import VectorModel, VectorModelType
 from rb.similarity.vector import Vector
 from rb.utils.downloader import download_model, check_version
+from rb.utils.rblogger import Logger
+
+logger = Logger.get_logger()
 
 
 class Word2Vec(VectorModel):
@@ -15,6 +18,6 @@ class Word2Vec(VectorModel):
         
 
     def load_vectors(self):
-        model = KeyedVectors.load_word2vec_format("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.corpus, self.size), binary=False)
-        self.vectors = {word: Vector(model[word]) for idx, word in enumerate(model.index2word)}
+        self.load_vectors_from_txt_file("resources/{}/models/{}/word2vec-{}.txt".format(self.lang.value, self.corpus, self.size))
+        
         

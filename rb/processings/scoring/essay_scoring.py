@@ -92,7 +92,7 @@ class EssayScoring:
                 content = f.read()
             
             doc = Document(lang=lang, text=content)
-            cna_graph = CnaGraph(doc=doc, models=[vector_model])
+            cna_graph = CnaGraph(docs=doc, models=[vector_model])
             compute_indices(doc=doc, cna_graph=cna_graph)
 
             row = []
@@ -163,7 +163,7 @@ class EssayScoring:
 
         doc = Document(lang=lang, text=content)
         vector_model = self.get_vector_model(lang=lang)
-        cna_graph = CnaGraph(doc=doc, models=[vector_model])
+        cna_graph = CnaGraph(docs=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
 
         indices = []

@@ -51,7 +51,7 @@ class Fluctuations:
     def compute_indices(self, text: str, lang: Lang) -> List[List]:
         doc = Document(lang=lang, text=text)
         vector_model = self.get_vector_model(lang=lang)
-        cna_graph = CnaGraph(doc=doc, models=[vector_model])
+        cna_graph = CnaGraph(docs=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
 
         indices_sent = {

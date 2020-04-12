@@ -110,7 +110,7 @@ class Feedback:
         indices = self.get_used_indices()
         doc = Document(lang=lang, text=text)
         vector_model = self.get_vector_model(lang=lang)
-        cna_graph = CnaGraph(doc=doc, models=[vector_model])
+        cna_graph = CnaGraph(docs=doc, models=[vector_model])
         compute_indices(doc=doc, cna_graph=cna_graph)
         words, sents, blocks, docs = [], [], [], []
         ind_words, ind_sents, inds_blocks, inds_doc = indices[TextElementType.WORD],\
