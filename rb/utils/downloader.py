@@ -53,10 +53,18 @@ LINKS = {
             }
         },
         'bert':{
-            'ro0': {
-                'link': 'https://nextcloud.readerbench.com/index.php/s/WGfr98cixHC4D3T/download',
+            'small': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/WbtmEn9XebfbBFy/download',
                 'version': 'https://nextcloud.readerbench.com/index.php/s/zG2qyqbtongNrKW/download'
-            }
+            },
+            'base': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/Hnn68d6QMr8oKxr/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/mNG8YbSj7QzpSfK/download'
+            },
+            'large': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/DeH4mBtZFajKRan/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/MdMKFDFKJ5feMnN/download'
+            },
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
         'wordlists': {

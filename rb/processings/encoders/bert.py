@@ -1,14 +1,15 @@
 import os
-from typing import List
+from typing import List, Tuple, Iterable, Union
 
 import bert
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
-from bert.tokenization import FullTokenizer
+from bert.tokenization.bert_tokenization import FullTokenizer
 from rb.core.lang import Lang
 from rb.utils.downloader import check_version, download_model
 from tensorflow import keras
+from transformers import FlaubertTokenizer, TFFlaubertModel
 
 
 class BertWrapper:
@@ -24,11 +25,18 @@ class BertWrapper:
             self.tokenizer = FullTokenizer(vocab_file, do_lower_case)
         elif lang is Lang.RO:
             if model_name is None:
-                model_name = "ro0"
+                model_name = "base"
+            if check_version(Lang.RO, ["bert", model_name]):
+                download_model(Lang.RO, ["bert", model_name])
             self.model_dir = os.path.join("resources/ro/bert/", model_name)
-            self.tokenizer = FullTokenizer(vocab_file=os.path.join(model_dir, "vocab.vocab"))
+            self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"))
             bert_params = bert.params_from_pretrained_ckpt(self.model_dir)
             self.bert_layer = bert.BertModelLayer.from_params(bert_params, name="bert_layer")
+        elif lang is Lang.FR:
+            self.tokenizer = FlaubertTokenizer.from_pretrained("jplu/tf-flaubert-base-cased")
+            self.bert_layer = TFFlaubertModel.from_pretrained("jplu/tf-flaubert-base-cased")
+            self.bert_layer.call = tf.function(self.bert_layer.call)
+
         
         self.max_seq_len = max_seq_len
         
@@ -39,15 +47,28 @@ class BertWrapper:
 
     def create_inputs(self) -> List[keras.layers.Layer]:
         input_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="input_ids")
-        mask_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="mask_ids")
         segment_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="segment_ids")
+        if self.lang is Lang.RO:
+            return [input_ids, segment_ids]
+        mask_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="mask_ids")
         return [input_ids, mask_ids, segment_ids]
+        
+
+    def create_inputs_and_model(self) -> Tuple[List[keras.layers.Layer], tf.Tensor]:
+        inputs = self.create_inputs()
+        if self.lang is Lang.FR:
+            output = self.bert_layer(inputs=inputs[0], attention_mask=inputs[1], token_type_ids=inputs[2])
+        else:
+            output = self.bert_layer(inputs)
+        return inputs, output
 
     def get_output(self, bert_tensor: tf.Tensor, mode: str = "cls") -> tf.Tensor:
         if self.lang is Lang.EN:
             sequence_output = bert_tensor[1]
         elif self.lang is Lang.RO:
             sequence_output = bert_tensor
+        elif self.lang is Lang.FR:
+            sequence_output = bert_tensor[0]
         if mode == "cls":
             return tf.keras.layers.Lambda(lambda x: x[:,0,:])(sequence_output)
         elif mode == "pool":
@@ -65,8 +86,16 @@ class BertWrapper:
                     current_segment_id = 1
         return segments
 
+    def process_input(self, dataset: Iterable[Union[Tuple[str, str], str]]) -> List[np.ndarray]:
+        return [np.array(x) for x in zip(*[self.process_text(row) for row in dataset])]
+
     # use it with sentence2=None for single sentence
-    def process_sentences(self, sentence1: str, sentence2: str=None):
+    def process_text(self, text: Union[str, Tuple[str, str]]):
+        if isinstance(text, str):
+            sentence1 = text
+            sentence2 = None
+        else:
+            sentence1, sentence2 = text
         tokens = ['[CLS]']
         tokens.extend(self.tokenizer.tokenize(sentence1))
         tokens.append('[SEP]')
@@ -82,9 +111,6 @@ class BertWrapper:
             input_ids = np.array(input_ids)
             input_masks = np.array(input_masks)
             input_segments = np.array(input_segments)
-            
-            return input_ids, input_segments
-
         else: # pad or trim
             if len(input_ids) < self.max_seq_len: # pad
                 to_add = self.max_seq_len-len(input_ids)
@@ -98,10 +124,9 @@ class BertWrapper:
                 input_masks = input_masks[:self.max_seq_len]
                 input_segments = input_segments[:self.max_seq_len]
 
-            input_ids = np.array(input_ids)
-            input_masks = np.array(input_masks)
-            input_segments = np.array(input_segments)
-
+        if self.lang is Lang.RO:
+            return input_ids, input_segments
+        else:
             return input_ids, input_masks, input_segments
 
 # only used for testing purposes

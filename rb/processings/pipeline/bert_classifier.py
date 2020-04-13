@@ -20,8 +20,7 @@ class BertClassifier(Classifier):
         self.bert.load_weights()
         
     def create_model(self) -> keras.Model:
-        inputs = self.bert.create_inputs()
-        bert_output = self.bert.bert_layer(inputs)
+        inputs, bert_output = self.bert.create_inputs_and_model()
         cls_output = self.bert.get_output(bert_output, "cls")
         # cls_output = tf.keras.layers.GlobalAveragePooling1D()(bert_output)
         features = tf.keras.layers.Input(shape=(len(self.dataset.features),), dtype=tf.float32, name="features")
@@ -43,12 +42,12 @@ class BertClassifier(Classifier):
     def train(self):
         train_features = [[doc.indices[feature] for feature in self.dataset.features]
                           for doc in self.dataset.train_docs]
-        train_inputs = [np.array(x) for x in zip(*[self.bert.process_sentences(doc.text) for doc in self.dataset.train_docs])]
+        train_inputs = self.bert.process_input(doc.text for doc in self.dataset.train_docs)
         train_inputs.append(np.array(train_features))
         train_outputs = [np.array(task.get_train_targets()) for task in self.tasks]
         dev_features = [[doc.indices[feature] for feature in self.dataset.features]
                           for doc in self.dataset.dev_docs]
-        dev_inputs = [np.array(x) for x in zip(*[self.bert.process_sentences(doc.text) for doc in self.dataset.dev_docs])]
+        dev_inputs = self.bert.process_input(doc.text for doc in self.dataset.dev_docs)
         dev_inputs.append(np.array(dev_features))
         dev_outputs = [np.array(task.get_dev_targets()) for task in self.tasks]
         

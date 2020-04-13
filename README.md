@@ -44,6 +44,31 @@ For neural coref errors install it as follows: https://github.com/huggingface/ne
 
 ## Developer instructions
 
+## How to use Bert
+```
+from rb.core.lang import Lang
+from rb.processings.encoders.bert import BertWrapper
+from tensorflow import keras
+
+bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128)
+inputs, bert_output = bert_wrapper.create_inputs_and_model()
+cls_output = self.bert.get_output(bert_output, "cls") # or "pool"
+
+# Add decision layer and compile model
+# eg. 
+# hidden = keras.layers.Dense(..)(cls_output)
+# output = keras.layers.Dense(..)(hidden)
+# model = keras.Model(inputs=inputs, outputs=[output])
+# model.compile(..)
+
+bert_wrapper.load_weights() #must be called after compile
+
+# Process inputs for model
+feed_inputs = bert_wrapper.process_input(["text1", "text2", "text3"])
+# feed_output = ...
+# model.fit(feed_inputs, feed_output, ...)
+```
+
 ## How to use the logger
 In each file you have to initialize the logger:  
 ```sh
