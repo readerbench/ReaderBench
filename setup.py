@@ -44,7 +44,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.7.0',
+    version='0.7.1',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -97,7 +97,7 @@ setuptools.setup(
         'srsly',
         'tensorflow-hub',
         'thinc<7.1.0',
-        'transformers'
+        'transformers',
         'tqdm',
         'urllib3',
         'wasabi',
