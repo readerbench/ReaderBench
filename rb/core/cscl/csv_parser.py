@@ -1,16 +1,15 @@
 from typing import List, Dict
 import csv
 
-'''
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.cscl.contribution import Contribution
+from rb.core.cscl.conversation import Conversation
 
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
-'''
 
 CONTRIBUTIONS_KEY = 'contributions'
 ID_KEY = 'id'
@@ -53,6 +52,9 @@ def main():
 	conversation_thread = CsvParser.get_json_from_csv('./thread.csv')
 
 	print(conversation_thread)
+
+	#conversation = Conversation(lang=Lang.EN, container=None,
+	#							conversation_thread=conversation_thread)
 
 if __name__ == '__main__':
 	main()

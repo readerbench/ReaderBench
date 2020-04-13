@@ -5,6 +5,7 @@ from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
+from rb.cna.cna_graph import CnaGraph
 
 from rb.utils.rblogger import Logger
 
@@ -33,15 +34,17 @@ class Community(TextElement):
 		self.start_date = start_date
 		self.end_date = end_date
 
-		for conversation in community:
-			current_contribution = Contribution(lang, text, container=self,
+		for conversation_thread in community:
+			current_conversation = Conversation(lang, container=self,
 						 						conversation_thread=conversation_thread)
 
-			self.components.append(current_contribution)
+			self.components.append(current_conversation)
 
 		self.participants = union_participants()
 		self.participant_contributions = union_contributions()
 		self.first_contribution_date, self.last_contribution_date = find_contribution_range()
+
+		self.graph = CnaGraph(docs=[self], models=[])
 
 
 	def union_participants(self) -> List[str]:

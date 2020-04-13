@@ -9,6 +9,7 @@ from rb.core.lang import Lang
 from rb.core.sentence import Sentence
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
+from rb.core.cscl.cscl_indices import CsclIndices
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -44,6 +45,11 @@ class Conversation(TextElement):
 
 		self.parse_contributions(conversation_thread)
 
+		self.scores = dict()
+		self.init_scores()
+		self.init_indices()
+
+
 
 	def parse_contributions(self, conversation_thread: Dict):
 		contribution_map = dict()
@@ -66,7 +72,7 @@ class Conversation(TextElement):
 			
 			parent_contribution = None
 
-			if parent_index > 0:
+			if int(parent_index) > 0:
 				parent_contribution = contribution_map[parent_index]
 
 			full_text += text + "\n"
@@ -84,8 +90,9 @@ class Conversation(TextElement):
 			self.participant_contributions[participant_id].append(current_contribution)
 	
 		self.participants = list(users)
+
 		self.text = full_text
-		# way must be found to re-map parsed sentences to their original contribution
+
 		sentences = self.parse_full_text(full_text)
 		i = 0
 		for contribution in self:
@@ -113,6 +120,34 @@ class Conversation(TextElement):
 
 	def get_contributions(self) -> List[Contribution]:
 		return self.components
+
+	def init_scores(self):
+		for a in self.participants:
+			self.scores[a] = dict()
+
+			for b in self.participants:
+				self.scores[a][b] = 0
+
+	def get_score(self, a: str, b: str) -> float:
+		return self.scores[a][b]
+
+	def update_score(self, a: str, b: str, value: float):
+		self.scores[a][b] += value
+
+	def init_indices(self):
+		self.indices = dict()
+
+		for a in self.participants:
+			self.indices[a] = dict()
+
+	def get_index(self, a: str, index: str):
+		if index in self.indices[a]:
+			return self.indices[a][index]
+
+		return 0
+
+	def update_index(self, a: str, index: str, value: float):
+		self.indices[a][index] = value
 
 	def __str__(self):
 		return NotImplemented

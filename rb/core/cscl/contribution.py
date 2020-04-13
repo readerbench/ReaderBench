@@ -26,13 +26,6 @@ class Contribution(Block):
         self.participant_id = participant_id
         self.timestamp = timestamp
 
-        '''
-		text = text.replace("\n\n", "\n")
-
-        for block in text.split("\n"):
-            self.components.append(Block(lang=lang, text=block.strip(),
-                                         container=self))
-        '''
 
     def add_sentence(self, sentence: Sentence):
         self.components.append(sentence)

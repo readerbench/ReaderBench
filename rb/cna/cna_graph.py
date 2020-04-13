@@ -37,6 +37,8 @@ class CnaGraph:
         self.importance = self.compute_importance()
         if docs[0].lang == Lang.EN:
             self.add_coref_links()
+            self.block_cohesion = self.compute_block_cohesion()
+
         doc.cna_graph = self
         
     def add_element(self, element: TextElement):
@@ -78,6 +80,32 @@ class CnaGraph:
                                     edge["details"].append((mention.text, cluster.main.text))
 
 
+    def compute_coref_score(self, a: Block, b: Block) -> float:
+        words_a = a.get_words()
+        words_b = b.get_words()
+
+        # TODO
+
+        return 0
+
+    def compute_block_cohesion(self) -> Dict[TextElement, Dict[TextElement, float]]:
+        coref_links = self.edges(None, edge_type=EdgeType.COREF)
+        coref_scores = [(a, b, compute_coref_score(a, b)) for a, b, _ in coref_links]
+
+        mean = np.mean([value for _, _, value in coref_scores])
+        stdev = np.std([value for _, _, value in coref_scores])
+
+        block_cohesion = dict()
+        for a, b, score in coref_scores:
+            if not (a in block_cohesion):
+                block_cohesion[a] = dict()
+
+            if score > mean + stdev:
+                block_cohesion[a][b] = score
+            else:
+                block_cohesion[a][b] = 0
+
+
     def compute_importance(self) -> Dict[TextElement, float]:
         similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
         mean = np.mean(similarities)
@@ -86,6 +114,7 @@ class CnaGraph:
         for node in self.graph.nodes:
             importance[node] = sum([value for _, _, value in self.edges(node, edge_type=EdgeType.SEMANTIC) if value > mean + stdev])
         return importance
+
 
     def edges(self, 
             node: Union[TextElement, Tuple[TextElement, TextElement]], 
