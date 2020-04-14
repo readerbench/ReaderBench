@@ -22,7 +22,6 @@ class BertClassifier(Classifier):
     def create_model(self) -> keras.Model:
         inputs, bert_output = self.bert.create_inputs_and_model()
         cls_output = self.bert.get_output(bert_output, "cls")
-        # cls_output = tf.keras.layers.GlobalAveragePooling1D()(bert_output)
         features = tf.keras.layers.Input(shape=(len(self.dataset.features),), dtype=tf.float32, name="features")
         outputs = []
         global_hidden = tf.keras.layers.Dense(128)
