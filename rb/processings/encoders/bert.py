@@ -120,9 +120,30 @@ class BertWrapper:
                     input_segments.append(0)
 
             elif len(input_ids) > self.max_seq_len: # trim
-                input_ids = input_ids[:self.max_seq_len]
-                input_masks = input_masks[:self.max_seq_len]
-                input_segments = input_segments[:self.max_seq_len]
+                if sentence2 is not None:
+                    len1 = 0
+                    for segment in input_segments:
+                        if segment == 1:
+                            break
+                        len1 += 1
+                    len2 = len(input_segments) - len1
+                    each = self.max_seq_len // 2
+                    if len1 <= each:
+                        input_ids = input_ids[:len1] + input_ids[len1:self.max_seq_len - 1] + [input_ids[len1 + len2 - 1]]
+                        input_masks = input_masks[:len1] + input_masks[len1:self.max_seq_len - 1] + [input_masks[len1 + len2 - 1]]
+                        input_segments = input_segments[:len1] + input_segments[len1:self.max_seq_len - 1] + [input_segments[len1 + len2 - 1]]
+                    elif len2 <= each - 1 + self.max_seq_len % 2:
+                        input_ids = input_ids[:(self.max_seq_len - len2 - 1)] + input_ids[(len1-1):]
+                        input_masks = input_masks[:(self.max_seq_len - len2 - 1)] + input_masks[(len1-1):]
+                        input_segments = input_segments[:(self.max_seq_len - len2 - 1)] + input_segments[(len1-1):]
+                    else:
+                        input_ids = input_ids[:each] + input_ids[(len1 - 1):(len1 + each - 2 + self.max_seq_len % 2)] + [input_ids[-1]]
+                        input_masks = input_masks[:each] + input_masks[(len1 - 1):(len1 + each - 2 + self.max_seq_len % 2)] + [input_masks[-1]]
+                        input_segments = input_segments[:each] + input_segments[(len1 - 1):(len1 + each - 2 + self.max_seq_len % 2)] + [input_segments[-1]]
+                else:
+                    input_ids = input_ids[:self.max_seq_len]
+                    input_masks = input_masks[:self.max_seq_len]
+                    input_segments = input_segments[:self.max_seq_len]
 
         if self.lang is Lang.RO:
             return input_ids, input_segments
