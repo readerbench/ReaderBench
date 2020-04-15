@@ -29,7 +29,11 @@ class TextElement:
                  depth: int,
                  container: 'TextElement' = None):
         from rb.complexity.complexity_index import ComplexityIndex
-        self.text = text.strip()  
+
+        self.text = None
+        if text != None:
+            self.text = text.strip()
+
         self.lang = lang
         self.container = container
         self.vectors = {}

@@ -9,6 +9,7 @@ from rb.core.lang import Lang
 from rb.core.sentence import Sentence
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
+from rb.core.cscl.participant import Participant
 from rb.core.cscl.cscl_indices import CsclIndices
 from rb.utils.rblogger import Logger
 
@@ -47,8 +48,6 @@ class Conversation(TextElement):
 
 		self.scores = dict()
 		self.init_scores()
-		self.init_indices()
-
 
 
 	def parse_contributions(self, conversation_thread: Dict):
@@ -58,26 +57,35 @@ class Conversation(TextElement):
 		full_text = ''
 
 		for contribution in conversation_thread[CONTRIBUTIONS_KEY]:
-			index = contribution[ID_KEY]
+			index = int(contribution[ID_KEY])
 			participant_id = contribution[USER_KEY]
 			users.add(participant_id)
 
 			# parent index will be -1 in JSON for the first post
-			parent_index = contribution[PARENT_ID_KEY]
+			parent_index = int(contribution[PARENT_ID_KEY])
 
-			timestamp = contribution[TIMESTAMP_KEY]
+			timestamp = int(contribution[TIMESTAMP_KEY])
 			text = contribution[TEXT_KEY].strip()
 			if text[-1] not in {'.', '!', '?'}:
 				text += "."
 			
 			parent_contribution = None
 
-			if int(parent_index) > 0:
+			if parent_index > 0:
 				parent_contribution = contribution_map[parent_index]
 
 			full_text += text + "\n"
+			
+			participant = None
+
+			if participant_id in self.container.participant_map:
+				participant = self.container.participant_map[participant_id]
+			else:
+				participant = Participant(participant_id=participant_id)
+				self.container.participant_map[participant_id] = participant
+
 			current_contribution = Contribution(self.lang, text, container=self,
-												participant_id=participant_id,
+												participant=participant,
 												parent_contribution=parent_contribution,
 												timestamp=timestamp)
 
@@ -89,7 +97,7 @@ class Conversation(TextElement):
 
 			self.participant_contributions[participant_id].append(current_contribution)
 	
-		self.participants = list(users)
+		self.participants = [self.container.participant_map[user] for user in list(users)]
 
 		self.text = full_text
 
@@ -112,7 +120,7 @@ class Conversation(TextElement):
 		parsed_document = Block(self.lang, full_text)
 		return parsed_document.get_sentences()
 
-	def get_participants(self) -> List[str]:
+	def get_participants(self) -> List[Participant]:
 		return self.participants
 
 	def get_participant_contributions(self, participant_id: str) -> List[Contribution]:
@@ -123,31 +131,16 @@ class Conversation(TextElement):
 
 	def init_scores(self):
 		for a in self.participants:
-			self.scores[a] = dict()
+			self.scores[a.get_id()] = dict()
 
 			for b in self.participants:
-				self.scores[a][b] = 0
+				self.scores[a.get_id()][b.get_id()] = 0
 
 	def get_score(self, a: str, b: str) -> float:
 		return self.scores[a][b]
 
-	def update_score(self, a: str, b: str, value: float):
+	def set_score(self, a: str, b: str, value: float):
 		self.scores[a][b] += value
-
-	def init_indices(self):
-		self.indices = dict()
-
-		for a in self.participants:
-			self.indices[a] = dict()
-
-	def get_index(self, a: str, index: str):
-		if index in self.indices[a]:
-			return self.indices[a][index]
-
-		return 0
-
-	def update_index(self, a: str, index: str, value: float):
-		self.indices[a][index] = value
 
 	def __str__(self):
 		return NotImplemented

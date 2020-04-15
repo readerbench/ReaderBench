@@ -15,7 +15,7 @@ class ParticipantEvaluation:
 	def evaluate_interaction(conversation: Conversation):
 		cna_graph = conversation.container.graph
 		importance = cna_graph.importance
-		block_cohesion = cna_graph.block_cohesion
+		block_importance = cna_graph.compute_block_importance()
 
 		participants = conversation.get_participants()
 		contributions = conversation.get_contributions()
@@ -25,55 +25,59 @@ class ParticipantEvaluation:
 			return
 
 		for i, contribution1 in enumerate(contributions):
-			p1 = contribution1.get_participant_id()
+			p1 = contribution1.get_participant().get_id()
 
-			conversation.update_score(p1, p1, importance[contribution1])
+			conversation.set_score(p1, p1, importance[contribution1])
 
 			for j in range(0, len(contributions)):
 				if j != i:
 					contribution2 = contributions[j]
 
-					if block_cohesion[contribution1][contribution2] > 0:
-						p2 = contribution2.get_participant_id()
-						conversation.update_score(p1, p2,
-							importance[contribution1] * block_cohesion[contribution1][contribution2])
+					if block_importance[contribution1][contribution2] > 0:
+						p2 = contribution2.get_participant().get_id()
+
+						current_value = conversation.get_score(p1, p2)
+						current_value += importance[contribution1] * block_importance[contribution1][contribution2]
+
+						conversation.set_score(p1, p2, current_value)
+
 
 	@staticmethod
-	def evalute_involvement(conversation: Conversation):
+	def evaluate_involvement(conversation: Conversation):
 		cna_graph = conversation.container.graph
 		importance = cna_graph.importance
 		participants = conversation.get_participants()
 
 		if (len(participants) == 0):
-			return:
-
-		conversation.init_indices()
+			return
 
 		for contribution in conversation.get_contributions():
-			p = contribution.get_participant_id()
+			p = contribution.get_participant()
 
-			current_value = conversation.get_index(p, CsclIndices.SCORE)
-			conversation.update_index(p, CsclIndices.SCORE, current_value + importance[contribution])
+			current_value = p.get_index(CsclIndices.SCORE)
+			p.set_index(CsclIndices.SCORE, current_value + importance[contribution])
 
-			# TODO add social kb
+			# TODO add social KB
 
-			current_value = conversation.get_index(p, CsclIndices.NO_CONTRIBUTION)
-			conversation.update_index(p, CsclIndices.NO_CONTRIBUTION, current_value + 1)
+			current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
+			p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
 
-
+	
 	@staticmethod
-	def evaluate_used_concept(conversation: Conversation):
+	def evaluate_used_concepts(conversation: Conversation):
 		participants = conversation.get_participants()
-
+		
 		for p in participants:
-			for contribution in conversation.get_participant_contributions(p):
-				for word in contribution.get_words()
-					if word.pos[0] == 'N':
-						current_value = conversation.get_index(p, CsclIndices.NO_NOUNS)
-						conversation.update_index(p, CsclIndices.NO_NOUNS, current_value + 1)
-					if word.pos[0] == 'V':
-						current_value = conversation.get_index(p, CsclIndices.NO_VERBS)
-						conversation.update_index(p, CsclIndices.NO_VERBS, current_value + 1)
+			for contribution in conversation.get_participant_contributions(p.get_id()):
+				for word in contribution.get_words():
+					if word.pos.value[0] == 'N':
+						current_value = p.get_index(CsclIndices.NO_NOUNS)
+						p.set_index(CsclIndices.NO_NOUNS, current_value + 1)
+						print(p.get_index(CsclIndices.NO_NOUNS))
+					if word.pos.value[0] == 'V':
+						current_value = p.get_index(CsclIndices.NO_VERBS)
+						p.set_index(CsclIndices.NO_VERBS, current_value + 1)
+
 
 	@staticmethod
 	def perform_sna(conversation: Conversation, needs_anonymization: bool):
@@ -82,18 +86,16 @@ class ParticipantEvaluation:
 		for i, p1 in enumerate(participants):
 			for j, p2 in enumerate(participants):
 				if i != j:
-					current_value = conversation.get_index(p1, CsclIndices.OUTDEGREE)
-					conversation.update_index(p1, CsclIndices.OUTDEGREE, current_value +
-												conversation.get_score(p1, p2))
+					current_value = p1.get_index(CsclIndices.OUTDEGREE)
+					p1.set_index(CsclIndices.OUTDEGREE, current_value +
+												conversation.get_score(p1.get_id(), p2.get_id()))
 
-					current_value = conversation.get_index(p2, CsclIndices.INDEGREE)
-					conversation.update_index(p2, CsclIndices.INDEGREE, current_value +
-												conversation.get_score(p1, p2))
+					current_value = p2.get_index(CsclIndices.INDEGREE)
+					p2.set_index(CsclIndices.INDEGREE, current_value +
+												conversation.get_score(p1.get_id(), p2.get_id()))
 				else:
-					current_value = conversation.get_index(p1, CsclIndices.OUTDEGREE)
-					conversation.update_index(p1, CsclIndices.OUTDEGREE, current_value +
-												conversation.get_score(p1, p1))
-
-
+					current_value = p1.get_index(CsclIndices.OUTDEGREE)
+					p1.set_index(CsclIndices.OUTDEGREE, current_value +
+												conversation.get_score(p1.get_id(), p1.get_id()))
 
 
