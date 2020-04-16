@@ -1,3 +1,4 @@
+#pylint: disable=import-error
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
@@ -7,7 +8,7 @@ from tensorflow.keras.callbacks import TensorBoard
 import sys
 import numpy as np
 from tensorflow.keras import backend as K
-import utils
+import rb.processings.diacritics.utils as utils
 
 
 class CharCNN(object):

@@ -7,8 +7,7 @@ import os
 from sklearn.utils import class_weight
 import numpy as np
 from collections import Counter
-from bert.tokenization.bert_tokenization import FullTokenizer
-
+from bert.tokenization import FullTokenizer
 
 # split train file in train and dev
 def splitDataset(filepath, train_ratio):
@@ -166,7 +165,7 @@ def generator_cnn_features(filepath, char_to_id_dict, window_size):
     id_to_char_dict = {v: k for k, v in char_to_id_dict.items()}
 
     with open(filepath, "r", encoding='utf-8') as in_file:
-        for sentence_index, sentence in enumerate(in_file):
+        for _, sentence in enumerate(in_file):
             
             char_ids = [char_to_id_dict[get_char_basic(char)] for char in sentence]
             values_to_pad = (window_size-1)//2

@@ -10,8 +10,8 @@ if gpus:
 
 import pickle
 import absl
-import utils
-from CharCNN import CharCNN
+import rb.processings.diacritics.utils as utils
+from rb.processings.diacritics.CharCNN import CharCNN
 import sys
 import bert
 from bert.tokenization import FullTokenizer
@@ -19,7 +19,7 @@ from bert.tokenization import FullTokenizer
 
 
 FLAGS = absl.flags.FLAGS
-absl.flags.DEFINE_string('dataset_folder_path', 'dataset/split/', 'Path to bert dataset folder')
+absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to bert dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
 absl.flags.DEFINE_integer('train_batch_size', 1, "Batch size to be used for training")
 absl.flags.DEFINE_integer('dev_batch_size', 512, "Batch size to be used for evaluation")
@@ -44,17 +44,14 @@ def main(argv):
 
 		train_dataset = tf.data.Dataset.from_generator(lambda : utils.generator_cnn_features(FLAGS.dataset_folder_path+"train.txt", char_dict, FLAGS.window_size),
 						output_types = (tf.int32, tf.float32), output_shapes=([FLAGS.window_size], [5]))
-		# train_dataset = train_dataset.shuffle(int(1e5), reshuffle_each_iteration=True).batch(FLAGS.train_batch_size).repeat(-1)
-		# train_dataset = train_dataset.batch(FLAGS.train_batch_size)
-		train_dataset = train_dataset.batch(FLAGS.train_batch_size)#.prefetch(tf.data.experimental.AUTOTUNE)
-
+		train_dataset = train_dataset.shuffle(int(1e5), reshuffle_each_iteration=True).batch(FLAGS.train_batch_size).repeat(-1)
 		# total number of features
 		train_size = 61640402
 		# total number of sentences
 		# train_size = 2126626
 
 		for index, _ in enumerate(train_dataset):
-			if index % 1e6 == 0:
+			if index % 1e4 == 0:
 				print(index)
 		
 		sys.exit()
