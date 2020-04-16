@@ -163,3 +163,7 @@ russian/*
 essays_ro/*
 example_correct.json
 debug.log.1
+rb/processings/diacritics/dataset/split/char_dict
+rb/processings/diacritics/dataset/split/dev.txt
+rb/processings/diacritics/dataset/split/test.txt
+rb/processings/diacritics/dataset/split/train.txt
