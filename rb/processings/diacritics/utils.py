@@ -180,7 +180,7 @@ def generator_cnn_features(filepath, char_to_id_dict, window_size):
                     label = get_label(id_to_char_dict[char_ids[char_index]], char)
                     
                     categorical = np.zeros((5))
-                    categorical[label] = 1 + 1
+                    categorical[label] = 2
                     yield np.array(full_window), categorical
 
 # generator features for bert+cnn: bert_tokens, window, position (relative to bert_tokens) and label
