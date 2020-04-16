@@ -14,18 +14,18 @@ import rb.processings.diacritics.utils as utils
 from rb.processings.diacritics.CharCNN import CharCNN
 import sys
 import bert
-from bert.tokenization import FullTokenizer
+from bert.tokenization.bert_tokenization import FullTokenizer
 
 
 
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to bert dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
-absl.flags.DEFINE_integer('train_batch_size', 1, "Batch size to be used for training")
+absl.flags.DEFINE_integer('train_batch_size', 2048, "Batch size to be used for training")
 absl.flags.DEFINE_integer('dev_batch_size', 512, "Batch size to be used for evaluation")
 absl.flags.DEFINE_integer('char_embedding_size', 100, "Dimension of character embedding")
-absl.flags.DEFINE_integer('epochs', 10, "Number of epochs to train")
-absl.flags.DEFINE_float('learning_rate', 1e-4, "Learning rate")
+absl.flags.DEFINE_integer('epochs', 25, "Number of epochs to train")
+absl.flags.DEFINE_float('learning_rate', 1e-3, "Learning rate")
 absl.flags.DEFINE_string('optimizer', 'adam', 'Optimizer')
 absl.flags.DEFINE_float('dropout_rate', 0.2, "Dropout rate: fraction of units to drop during training")
 absl.flags.DEFINE_string('model_type', 'CharCNN', "Type of model: CharCNN or BertCNN")
@@ -49,12 +49,6 @@ def main(argv):
 		train_size = 61640402
 		# total number of sentences
 		# train_size = 2126626
-
-		for index, _ in enumerate(train_dataset):
-			if index % 1e4 == 0:
-				print(index)
-		
-		sys.exit()
 		
 		dev_dataset = tf.data.Dataset.from_generator(lambda : utils.generator_cnn_features(FLAGS.dataset_folder_path+"dev.txt", char_dict, FLAGS.window_size),
 						output_types = (tf.int32, tf.float32), output_shapes=([FLAGS.window_size], [5]))
@@ -70,7 +64,8 @@ def main(argv):
 		model = CharCNN(input_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = [[20,1], [20,2], [20,3], [20,4], [20,5], [20,6], [20,7], [20,8], [20,9], [20,10]],
 						embedding_size=FLAGS.char_embedding_size, num_of_classes=5,	dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
 
-		model.train(train_dataset, FLAGS.train_batch_size, train_size//1, dev_dataset, FLAGS.dev_batch_size, dev_size//1, FLAGS.epochs, "dataset/split/dev.txt", char_dict)
+		model.train(train_dataset, FLAGS.train_batch_size, train_size//1, dev_dataset, FLAGS.dev_batch_size, dev_size//1, 
+							FLAGS.epochs, "rb/processings/diacritics/dataset/split/dev.txt", char_dict)
 		
 
 	elif FLAGS.model_type == "BertCNN":

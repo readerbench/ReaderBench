@@ -7,7 +7,7 @@ import os
 from sklearn.utils import class_weight
 import numpy as np
 from collections import Counter
-from bert.tokenization import FullTokenizer
+from bert.tokenization.bert_tokenization import FullTokenizer
 
 # split train file in train and dev
 def splitDataset(filepath, train_ratio):
@@ -404,17 +404,14 @@ def evaluate_model_on_file(model, filepath, char_to_id_dict, window_size):
     char_accuracy = compute_char_accuracy(global_true_chars, global_predicted_chars)
 
 
-    print("Word accuracy dia =", word_accuracy_dia)
-    print("Word accuracy all =", word_accuracy)
+    print("Word accuracy dia =", format(word_accuracy_dia, '.4f'))
+    print("Word accuracy all =", format(word_accuracy, '.4f'))
 
-    print("Char accuracy dia =", char_accuracy_dia)
-    print("Char accuracy all =", char_accuracy)
+    print("Char accuracy dia =", format(char_accuracy_dia, '.4f'))
+    print("Char accuracy all =", format(char_accuracy, '.4f'))
 
-    print(len(predicted_dia), len(predicted_cla))
-    print(Counter(predicted_dia))
-    print(Counter(predicted_cla))
-
-    # print(global_predicted_words)
+    # print(len(predicted_dia), len(predicted_cla))
+    print(Counter(predicted_dia), Counter(predicted_cla))
 
     return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
 

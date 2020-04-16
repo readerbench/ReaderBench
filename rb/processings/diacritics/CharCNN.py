@@ -112,20 +112,26 @@ class CharCNN(object):
 	def train(self, train_dataset, train_batch_size, train_size, dev_dataset, dev_batch_size, dev_size, epochs, file_evalname, char_to_id_dict):
 
 		best_wa_dia = -1
+		best_wa_all = -1
+		best_ca_dia = -1
+		best_ca_all = -1
 		best_epoch = -1
 
 		for i in range(epochs):
-			print("EPOCH ", i)
+			print("EPOCH ", (i+1))
 			self.model.fit(train_dataset, steps_per_epoch=train_size//train_batch_size, epochs=1, verbose=1)
 			self.model.evaluate(dev_dataset, steps=dev_size//dev_batch_size, verbose=1)
 			print("---------------")
 			wa_dia, wa_all, ca_dia, ca_all, predicted_words = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.input_size)
 			if wa_dia > best_wa_dia:
 				best_wa_dia = wa_dia
-				best_epoch = i
-				self.model.save('models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.h5'.format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate))
+				best_wa_all = wa_all
+				best_ca_dia = ca_dia
+				best_ca_all = ca_all
+				best_epoch = i+1
+				self.model.save('rb/processings/diacritics/models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.h5'.format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate))
 
-				outfile_name = "models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.txt".format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, file_evalname.split("/")[-1].split(".")[0])
+				outfile_name = "rb/processings/diacritics/models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.txt".format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, file_evalname.split("/")[-1].split(".")[0])
 				# also write to file
 				with open(outfile_name , "w", encoding="utf-8") as outfile:
 					for word in predicted_words:
@@ -134,7 +140,8 @@ class CharCNN(object):
 						else:
 							outfile.write(word + " ")
 			
-			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", best_wa_dia)
+			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", format(best_wa_dia, '.4f'), "best word_accuracy_all =", format(best_wa_all, '.4f'), 
+							"best char_accuracy_dia =", format(best_ca_dia, '.4f'), "best char_accuracy_all =", format(best_ca_all, '.4f'))
 			print("---------------")
 
 class weighted_categorical_crossentropy(object):
