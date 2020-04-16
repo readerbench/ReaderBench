@@ -89,7 +89,7 @@ class CharCNN(object):
 
 		x = Concatenate()(convolution_output)
 		# x = (?batch_size, total_number_of_filters)
-		# x = Dropout(rate=self.dropout_rate)(x)
+		x = Dropout(rate=self.dropout_rate)(x)
 
 		# Output layer
 		predictions = Dense(self.num_of_classes, activation='softmax')(x)
