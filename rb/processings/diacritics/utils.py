@@ -363,10 +363,6 @@ def evaluate_model_on_file(model, filepath, char_to_id_dict, window_size):
                 predicted_chars = []
                 basic_chars = []
 
-                
-            if sentence_index == 15:
-                break
-
 
     if sentence_windows != []:
         prediction_vectors = model.predict(sentence_windows)
