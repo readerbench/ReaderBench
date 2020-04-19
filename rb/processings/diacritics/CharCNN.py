@@ -26,8 +26,7 @@ class CharCNN(object):
             input_size (int): Size of input features
             alphabet_size (int): Size of alphabets to create embeddings for
             embedding_size (int): Size of embeddings
-            # conv_layers (list[list[int]]): List of Convolution layers for model
-            # fully_connected_layers (list[list[int]]): List of Fully Connected layers for model
+            conv_layers (list[list[int]]): List of Convolution layers for model
             num_of_classes (int): Number of classes in data
             dropout_rate (float): Dropout Rate
             optimizer (str): Training optimizer
@@ -100,8 +99,7 @@ class CharCNN(object):
 		# Build and compile model
 		model = Model(inputs=inputs, outputs=masked_predictions)
 
-		weights = np.ones(self.num_of_classes)
-
+		# weights = np.ones(self.num_of_classes)
 		# model.compile(optimizer=self.optimizer, loss=weighted_categorical_crossentropy(weights).loss, metrics=[tf.keras.metrics.categorical_accuracy])
 		model.compile(optimizer=self.optimizer, loss=self.loss, metrics=[tf.keras.metrics.categorical_accuracy])
 		self.model = model
