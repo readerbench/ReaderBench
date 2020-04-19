@@ -128,8 +128,8 @@ class CharCNN(object):
 				best_ca_all = ca_all
 				best_epoch = i+1
 
-				self.model.save('rb/processings/diacritics/models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}_filtsize{5}.h5'.format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, self.conv_layers[0][1]))
-				outfile_name = "rb/processings/diacritics/models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}_filtsize{6}.txt".format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, file_evalname.split("/")[-1].split(".")[0], self.conv_layers[0][1])
+				self.model.save('rb/processings/diacritics/models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}_filtsize{5}.h5'.format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, self.conv_layers[0][0]))
+				outfile_name = "rb/processings/diacritics/models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}_filtsize{6}.txt".format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, file_evalname.split("/")[-1].split(".")[0], self.conv_layers[0][0])
 				
 				# also write dev file
 				with open(outfile_name , "w", encoding="utf-8") as outfile:
