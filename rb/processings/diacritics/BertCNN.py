@@ -18,7 +18,7 @@ class BertCNN(object):
     """
 
 
-	def __init__(self, window_size, alphabet_size, embedding_size, conv_layers, num_of_classes, batch_max_sentences, batch_max_windows,
+	def __init__(self, window_size, alphabet_size, embedding_size, conv_layers, fc_hidden_size, num_of_classes, batch_max_sentences, batch_max_windows,
 				 bert_trainable, cnn_dropout_rate, bert_wrapper, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
 		"""
         Initialization for the Bert + Character Level CNN model.
@@ -37,6 +37,7 @@ class BertCNN(object):
 			batch_max_windows (int): Maximum windows in batch
 
 
+			fc_hidden_size (int): Size of hidden layer between features and prediction
 
 			num_of_classes (int): Number of classes in data
 			optimizer (str): Training optimizer
@@ -52,13 +53,12 @@ class BertCNN(object):
 		self.num_of_classes = num_of_classes
 		self.cnn_dropout_rate = cnn_dropout_rate
 		self.learning_rate = learning_rate
-		
+		self.fc_hidden_size = fc_hidden_size
+
 		self.bert_wrapper = bert_wrapper
 		self.bert_wrapper.bert_layer.trainable = bert_trainable
 		self.batch_max_sentences = batch_max_sentences
 		self.batch_max_windows = batch_max_windows
-
-		
 
 		if optimizer == "adam":
 			self.optimizer = keras.optimizers.Adam(lr=self.learning_rate)
@@ -151,17 +151,23 @@ class BertCNN(object):
 		# bert_tokens = (?batch_size, max_windows, bert_hidden_size)
 		bert_cnn_concatenation = Concatenate()([bert_tokens, char_cnn_output])
 		
+		# hidden layer
+		hidden = Dense(self.fc_hidden_size, activation='relu')(bert_cnn_concatenation)
+
 		# Output layer
-		predictions = Dense(self.num_of_classes, activation='softmax')(bert_cnn_concatenation)
+		predictions = Dense(self.num_of_classes, activation='softmax')(hidden)
 		# mask predictions based on middle char 
 		masked_predictions = keras.layers.multiply([predictions, char_mask])
 		# mask prediction based on window mask
 		extended_mask = tf.reshape(input_mask, (-1, self.batch_max_windows, 1))
 		extended_mask = tf.tile(extended_mask, [1, 1, self.num_of_classes])
+
+	
 		masked_predictions = keras.layers.multiply([masked_predictions, extended_mask])
-		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.num_of_classes))
-		# flatten_masked_prediction = (?batch_size x max_windows, num_of_classes)
-		
+		# flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.batch_max_windows, self.num_of_classes))
+		flatten_masked_predictions = masked_predictions
+		# flatten_masked_prediction = (?batch_size, max_windows, num_of_classes)
+
 		# Build and compile model
 		model = Model(inputs=[input_bert_ids, input_bert_seg, input_token_ids, input_sent_ids, input_mask, input_char_windows], outputs=flatten_masked_predictions)
 
@@ -182,34 +188,55 @@ class BertCNN(object):
 		best_ca_all = -1
 		best_epoch = -1
 
-		train_batch_size = 1
-		dev_batch_size = 1
-
 		for i in range(epochs):
 			print("EPOCH ", (i+1))
 			self.model.fit(train_dataset, steps_per_epoch=train_size//train_batch_size, epochs=1, verbose=1)
 			self.model.evaluate(dev_dataset, steps=dev_size//dev_batch_size, verbose=1)
 			print("---------------")
-			sys.exit()
-			wa_dia, wa_all, ca_dia, ca_all, predicted_words = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.window_size)
+			wa_dia, wa_all, ca_dia, ca_all, _ = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.window_size)
 			if wa_dia > best_wa_dia:
 				best_wa_dia = wa_dia
 				best_wa_all = wa_all
 				best_ca_dia = ca_dia
 				best_ca_all = ca_all
 				best_epoch = i+1
-				self.model.save('rb/processings/diacritics/models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.h5'.format(self.window_size, train_batch_size, self.embedding_size, self.learning_rate, self.cnn_dropout_rate))
-
-				outfile_name = "rb/processings/diacritics/models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.txt".format(self.window_size, train_batch_size, self.embedding_size, self.learning_rate, self.cnn_dropout_rate, file_evalname.split("/")[-1].split(".")[0])
-				# also write to file
-				with open(outfile_name , "w", encoding="utf-8") as outfile:
-					for word in predicted_words:
-						if word[-1] == "\n":
-							outfile.write(word)
-						else:
-							outfile.write(word + " ")
+				self.model.save('rb/processings/diacritics/models/model_bertCNN_embdim{0}_filtsize{1}_fchidden{2}.h5'.format(self.embedding_size, self.conv_layers[0][0], self.fc_hidden_size))
 			
 			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", format(best_wa_dia, '.4f'), "best word_accuracy_all =", format(best_wa_all, '.4f'), 
 							"best char_accuracy_dia =", format(best_ca_dia, '.4f'), "best char_accuracy_all =", format(best_ca_all, '.4f'))
 			print("---------------")
 
+class weighted_categorical_crossentropy(object):
+	"""
+	A weighted version of keras.objectives.categorical_crossentropy
+
+	Variables:
+		weights: numpy array of shape (C,) where C is the number of classes
+
+	Usage:
+		loss = weighted_categorical_crossentropy(weights).loss
+		model.compile(loss=loss,optimizer='adam')
+	"""
+
+	def __init__(self,weights):
+		self.weights = K.variable(weights)
+        
+	def loss(self, y_true, y_pred):
+		y_true = K.print_tensor(y_true)
+		y_pred = K.print_tensor(y_pred)
+
+		# scale preds so that the class probas of each sample sum to 1
+		y_pred = y_pred / K.sum(y_pred, axis=-1, keepdims=True)
+		# y_pred = K.print_tensor(y_pred)
+
+		# clip
+		y_pred = K.clip(y_pred, K.epsilon(), 1)
+		# y_pred = K.print_tensor(y_pred)
+		
+		# calc
+		loss = y_true*K.log(y_pred)*self.weights
+		# loss = K.print_tensor(loss)
+		loss =-K.sum(loss,-1)
+		# loss = K.print_tensor(loss)
+		# sys.exit()
+		return loss

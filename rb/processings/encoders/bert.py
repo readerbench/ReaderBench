@@ -32,7 +32,7 @@ class BertWrapper:
             self.model_dir = os.path.join("resources/ro/bert/", model_name)
             json_config_file = os.path.join(self.model_dir, "bert_config.json")
             config = json.load(open(json_config_file, 'r'))
-            do_lower_case = bool(config.get('do_lower_case', 1))
+            do_lower_case = bool(config.get('do_lower_case', 0))
             do_remove_accents = bool(config.get('do_remove_accents', 1))
             self.hidden_size = config.get('hidden_size')
             self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"), do_lower_case=do_lower_case)
@@ -110,7 +110,6 @@ class BertWrapper:
         if sentence2 != None:
             tokens.extend(self.tokenizer.tokenize(sentence2))
             tokens.append('[SEP]')
-
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
         input_masks = [1] * len(input_ids)
         input_segments = self.__get_segments(input_ids)
