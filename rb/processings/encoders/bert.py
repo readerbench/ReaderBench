@@ -10,6 +10,7 @@ from rb.core.lang import Lang
 from rb.utils.downloader import check_version, download_model
 from tensorflow import keras
 from transformers import FlaubertTokenizer, TFFlaubertModel
+import json
 
 
 class BertWrapper:
@@ -29,7 +30,14 @@ class BertWrapper:
             if check_version(Lang.RO, ["bert", model_name]):
                 download_model(Lang.RO, ["bert", model_name])
             self.model_dir = os.path.join("resources/ro/bert/", model_name)
-            self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"))
+            json_config_file = os.path.join(self.model_dir, "bert_config.json")
+            config = json.load(open(json_config_file, 'r'))
+            do_lower_case = bool(config.get('do_lower_case', 1))
+            do_remove_accents = bool(config.get('do_remove_accents', 1))
+            self.hidden_size = config.get('hidden_size')
+            self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"), do_lower_case=do_lower_case)
+            if do_remove_accents == False:
+                self.tokenizer.basic_tokenizer._run_strip_accents = lambda x:x
             bert_params = bert.params_from_pretrained_ckpt(self.model_dir)
             self.bert_layer = bert.BertModelLayer.from_params(bert_params, name="bert_layer")
         elif lang is Lang.FR:
@@ -156,8 +164,9 @@ def test_implementation():
     max_seq_length = 10
     if check_version(Lang.RO, ["bert", "ro0"]):
         download_model(Lang.RO, ["bert", "ro0"])
-    bert_model = BertLayer("resources/ro/bert/ro0/", max_seq_length)
-    
+    # bert_model = BertLayer("resources/ro/bert/ro0/", max_seq_length)
+    bert_model = lambda x:x
+
     input_ids = tf.keras.layers.Input(shape=(max_seq_length,), dtype=tf.int32, name="input_ids")
     segment_ids = tf.keras.layers.Input(shape=(max_seq_length,), dtype=tf.int32, name="segment_ids")
     
