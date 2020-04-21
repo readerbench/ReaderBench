@@ -140,7 +140,6 @@ class CharCNN(object):
 			# print("---------------")
 			# wa_dia, wa_all, ca_dia, ca_all, _ = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.input_size)
 			wa_dia, wa_all, ca_dia, ca_all, _ = utils.evaluate_model(self.model, file_evalname, dev_dataset, (dev_size//dev_batch_size)+1)
-			print
 			if wa_dia > best_wa_dia:
 				best_wa_dia = wa_dia
 				best_wa_all = wa_all

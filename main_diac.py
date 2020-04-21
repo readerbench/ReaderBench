@@ -24,8 +24,8 @@ from rb.processings.encoders.bert import BertWrapper
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
-absl.flags.DEFINE_integer('train_batch_size', 1024, "Batch size to be used for training")
-absl.flags.DEFINE_integer('dev_batch_size', 4096, "Batch size to be used for evaluation")
+absl.flags.DEFINE_integer('train_batch_size', 512, "Batch size to be used for training")
+absl.flags.DEFINE_integer('dev_batch_size', 512, "Batch size to be used for evaluation")
 absl.flags.DEFINE_integer('char_embedding_size', 50, "Dimension of character embedding")
 absl.flags.DEFINE_integer("cnn_filter_size", 50, "Size of cnn filters (it applies the same size to all filters)")
 absl.flags.DEFINE_integer("fc_hidden_size", 100, "Size of fc hidden layer (between features and predictions)")
