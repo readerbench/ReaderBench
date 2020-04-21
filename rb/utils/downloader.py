@@ -65,6 +65,10 @@ LINKS = {
                 'link': 'https://nextcloud.readerbench.com/index.php/s/DeH4mBtZFajKRan/download',
                 'version': 'https://nextcloud.readerbench.com/index.php/s/MdMKFDFKJ5feMnN/download'
             },
+            'multi_cased_base': {
+                'link': 'https://nextcloud.readerbench.com/index.php/s/yGY3AoRYWR2McyD/download',
+                'version': 'https://nextcloud.readerbench.com/index.php/s/yWetLtdEz2D4i6f/download'
+            },
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
         'wordlists': {
