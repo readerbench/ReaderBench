@@ -159,7 +159,7 @@ class weighted_categorical_crossentropy(object):
 		self.weights = K.variable(weights)
         
 	def loss(self, y_true, y_pred):
-		# y_true = K.print_tensor(y_true)
+		y_true = K.print_tensor(y_true)
 		y_pred = K.print_tensor(y_pred)
 
 		# scale preds so that the class probas of each sample sum to 1

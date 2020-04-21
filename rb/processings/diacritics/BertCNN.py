@@ -58,8 +58,6 @@ class BertCNN(object):
 		self.batch_max_sentences = batch_max_sentences
 		self.batch_max_windows = batch_max_windows
 
-		
-
 		if optimizer == "adam":
 			self.optimizer = keras.optimizers.Adam(lr=self.learning_rate)
 
@@ -157,17 +155,24 @@ class BertCNN(object):
 		masked_predictions = keras.layers.multiply([predictions, char_mask])
 		# mask prediction based on window mask
 		extended_mask = tf.reshape(input_mask, (-1, self.batch_max_windows, 1))
+		print(extended_mask)
+		print()
 		extended_mask = tf.tile(extended_mask, [1, 1, self.num_of_classes])
+
+	
 		masked_predictions = keras.layers.multiply([masked_predictions, extended_mask])
-		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.num_of_classes))
-		# flatten_masked_prediction = (?batch_size x max_windows, num_of_classes)
-		
+		# print(masked_predictions)
+		# flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.batch_max_windows, self.num_of_classes))
+		flatten_masked_predictions = masked_predictions
+		# flatten_masked_prediction = (?batch_size, max_windows, num_of_classes)
+		# print(flatten_masked_predictions)
+		# sys.exit()
 		# Build and compile model
 		model = Model(inputs=[input_bert_ids, input_bert_seg, input_token_ids, input_sent_ids, input_mask, input_char_windows], outputs=flatten_masked_predictions)
 
 		model.compile(optimizer=self.optimizer, loss=self.loss, metrics=[tf.keras.metrics.categorical_accuracy])
 
-		self.bert_wrapper.load_weights()
+		# self.bert_wrapper.load_weights()
 		self.model = model
 		print("Bert+CharCNN model built: ")
 		self.model.summary()
@@ -213,3 +218,37 @@ class BertCNN(object):
 							"best char_accuracy_dia =", format(best_ca_dia, '.4f'), "best char_accuracy_all =", format(best_ca_all, '.4f'))
 			print("---------------")
 
+class weighted_categorical_crossentropy(object):
+	"""
+	A weighted version of keras.objectives.categorical_crossentropy
+
+	Variables:
+		weights: numpy array of shape (C,) where C is the number of classes
+
+	Usage:
+		loss = weighted_categorical_crossentropy(weights).loss
+		model.compile(loss=loss,optimizer='adam')
+	"""
+
+	def __init__(self,weights):
+		self.weights = K.variable(weights)
+        
+	def loss(self, y_true, y_pred):
+		y_true = K.print_tensor(y_true)
+		y_pred = K.print_tensor(y_pred)
+
+		# scale preds so that the class probas of each sample sum to 1
+		y_pred = y_pred / K.sum(y_pred, axis=-1, keepdims=True)
+		# y_pred = K.print_tensor(y_pred)
+
+		# clip
+		y_pred = K.clip(y_pred, K.epsilon(), 1)
+		# y_pred = K.print_tensor(y_pred)
+		
+		# calc
+		loss = y_true*K.log(y_pred)*self.weights
+		# loss = K.print_tensor(loss)
+		loss =-K.sum(loss,-1)
+		# loss = K.print_tensor(loss)
+		# sys.exit()
+		return loss

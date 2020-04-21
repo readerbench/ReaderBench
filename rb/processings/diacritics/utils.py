@@ -502,6 +502,87 @@ def evaluate_model_on_file(model, filepath, char_to_id_dict, window_size):
 
     return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
 
+
+def evaluate_model(model, filepath, dataset, steps, write_to_file=False, outfile_name=None):
+
+    diacritics = set("aăâiîsștț")
+    predictions = model.predict(dataset, steps=steps)
+    print(predictions.shape)
+    predicted_classes = list(map(lambda x: np.argmax(x), predictions))
+    print(len(predicted_classes))
+
+    predicted_dia = []
+    predicted_cla = []
+
+    global_true_words = []
+    global_predicted_words = []
+
+    global_true_chars = []
+    global_predicted_chars = []
+
+    prediction_index = 0
+
+    with open(filepath, "r", encoding='utf-8') as in_file:
+        for _, sentence in enumerate(in_file):
+
+            global_true_chars.extend(sentence)
+            sentence_true_words = sentence.split(" ")
+            global_true_words.extend(sentence_true_words)
+
+            for _, char in enumerate(sentence):
+                if char in diacritics:
+                    basic_char = get_char_basic(char)
+                    predicted_char = get_char_from_label(basic_char, predicted_classes[prediction_index])
+                    global_predicted_chars.append(predicted_char)
+        
+                    predicted_dia.append(predicted_char)
+                    predicted_cla.append(predicted_classes[prediction_index])
+
+                    prediction_index += 1
+
+                else: 
+                    global_predicted_chars.append(char)
+
+    global_predicted_words = ''.join(global_predicted_chars).replace("\n", "\n ").split(" ")[:-1]
+
+    if len(global_true_words) != len(global_predicted_words):
+        print("Mismatch between #true_words and #predicted_words")
+        print(len(global_true_words), len(global_predicted_words))
+        sys.exit()
+
+
+    if len(global_predicted_chars) != len(global_predicted_chars):
+        print("Mismatch between #true_chars and #predicted_chars")
+        print(len(global_true_chars), len(global_predicted_chars))
+        sys.exit()
+    
+    word_accuracy_dia = compute_word_accuracy_dia(global_true_words, global_predicted_words)
+    word_accuracy = compute_word_accuracy(global_true_words, global_predicted_words)
+
+    char_accuracy_dia = compute_char_accuracy_dia(global_true_chars, global_predicted_chars)
+    char_accuracy = compute_char_accuracy(global_true_chars, global_predicted_chars)
+
+
+    print("Word accuracy dia =", format(word_accuracy_dia, '.4f'))
+    print("Word accuracy all =", format(word_accuracy, '.4f'))
+
+    print("Char accuracy dia =", format(char_accuracy_dia, '.4f'))
+    print("Char accuracy all =", format(char_accuracy, '.4f'))
+
+    # print(len(predicted_dia), len(predicted_cla))
+    print(Counter(predicted_dia), Counter(predicted_cla))
+
+    if write_to_file == True:
+        # also write to file
+        with open(outfile_name , "w", encoding="utf-8") as outfile:
+            for word in global_predicted_words:
+                if word[-1] == "\n":
+                    outfile.write(word)
+                else:
+                    outfile.write(word + " ")
+
+    return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
+
 if __name__ == "__main__":
     print("utils.py")
     # build_char_vocab()
