@@ -507,9 +507,8 @@ def evaluate_model(model, filepath, dataset, steps, write_to_file=False, outfile
 
     diacritics = set("aăâiîsștț")
     predictions = model.predict(dataset, steps=steps)
-    print(predictions.shape)
     predicted_classes = list(map(lambda x: np.argmax(x), predictions))
-    print(len(predicted_classes))
+    print(predictions.shape, len(predicted_classes))
 
     predicted_dia = []
     predicted_cla = []
