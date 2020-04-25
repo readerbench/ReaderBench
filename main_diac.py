@@ -24,26 +24,26 @@ from rb.processings.encoders.bert import BertWrapper
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
-absl.flags.DEFINE_integer('train_batch_size', 512, "Batch size to be used for training")
-absl.flags.DEFINE_integer('dev_batch_size', 512, "Batch size to be used for evaluation")
+absl.flags.DEFINE_integer('train_batch_size', 16, "Batch size to be used for training")
+absl.flags.DEFINE_integer('dev_batch_size', 16, "Batch size to be used for evaluation")
 absl.flags.DEFINE_integer('char_embedding_size', 50, "Dimension of character embedding")
 absl.flags.DEFINE_integer("cnn_filter_size", 50, "Size of cnn filters (it applies the same size to all filters)")
-absl.flags.DEFINE_integer("fc_hidden_size", 100, "Size of fc hidden layer (between features and predictions)")
+absl.flags.DEFINE_integer("fc_hidden_size", 128, "Size of fc hidden layer (between features and predictions)")
 absl.flags.DEFINE_integer('epochs', 20, "Number of epochs to train")
 absl.flags.DEFINE_float('learning_rate', 1e-3, "Learning rate")
 absl.flags.DEFINE_string('optimizer', 'adam', 'Optimizer')
 absl.flags.DEFINE_float('dropout_rate', 0.1, "Dropout rate: fraction of units to drop during training")
-absl.flags.DEFINE_string('model_type', 'CharCNN', "Type of model: CharCNN or BertCNN")
+absl.flags.DEFINE_string('model_type', 'BertCNN', "Type of model: CharCNN or BertCNN")
 absl.flags.DEFINE_string('model_filename', 'modelX', 'Name of model to save')
 
-absl.flags.DEFINE_string('bert_model_dir', "models/bert_models/ro0/", "Path to folder where BERT model is located")
+absl.flags.DEFINE_string('bert_model_type', "small", "BERT model type: small, base, large or multi_cased_base")
 absl.flags.DEFINE_boolean('bert_trainable', False, 'Whether to BERT is trainable or not')
 absl.flags.DEFINE_integer('bert_max_seq_len', 256, "Maximum sequence length for BERT models")
 absl.flags.DEFINE_integer('batch_max_sentences', 10, "Maximum sentences per batch")
 absl.flags.DEFINE_integer('batch_max_windows', 280, "Maximum windows per batch")
 absl.flags.DEFINE_integer('no_classes', 5, "Number of classes for clasification")
 
-absl.flags.DEFINE_integer('dev_version', 2, "0 for 2-3-4-5, 1 for 2-3-4-5-11, 2 for simple FC")
+absl.flags.DEFINE_integer('dev_version', 1, "0 for 2-3-4-5, 1 for 2-3-4-5-11, 2 for simple FC")
 
 
 def main(argv):
@@ -92,7 +92,7 @@ def main(argv):
 
 	elif FLAGS.model_type == "BertCNN":
 		
-		bert_wrapper = BertWrapper(Lang.RO, max_seq_len=FLAGS.bert_max_seq_len, model_name="small")
+		bert_wrapper = BertWrapper(Lang.RO, max_seq_len=FLAGS.bert_max_seq_len, model_name=FLAGS.bert_model_type)
 		train_dataset = tf.data.Dataset.from_generator(lambda : utils.generator_bert_cnn_features(FLAGS.dataset_folder_path+"train.txt", char_dict, FLAGS.window_size, bert_wrapper, FLAGS.batch_max_sentences, FLAGS.batch_max_windows),
 						output_types=({'bert_input_ids': tf.int32, 'bert_segment_ids': tf.int32, 'token_ids': tf.int32, 'sent_ids': tf.int32,
 										'mask': tf.float32, 'char_windows': tf.int32}, tf.float32),
@@ -117,9 +117,9 @@ def main(argv):
 						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
 
 		# TODO: make this automatic
-		model_save_path = "rb/processings/diacritics/models/bert_model/" + FLAGS.model_filename
+		model_save_path = "rb/processings/diacritics/models/bert_models/" + FLAGS.model_filename
 
-		model.train(train_dataset, FLAGS.train_batch_size, train_size//1000, dev_dataset, FLAGS.dev_batch_size, dev_size//1, 
+		model.train(train_dataset, FLAGS.train_batch_size, train_size//1, dev_dataset, FLAGS.dev_batch_size, dev_size//1, 
 							FLAGS.epochs, "rb/processings/diacritics/dataset/split/dev.txt", char_dict, model_save_path)
 
 if __name__ == "__main__":
