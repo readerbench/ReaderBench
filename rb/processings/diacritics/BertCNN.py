@@ -100,8 +100,8 @@ class BertCNN(object):
 
 		##########################################################################
 		######################  Bert  ############################################
-		input_bert_ids_reshaped = tf.reshape(input_bert_ids, shape=(-1, self.bert_wrapper.max_seq_len))
-		input_bert_seg_reshaped = tf.reshape(input_bert_seg, shape=(-1, self.bert_wrapper.max_seq_len))
+		input_bert_ids_reshaped = tf.reshape(input_bert_ids, shape=(-1, self.bert_wrapper.max_seq_len), name="reshape_input_bert_ids")
+		input_bert_seg_reshaped = tf.reshape(input_bert_seg, shape=(-1, self.bert_wrapper.max_seq_len), name="reshape_input_bert_seg")
 		# shape = (?batch_size x max_sent, max_seq_len)
 
 		bert_output = self.bert_wrapper.bert_layer(input_bert_ids_reshaped, input_bert_seg_reshaped)
@@ -114,11 +114,11 @@ class BertCNN(object):
 		##########################################################################
 		######################  CharCNN  #########################################
 		embedding_mask_weights = self._build_embedding_mask()
-		input_char_windows_reshaped = tf.reshape(input_char_windows, shape=(-1, self.window_size))
+		input_char_windows_reshaped = tf.reshape(input_char_windows, shape=(-1, self.window_size), name="reshape_input_char_windows")
 		# shape = (?batch_size x max_windows, window_size)
 		# char mask
 		char_mask = Embedding(self.alphabet_size, self.num_of_classes, input_length=1, trainable=False, weights=[embedding_mask_weights], name="mask_embedding")(input_char_windows_reshaped[:, (self.window_size-1)//2])				
-		char_mask = tf.reshape(char_mask,(-1, self.batch_max_windows, self.num_of_classes))
+		char_mask = tf.reshape(char_mask,(-1, self.batch_max_windows, self.num_of_classes), name="reshape_char_mask")
 		# Embedding layer
 		x = Embedding(self.alphabet_size, self.embedding_size, input_length=self.window_size, trainable=True, name="sequence_embedding")(input_char_windows_reshaped)
 		# x = (?batch_size, window_size, embedding_size)
@@ -155,11 +155,11 @@ class BertCNN(object):
 		
 		
 		# get bert tokens coresponding to sent_ids and token_ids
-		batch_indexes = tf.range(0, keras_internal_batch_size)
-		batch_indexes = tf.reshape(batch_indexes, (keras_internal_batch_size,1))
-		batch_indexes = tf.tile(batch_indexes, (1,self.batch_max_windows))
+		batch_indexes = tf.range(0, keras_internal_batch_size, name="range_batch_indexes")
+		batch_indexes = tf.reshape(batch_indexes, (-1,1), name="reshape_batch_indexes")
+		batch_indexes = tf.tile(batch_indexes, (1,self.batch_max_windows), name="tile_batch_indexes")
 		indices = tf.stack([batch_indexes, input_sent_ids, input_token_ids], axis = 2)
-		bert_tokens = tf.gather_nd(bert_output, indices)
+		bert_tokens = tf.gather_nd(bert_output, indices, name="bert_tokens")
 		# apply bert dropout here?
 		# bert_tokens = (?batch_size, max_windows, bert_hidden_size)
 		bert_cnn_concatenation = Concatenate()([bert_tokens, char_cnn_output])
@@ -174,13 +174,13 @@ class BertCNN(object):
 		masked_predictions = keras.layers.multiply([predictions, char_mask])
 		
 		
-		input_mask_reshaped = tf.reshape(input_mask, (-1, 1))
+		input_mask_reshaped = tf.reshape(input_mask, (-1, 1), name="reshape_input_mask")
 		# mask prediction based on window mask
 		# extended_mask = tf.reshape(input_mask, (-1, self.batch_max_windows, 1))
 		# extended_mask = tf.tile(extended_mask, [1, 1, self.num_of_classes])	
 		# masked_predictions = keras.layers.multiply([masked_predictions, extended_mask])
 		
-		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(keras_internal_batch_size * self.batch_max_windows, self.num_of_classes))
+		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.num_of_classes), name="reshape_flatten_masked_predictions")
 		# flatten_masked_predictions = masked_predictions
 		# flatten_masked_prediction = (?batch_size x max_windows, num_of_classes)
 
@@ -213,6 +213,7 @@ class BertCNN(object):
 
 		print("Dev steps =", dev_steps)
 		self.model.save(model_filename, save_format='h5')
+		sys.exit()
 		from tensorflow.keras.models import load_model
 		load_model(model_filename)
 		sys.exit()
