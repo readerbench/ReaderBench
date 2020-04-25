@@ -112,25 +112,25 @@ def get_label(basic_char, diacritic_char):
         elif diacritic_char == 'â':
             return 2
         else:
-            print("Wrong get_label", basic_char, "->", diacritic_char)
+            print("Wrong utils.get_label", basic_char, "->", diacritic_char)
 
     if basic_char == 'i':
         if diacritic_char == "î":
             return 2
         else:
-            print("Wrong get_label", basic_char, "->", diacritic_char)
+            print("Wrong utils.get_label", basic_char, "->", diacritic_char)
 
     if basic_char == 's':
         if diacritic_char == "ș":
             return 3
         else:
-            print("Wrong get_label", basic_char, "->", diacritic_char)
+            print("Wrong utils.get_label", basic_char, "->", diacritic_char)
 
     if basic_char == 't':
         if diacritic_char == "ț":
             return 4
         else:
-            print("Wrong get_label", basic_char, "->", diacritic_char)
+            print("Wrong utils.get_label", basic_char, "->", diacritic_char)
 
 # get predicted char from basic char and predicted class
 def get_char_from_label(basic_char, predicted_class):
@@ -241,7 +241,7 @@ def generator_sentence_bert_cnn_features(filepath, char_to_id_dict, window_size,
                     # print(sentence_bert_input_ids, sentence_bert_segment_ids[char_dia_index], sentence_token_ids, sentence_char_cnn_windows,sentence_labels)
             # sys.exit()
             yield sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels
-            
+    
 
 # high level generator for bert+cnn   
 # output
@@ -255,6 +255,7 @@ def generator_sentence_bert_cnn_features(filepath, char_to_id_dict, window_size,
 def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wrapper, max_sentences, max_windows,):
 
     padding_window = [0] * window_size
+    padding_labels = np.array([0, 0, 0, 0, 0])
     padding_input_ids, padding_segment_ids = bert_wrapper.process_text("")
 
     crt_sentences = 0
@@ -279,7 +280,7 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
         for window_index in range(len(sentence_token_ids)):
             token_ids.append(sentence_token_ids[window_index])
             sentence_ids.append(crt_sentences)
-            windows_mask.append(1)
+            windows_mask.append(1.0)
             char_windows.append(sentence_char_cnn_windows[window_index])
             labels.append(sentence_labels[window_index])
             
@@ -290,11 +291,10 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
                 sentences_to_pad = max_sentences - crt_sentences - 1
                 bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
                 bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
-               
+                
                 yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
-                
                 # take the last sentence before padding
                 bert_input_ids = [bert_input_ids[crt_sentences]]
                 bert_segment_ids = [bert_segment_ids[crt_sentences]]
@@ -318,7 +318,7 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
             sentence_ids = sentence_ids + [0] * values_to_pad
             windows_mask = windows_mask + [0] * values_to_pad
             char_windows = char_windows + [padding_window] * values_to_pad
-            labels = labels + [np.zeros(5)] * values_to_pad
+            labels = labels + [padding_labels] * values_to_pad
 
             yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
@@ -334,14 +334,31 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
             char_windows = []
             labels = []
 
-    # print("BII", len(bert_input_ids), bert_input_ids)
-    # print("BSI", len(bert_segment_ids), bert_segment_ids)
-    # print("Token ids", len(token_ids), token_ids)
-    # print("Sent ids", len(sentence_ids), sentence_ids)
-    # print("Window mask", len(windows_mask), windows_mask)
-    # print("Char windows", len(char_windows), char_windows)
-    # print("Labels", len(labels), labels)
+    # return uncompleted
+    # we have to pad up to max_sentences and max_windows
+    # pad up to max_sentences
+    sentences_to_pad = max_sentences - crt_sentences
+    bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+    bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
 
+    # pad up to max_windows
+    values_to_pad = max_windows - crt_windows
+    token_ids = token_ids + [0] * values_to_pad
+    sentence_ids = sentence_ids + [0] * values_to_pad
+    windows_mask = windows_mask + [0] * values_to_pad
+    char_windows = char_windows + [padding_window] * values_to_pad
+    labels = labels + [np.zeros(5)] * values_to_pad
+    
+    # print("BII", len(bert_input_ids))#, bert_input_ids)
+    # print("BSI", len(bert_segment_ids))#, bert_segment_ids)
+    # print("Token ids", len(token_ids))#, token_ids)
+    # print("Sent ids", len(sentence_ids))#, sentence_ids)
+    # print("Window mask", len(windows_mask))#, windows_mask)
+    # print("Char windows", len(char_windows))#, char_windows)
+    # print("Labels", len(labels))#, labels)
+
+    yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+            'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
 # from diacritics site
 # word level accuracy on word that accept dia 
@@ -507,9 +524,14 @@ def evaluate_model(model, filepath, dataset, steps, write_to_file=False, outfile
 
     diacritics = set("aăâiîsștț")
     predictions = model.predict(dataset, steps=steps)
+    filtered_predictions = []
+    for index in range(len(predictions[0])):
+        if predictions[1][index] == 1:
+            filtered_predictions.append(predictions[0][index])
+        
+    predictions = np.array(filtered_predictions)
     predicted_classes = list(map(lambda x: np.argmax(x), predictions))
     print(predictions.shape, len(predicted_classes))
-
     predicted_dia = []
     predicted_cla = []
 
@@ -585,3 +607,4 @@ def evaluate_model(model, filepath, dataset, steps, write_to_file=False, outfile
 if __name__ == "__main__":
     print("utils.py")
     # build_char_vocab()
+

@@ -19,7 +19,7 @@ class CharCNN(object):
 
 
 	def __init__(self, input_size, alphabet_size, embedding_size, conv_layers, num_of_classes, fc_hidden_size,
-					dropout_rate, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
+					cnn_dropout_rate, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
 		"""
         Initialization for the Character Level CNN model.
         Args:
@@ -39,7 +39,7 @@ class CharCNN(object):
 		self.conv_layers = conv_layers
 		self.num_of_classes = num_of_classes
 		self.fc_hidden_size = fc_hidden_size
-		self.dropout_rate = dropout_rate
+		self.cnn_dropout_rate = cnn_dropout_rate
 		self.learning_rate = learning_rate
 
 		if optimizer == "adam":
@@ -72,8 +72,6 @@ class CharCNN(object):
 		inputs = Input(shape=(self.input_size,), name='input_layer', dtype='int32')
 		# mask
 		mask = Embedding(self.alphabet_size, 5, input_length=1, trainable=False, weights=[embedding_mask_weights], name="mask_embedding")(inputs[:,(self.input_size-1)//2])
-		
-		 
 						
 		# Embedding layer
 		x = Embedding(self.alphabet_size, self.embedding_size, input_length=self.input_size, trainable=True, name="sequence_embedding")(inputs)
@@ -95,7 +93,7 @@ class CharCNN(object):
 		if convolution_output != []:
 			x = Concatenate()(convolution_output)
 			# x = (?batch_size, total_number_of_filters)
-			x = Dropout(rate=self.dropout_rate)(x)
+			x = Dropout(rate=self.cnn_dropout_rate)(x)
 
 			# concatenate middle char
 			x = Concatenate()([x, middle_char_embedding])
@@ -104,7 +102,6 @@ class CharCNN(object):
 			x = Flatten()(x)
 
 		hidden_layer = Dense(self.fc_hidden_size, activation='relu')(x)
-
 
 
 		# Output layer
