@@ -1,5 +1,8 @@
 from typing import List, Dict
 import csv
+from dateutil import parser
+from datetime import datetime
+import xmltodict
 
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -7,6 +10,10 @@ from rb.core.text_element_type import TextElementType
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.core.cscl.community import Community
+from rb.core.cscl.cscl_indices import CsclIndices
+from rb.cna.cna_graph import CnaGraph
+from rb.similarity.vector_model_factory import create_vector_model
+from rb.similarity.vector_model import VectorModelType
 from rb.processings.cscl.participant_evaluation import ParticipantEvaluation
 
 from rb.utils.rblogger import Logger
@@ -49,58 +56,121 @@ class CsvParser:
 
 		return conversation_thread
 
+	@staticmethod
+	def parse_large_csv(filename: str) -> Dict:
+		conversation_thread = dict()
+		contribution_list = []
 
-def main():
-	conversation_thread1 = CsvParser.get_json_from_csv('./thread1.csv')
-	conversation_thread2 = CsvParser.get_json_from_csv('./thread2.csv')
+		with open(filename) as csv_file:
+			csv_reader = csv.reader(csv_file, delimiter=',')
+			first = True			
 
-	#print(conversation_thread1)
+			for row in csv_reader:
+				if first:
+					first = False
+				else:
+					contribution = dict()
 
-	#conversation = Conversation(lang=Lang.EN, container=None,conversation_thread=conversation_thread1)
-		
-	#print(conversation.get_words())
-	#contr = conversation.get_contributions()
+					contribution[ID_KEY] = row[0]
+					contribution[PARENT_ID_KEY] = row[1]
+					if row[1] == '':
+						contribution[PARENT_ID_KEY] = '-1'
 
-	#for c in contr:
-		#print(c.get_timestamp())
+					contribution[USER_KEY] = row[2]
+					contribution[TEXT_KEY] = row[6]
 
+					contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
 
-	community = Community(lang=Lang.EN,container=None,community=[conversation_thread1, conversation_thread2])
+					contribution_list.append(contribution)
 
-	print(community.get_sentences())
-	print(community.get_conversations())
+		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-	l = community.get_participants()
-	print(l)
+		return conversation_thread
 
-	for p in l:
-		print(community.get_participant_contributions(p.get_id()))
+	@staticmethod
+	def load_from_xml(lang: Lang, filename: str) -> Dict:
+		with open(filename, "rt") as f:
+			my_dict=xmltodict.parse(f.read())
+			contributions = [
+				{
+					ID_KEY: int(utterance["@genid"]) - 1,
+					PARENT_ID_KEY: int(utterance["@ref"]) - 1,
+					TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%H.%M.%S').replace(year=2020)),
+					USER_KEY: turn["@nickname"],
+					TEXT_KEY: utterance["#text"],
+				}
+				for turn in my_dict["corpus"]["Dialog"]["Body"]["Turn"]
+				for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
+			]
 
-	print(community.get_first_contribution_date())
-	print(community.get_last_contribution_date())
+			return {CONTRIBUTIONS_KEY: contributions}
 
-	c = community.get_conversations()[0]
+def compute_indices(conv: Conversation):
+	participant_list = conv.get_participants()
+	names = list(map(lambda p: p.get_id(), participant_list))
 
-	contr = c.get_contributions()
+	print('Participants are:')
+	print(names)
 
-	for ct in contr:
-		print(ct.get_participant().get_id())
-
-	community.graph.compute_block_importance()
-
-	conv = community.get_conversations()[0]
+	print('Begin computing indices')
 
 	ParticipantEvaluation.evaluate_interaction(conv)
-
-	print(conv.get_score('name1', 'name2'))
-	print(conv.get_score('name1', 'name3'))
-	print(conv.get_score('name1', 'name4'))
-	#print(conv.get_score('name1', 'name5'))
-	#print(conv.get_score('name1', 'name6'))
-
 	ParticipantEvaluation.evaluate_involvement(conv)
 	ParticipantEvaluation.evaluate_used_concepts(conv)
 	ParticipantEvaluation.perform_sna(conv, False)
+
+	print('Finished computing indices')
+
+	for p in participant_list:
+		print('Printing for participant ' + p.get_id())
+
+		print(p.get_index(CsclIndices.SCORE))
+		print(p.get_index(CsclIndices.NO_NOUNS))
+		print(p.get_index(CsclIndices.NO_VERBS))
+		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
+		print(p.get_index(CsclIndices.SOCIAL_KB))
+		print(p.get_index(CsclIndices.INDEGREE))
+		print(p.get_index(CsclIndices.OUTDEGREE))
+
+		print('---------------------')
+
+	for n1 in names:
+		for n2 in names:
+			print('Score for ' + n1 + ' ' + n2 + ' is:')
+			print(conv.get_score(n1, n2))
+
+def main():
+	# Test for English discussion CSV
+
+	print('Testing English CSV')
+
+	conv_thread = CsvParser.parse_large_csv('./thread.csv')
+
+	community = Community(lang=Lang.EN, container=None, community=[conv_thread])
+	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
+
+	conv = community.get_conversations()[0]
+
+	compute_indices(conv)
+
+	# Test for French discussion XML
+
+	'''
+
+	print('Testing French XML')
+
+	conv_thread = CsvParser.load_from_xml(Lang.FR, './conpa-MEEF-anonyme.xml')
+	
+	community = Community(lang=Lang.FR, container=None, community=[conv_thread])
+	fr_coca_word2vec = create_vector_model(Lang.FR, VectorModelType.from_str("word2vec"), "coca")
+	community.graph = CnaGraph(docs=[community], models=[fr_coca_word2vec])
+
+	conv = community.get_conversations()[0]
+
+	compute_indices(conv)
+
+	'''
 
 if __name__ == '__main__':
 	main()

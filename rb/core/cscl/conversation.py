@@ -22,6 +22,9 @@ TIMESTAMP_KEY = 'timestamp'
 TEXT_KEY = 'text'
 USER_KEY = 'user'
 
+TIMEFRAME = 30
+DISTANCE = 20
+
 class Conversation(TextElement):
 
 	'''
@@ -35,7 +38,7 @@ class Conversation(TextElement):
 	'''
 	def __init__(self, lang: Lang, conversation_thread: Dict,
 				container: TextElement = None,
-                 depth: int = TextElementType.DOC.value,
+                 depth: int = TextElementType.CONV.value,
                  ):
 
 		TextElement.__init__(self, lang=lang, text="",
@@ -50,13 +53,77 @@ class Conversation(TextElement):
 		self.init_scores()
 
 
+	def time_heuristic(self, contributions: List[Dict]) -> List[Dict]:
+		last_contribution = dict()
+		group = dict()
+		processed_contributions = []
+
+		for i, contribution in enumerate(contributions):
+			user = contribution[USER_KEY]
+			timestamp = contribution[TIMESTAMP_KEY]
+
+			if user in last_contribution and ((timestamp - last_contribution[user][TIMESTAMP_KEY]) <= TIMEFRAME):
+				last = last_contribution[user]
+				last[TEXT_KEY] += (' ' + contribution[TEXT_KEY])
+				group[i] = last
+
+			else:
+				contribution[ID_KEY] = len(processed_contributions)
+				group[i] = contribution
+
+				processed_contributions.append(contribution)
+				last_contribution[user] = contribution
+			
+				parent_id = int(contribution[PARENT_ID_KEY])
+				if parent_id > 0:
+					parent = group[parent_id]
+
+					contribution[PARENT_ID_KEY] = parent[ID_KEY]
+
+		return processed_contributions
+
+	def distance_heuristic(self, contributions: List[Dict]) -> List[Dict]:
+		last_contribution = dict()
+		last_contribution_index = dict()
+		group = dict()
+		processed_contributions = []
+
+		for i, contribution in enumerate(contributions):
+			user = contribution[USER_KEY]
+
+			if user in last_contribution_index and ((i - last_contribution_index[user]) <= DISTANCE):
+				last = last_contribution[user]
+				last[TEXT_KEY] += (' ' + contribution[TEXT_KEY])
+				group[i] = last
+
+			else:
+				last_contribution_index[user] = int(contribution[ID_KEY])
+				contribution[ID_KEY] = len(processed_contributions)
+				group[i] = contribution
+
+				processed_contributions.append(contribution)
+				last_contribution[user] = contribution
+			
+				parent_id = int(contribution[PARENT_ID_KEY])
+				if parent_id > 0:
+					parent = group[parent_id]
+
+					contribution[PARENT_ID_KEY] = parent[ID_KEY]
+
+		return processed_contributions
+
 	def parse_contributions(self, conversation_thread: Dict):
 		contribution_map = dict()
 		users = set()
 
 		full_text = ''
 
-		for contribution in conversation_thread[CONTRIBUTIONS_KEY]:
+		# apply both heuristics before processing
+		contributions = conversation_thread[CONTRIBUTIONS_KEY]
+		contributions = self.time_heuristic(contributions)
+		contributions = self.distance_heuristic(contributions)
+
+		for contribution in contributions:
 			index = int(contribution[ID_KEY])
 			participant_id = contribution[USER_KEY]
 			users.add(participant_id)
@@ -103,7 +170,7 @@ class Conversation(TextElement):
 
 		sentences = self.parse_full_text(full_text)
 		i = 0
-		for contribution in self:
+		for contribution in self.components:
 			left = len(contribution.text)
 			if "\n" in sentences[i].text[:-1]:
 				print("aici")

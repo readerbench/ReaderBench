@@ -9,6 +9,7 @@ from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.pos import POS
 from rb.core.text_element import TextElement
+from rb.core.cscl.contribution import Contribution
 from rb.core.word import Word
 from rb.similarity.vector_model import VectorModel
 
@@ -35,8 +36,11 @@ class CnaGraph:
 			self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.PRON}, OverlapType.ARGUMENT_OVERLAP)
 			self.add_semantic_links(elements)
 		self.importance = self.compute_importance()
-		if docs[0].lang == Lang.EN:
-			self.add_coref_links()
+
+		# if docs[0].lang == Lang.EN:
+		self.add_coref_links()
+		self.add_explicit_links()
+		self.block_importance = self.compute_block_importance()
 
 		doc.cna_graph = self
 		
@@ -79,8 +83,26 @@ class CnaGraph:
 									edge["details"].append((mention.text, cluster.main.text))
 
 
+	def add_explicit_links(self):
+		explicit_links = []
+
+		for node in self.graph.nodes:
+			if isinstance(node, Contribution):
+				parent = node.get_parent()
+				explicit_links.append((node, parent))
+
+		for node, parent in explicit_links:
+			self.graph.add_edge(node, parent, type=EdgeType.EXPLICIT)
+
 	def is_coref_edge(self, a: Block, b: Block) -> bool:
 		for _, x, _ in self.edges(a, edge_type=EdgeType.COREF):
+			if x is b:
+				return True
+
+		return False
+
+	def is_explicit_edge(self, a: Block, b: Block) -> bool:
+		for _, x, _ in self.edges(a, edge_type=EdgeType.EXPLICIT):
 			if x is b:
 				return True
 
@@ -104,13 +126,14 @@ class CnaGraph:
 
 			if self.is_coref_edge(a, b) or self.is_coref_edge(b, a):
 				block_importance[a][b] = value
+			elif self.is_explicit_edge(a, b) or self.is_explicit_edge(b, a):
+				block_importance[a][b] = value
 			elif value > mean + stdev:
 				block_importance[a][b] = value
 			else:
 				block_importance[a][b] = 0
 
 		return block_importance
-
 
 	def compute_importance(self) -> Dict[TextElement, float]:
 		similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
@@ -120,7 +143,6 @@ class CnaGraph:
 		for node in self.graph.nodes:
 			importance[node] = sum([value for _, _, value in self.edges(node, edge_type=EdgeType.SEMANTIC) if value > mean + stdev])
 		return importance
-
 
 	def edges(self, 
 			node: Union[TextElement, Tuple[TextElement, TextElement]], 
@@ -138,5 +160,4 @@ class CnaGraph:
 		for data in self.graph[a][b].values():
 			if (data["type"] is edge_type):
 				return data
-		return None   
-
+		return None

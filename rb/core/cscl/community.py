@@ -49,8 +49,6 @@ class Community(TextElement):
 		self.participant_contributions = self.union_contributions()
 		self.first_contribution_date, self.last_contribution_date = self.find_contribution_range()
 
-		en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
-		self.graph = CnaGraph(docs=[self], models=[en_coca_word2vec])
 
 	def union_participants(self) -> List[Participant]:
 		return [self.participant_map[participant_id] for participant_id in self.participant_map]

@@ -43,7 +43,7 @@ class TextElement:
         self.depth = depth
     
     def is_community(self) -> bool:
-        return self.depth >= TextElement.COMM.value
+        return self.depth >= TextElementType.COMM.value
 
     def is_conversation(self) -> bool:
         return self.depth >= TextElementType.CONV.value

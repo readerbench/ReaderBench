@@ -2,6 +2,8 @@ from typing import List, Dict
 
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
+from rb.core.block import Block
+from rb.core.pos import POS
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.cna.cna_graph import CnaGraph
@@ -9,13 +11,22 @@ from rb.core.cscl.cscl_indices import CsclIndices
 
 from rb.utils.rblogger import Logger
 
+def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: Block, b: Block) -> float:
+	if not (a in block_importance):
+		return 0
+	if not (b in block_importance[a]):
+		return 0
+
+	return block_importance[a][b]
+
+
 class ParticipantEvaluation:
 
 	@staticmethod
 	def evaluate_interaction(conversation: Conversation):
 		cna_graph = conversation.container.graph
 		importance = cna_graph.importance
-		block_importance = cna_graph.compute_block_importance()
+		block_importance = cna_graph.block_importance
 
 		participants = conversation.get_participants()
 		contributions = conversation.get_contributions()
@@ -29,23 +40,24 @@ class ParticipantEvaluation:
 
 			conversation.set_score(p1, p1, importance[contribution1])
 
-			for j in range(0, len(contributions)):
-				if j != i:
-					contribution2 = contributions[j]
+			for j in range(0, i):
+				contribution2 = contributions[j]
 
-					if block_importance[contribution1][contribution2] > 0:
-						p2 = contribution2.get_participant().get_id()
+				if get_block_importance(block_importance, contribution1, contribution2) > 0:
+					p2 = contribution2.get_participant().get_id()
 
-						current_value = conversation.get_score(p1, p2)
-						current_value += importance[contribution1] * block_importance[contribution1][contribution2]
+					current_value = conversation.get_score(p1, p2)
+					current_value += importance[contribution1] * get_block_importance(block_importance,
+																					contribution1, contribution2)
 
-						conversation.set_score(p1, p2, current_value)
+					conversation.set_score(p1, p2, current_value)
 
 
 	@staticmethod
 	def evaluate_involvement(conversation: Conversation):
 		cna_graph = conversation.container.graph
 		importance = cna_graph.importance
+		block_importance = cna_graph.block_importance
 		participants = conversation.get_participants()
 
 		if (len(participants) == 0):
@@ -57,7 +69,14 @@ class ParticipantEvaluation:
 			current_value = p.get_index(CsclIndices.SCORE)
 			p.set_index(CsclIndices.SCORE, current_value + importance[contribution])
 
-			# TODO add social KB
+			current_value = p.get_index(CsclIndices.SOCIAL_KB)
+			parent_contribution = contribution.get_parent()
+
+			if parent_contribution != None:
+				current_value += (get_block_importance(block_importance, contribution, parent_contribution) *
+									importance[contribution])
+
+				p.set_index(CsclIndices.SOCIAL_KB, current_value)
 
 			current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
 			p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
@@ -70,11 +89,10 @@ class ParticipantEvaluation:
 		for p in participants:
 			for contribution in conversation.get_participant_contributions(p.get_id()):
 				for word in contribution.get_words():
-					if word.pos.value[0] == 'N':
+					if word.pos.to_wordnet() == 'n':
 						current_value = p.get_index(CsclIndices.NO_NOUNS)
 						p.set_index(CsclIndices.NO_NOUNS, current_value + 1)
-						print(p.get_index(CsclIndices.NO_NOUNS))
-					if word.pos.value[0] == 'V':
+					if word.pos.to_wordnet() == 'v':
 						current_value = p.get_index(CsclIndices.NO_VERBS)
 						p.set_index(CsclIndices.NO_VERBS, current_value + 1)
 
