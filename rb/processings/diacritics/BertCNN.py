@@ -212,6 +212,10 @@ class BertCNN(object):
 			dev_steps += 1
 
 		print("Dev steps =", dev_steps)
+		self.model.save(model_filename, save_format='h5')
+		from tensorflow.keras.models import load_model
+		load_model(model_filename)
+		sys.exit()
 		# dev_steps = 1
 
 		for i in range(epochs):
@@ -233,7 +237,7 @@ class BertCNN(object):
 
 def categorical_acc(y_true, y_pred):
 	# TODO: change this to number of classes
-	y_true = tf.reshape(y_true, shape=(-1, 5))
+	y_true = tf.reshape(y_true, shape=(-1, 5), name="reshape_acc")
 	return keras.metrics.categorical_accuracy(y_true, y_pred)
 
 
@@ -251,11 +255,11 @@ class weighted_categorical_crossentropy(object):
 
 	def __init__(self,weights,num_of_classes):
 		self.weights = K.variable(weights)
-		self.num_of_classes = K.shape(self.weights)[0]
+		self.num_of_classes = num_of_classes
 
         
 	def loss(self, y_true, y_pred):
-		y_true = tf.reshape(y_true, shape=(-1, self.num_of_classes))
+		y_true = tf.reshape(y_true, shape=(-1, self.num_of_classes), name="reshape_loss")
 		
 		# scale preds so that the class probas of each sample sum to 1
 		y_pred = y_pred / K.sum(y_pred, axis=-1, keepdims=True)
