@@ -87,7 +87,7 @@ def main(argv):
 		# test_size = 3613915
 
 		model = CharCNN(input_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
-						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
+							embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
 
 		model.train(train_dataset, FLAGS.train_batch_size, train_size//1, dev_dataset, FLAGS.dev_batch_size, dev_size//1, 
 							FLAGS.epochs, "rb/processings/diacritics/dataset/split/dev.txt", char_dict, FLAGS.model_filename)
@@ -101,8 +101,7 @@ def main(argv):
 										'mask': tf.float32, 'char_windows': tf.int32}, tf.float32),
 						output_shapes=({'bert_input_ids':[FLAGS.batch_max_sentences, FLAGS.bert_max_seq_len], 'bert_segment_ids':[FLAGS.batch_max_sentences, FLAGS.bert_max_seq_len], 'token_ids':[FLAGS.batch_max_windows],
 										'sent_ids': [FLAGS.batch_max_windows], 'mask': [FLAGS.batch_max_windows], 'char_windows': [FLAGS.batch_max_windows, FLAGS.window_size]}, [FLAGS.batch_max_windows, 5]))
-		# train_dataset = train_dataset.shuffle(int(1e3), reshuffle_each_iteration=True).batch(FLAGS.train_batch_size).repeat(-1)
-		train_dataset = train_dataset.batch(FLAGS.train_batch_size)#.repeat(-1)
+		train_dataset = train_dataset.shuffle(int(1e3), reshuffle_each_iteration=True).batch(FLAGS.train_batch_size).repeat(-1)
 		# max_sent = 10, max_windows = 280
 		train_size = 243954
 		
@@ -115,17 +114,7 @@ def main(argv):
 		# max_sent = 10, max_windows = 280
 		dev_size = 27100
 
-		if FLAGS.use_tpu == True:
-			tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(FLAGS.tpu_name, zone=None, project=None)
-			tf.config.experimental_connect_to_cluster(tpu_cluster_resolver)
-			tf.tpu.experimental.initialize_tpu_system(tpu_cluster_resolver)
-			strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
-			with strategy.scope():
-				model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
-						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
-						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
-		else:
-			model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
+		model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
 						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
 						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
 
