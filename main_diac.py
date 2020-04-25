@@ -24,8 +24,8 @@ from rb.processings.encoders.bert import BertWrapper
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
-absl.flags.DEFINE_integer('train_batch_size', 16, "Batch size to be used for training")
-absl.flags.DEFINE_integer('dev_batch_size', 16, "Batch size to be used for evaluation")
+absl.flags.DEFINE_integer('train_batch_size', 32, "Batch size to be used for training")
+absl.flags.DEFINE_integer('dev_batch_size', 32, "Batch size to be used for evaluation")
 absl.flags.DEFINE_integer('char_embedding_size', 50, "Dimension of character embedding")
 absl.flags.DEFINE_integer("cnn_filter_size", 50, "Size of cnn filters (it applies the same size to all filters)")
 absl.flags.DEFINE_integer("fc_hidden_size", 128, "Size of fc hidden layer (between features and predictions)")
@@ -44,6 +44,9 @@ absl.flags.DEFINE_integer('batch_max_windows', 280, "Maximum windows per batch")
 absl.flags.DEFINE_integer('no_classes', 5, "Number of classes for clasification")
 
 absl.flags.DEFINE_integer('dev_version', 1, "0 for 2-3-4-5, 1 for 2-3-4-5-11, 2 for simple FC")
+
+absl.flags.DEFINE_bool("use_tpu", False, "Use TPU or not")
+absl.flags.DEFINE_string("tpu_name", None, "Name of TPU instance")
 
 
 def main(argv):
@@ -112,9 +115,20 @@ def main(argv):
 		# max_sent = 10, max_windows = 280
 		dev_size = 27100
 
-		model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
+		if FLAGS.use_tpu == True:
+			tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(FLAGS.tpu_name, zone=None, project=None)
+			tf.config.experimental_connect_to_cluster(tpu_cluster_resolver)
+			tf.tpu.experimental.initialize_tpu_system(tpu_cluster_resolver)
+			strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
+			with strategy.scope():
+				model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
 						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
 						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
+		else:
+			model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
+						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
+						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
+
 
 		# TODO: make this automatic
 		model_save_path = "rb/processings/diacritics/models/bert_models/" + FLAGS.model_filename
