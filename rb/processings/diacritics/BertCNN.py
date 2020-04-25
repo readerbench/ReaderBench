@@ -180,7 +180,7 @@ class BertCNN(object):
 		# extended_mask = tf.tile(extended_mask, [1, 1, self.num_of_classes])	
 		# masked_predictions = keras.layers.multiply([masked_predictions, extended_mask])
 		
-		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.num_of_classes), name="reshape_flatten_masked_predictions")
+		flatten_masked_predictions = tf.reshape(masked_predictions, shape=(-1, self.num_of_classes), name="resh_flatmaskpred")
 		# flatten_masked_predictions = masked_predictions
 		# flatten_masked_prediction = (?batch_size x max_windows, num_of_classes)
 
@@ -211,14 +211,6 @@ class BertCNN(object):
 		if dev_batch_size == 1:
 			dev_steps += 1
 
-		print("Dev steps =", dev_steps)
-		self.model.save(model_filename, save_format='h5')
-		sys.exit()
-		from tensorflow.keras.models import load_model
-		load_model(model_filename)
-		sys.exit()
-		# dev_steps = 1
-
 		for i in range(epochs):
 			print("EPOCH ", (i+1))
 			self.model.fit(train_dataset, steps_per_epoch=train_size//train_batch_size, epochs=1, verbose=1)
@@ -234,7 +226,6 @@ class BertCNN(object):
 			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", format(best_wa_dia, '.4f'), "best word_accuracy_all =", format(best_wa_all, '.4f'), 
 							"best char_accuracy_dia =", format(best_ca_dia, '.4f'), "best char_accuracy_all =", format(best_ca_all, '.4f'))
 			print("---------------")
-
 
 def categorical_acc(y_true, y_pred):
 	# TODO: change this to number of classes

@@ -24,9 +24,9 @@ import numpy as np
 
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('folder_path', 'rb/processings/diacritics', 'Path to base folder where we have the model and the dataset')
-absl.flags.DEFINE_string('model_name', 'model_11_bert0', 'Model name')
+absl.flags.DEFINE_string('model_name', 'model_11_bert0.h5', 'Model name')
 absl.flags.DEFINE_string('model_type', 'BertCNN', "Type of model: CharCNN or BertCNN")
-absl.flags.DEFINE_integer('batch_size', 8, "Batch size to be used for evaluation")
+absl.flags.DEFINE_integer('batch_size', 64, "Batch size to be used for evaluation")
 
 # absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to bert dataset folder')
 # absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
@@ -79,15 +79,17 @@ def main(argv):
 	elif FLAGS.model_type == "BertCNN":
 		# dev and test generator
 		models_path = os.path.join(FLAGS.folder_path, "models/bert_models/")
-		bert_wrapper = BertWrapper(Lang.RO, max_seq_len=256, model_name="small")
+		bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name="small")
 		dev_dataset = tf.data.Dataset.from_generator(lambda : utils.generator_bert_cnn_features(dev_path, char_dict, 11, bert_wrapper, 10, 280),
 						output_types=({'bert_input_ids': tf.int32, 'bert_segment_ids': tf.int32, 'token_ids': tf.int32, 'sent_ids': tf.int32,
 										'mask': tf.float32, 'char_windows': tf.int32}, tf.float32),
-						output_shapes=({'bert_input_ids':[10, 256], 'bert_segment_ids':[10, 256], 'token_ids':[280],
+						output_shapes=({'bert_input_ids':[10, 128], 'bert_segment_ids':[10, 128], 'token_ids':[280],
 										'sent_ids': [280], 'mask': [280], 'char_windows': [280, 11]}, [280, 5]))
 		dev_dataset = dev_dataset.batch(FLAGS.batch_size)
 		# max_sent = 10, max_windows = 280
 		dev_size = 27100
+
+		# TODO: need to compute test dataset
 
 		model_path = os.path.join(models_path, FLAGS.model_name)
 		model = load_model(model_path, custom_objects={'BertModelLayer': bert_wrapper.bert_layer, 'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
@@ -95,7 +97,8 @@ def main(argv):
 	
 	
 	# evaluate on dev
-	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, write_to_file=False, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
+	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, write_to_file=True, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
+	# TODO: remove this after computing test dataset
 	sys.exit()
 	# evaluate on test
 	utils.evaluate_model(model, test_path, test_dataset, (test_size//FLAGS.batch_size)+1, write_to_file=True, outfile_name=model_path.split(".")[0]+"_test_out.txt")
