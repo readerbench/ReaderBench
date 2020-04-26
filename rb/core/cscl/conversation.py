@@ -9,6 +9,8 @@ from rb.core.lang import Lang
 from rb.core.sentence import Sentence
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
+from rb.core.cscl.participant import Participant
+from rb.core.cscl.cscl_indices import CsclIndices
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -19,6 +21,9 @@ PARENT_ID_KEY = 'parent_id'
 TIMESTAMP_KEY = 'timestamp'
 TEXT_KEY = 'text'
 USER_KEY = 'user'
+
+TIMEFRAME = 30
+DISTANCE = 20
 
 class Conversation(TextElement):
 
@@ -33,7 +38,7 @@ class Conversation(TextElement):
 	'''
 	def __init__(self, lang: Lang, conversation_thread: Dict,
 				container: TextElement = None,
-                 depth: int = TextElementType.DOC.value,
+                 depth: int = TextElementType.CONV.value,
                  ):
 
 		TextElement.__init__(self, lang=lang, text="",
@@ -44,6 +49,68 @@ class Conversation(TextElement):
 
 		self.parse_contributions(conversation_thread)
 
+		self.scores = dict()
+		self.init_scores()
+
+
+	def time_heuristic(self, contributions: List[Dict]) -> List[Dict]:
+		last_contribution = dict()
+		group = dict()
+		processed_contributions = []
+
+		for i, contribution in enumerate(contributions):
+			user = contribution[USER_KEY]
+			timestamp = contribution[TIMESTAMP_KEY]
+
+			if user in last_contribution and ((timestamp - last_contribution[user][TIMESTAMP_KEY]) <= TIMEFRAME):
+				last = last_contribution[user]
+				last[TEXT_KEY] += (' ' + contribution[TEXT_KEY])
+				group[i] = last
+
+			else:
+				contribution[ID_KEY] = len(processed_contributions)
+				group[i] = contribution
+
+				processed_contributions.append(contribution)
+				last_contribution[user] = contribution
+			
+				parent_id = int(contribution[PARENT_ID_KEY])
+				if parent_id > 0:
+					parent = group[parent_id]
+
+					contribution[PARENT_ID_KEY] = parent[ID_KEY]
+
+		return processed_contributions
+
+	def distance_heuristic(self, contributions: List[Dict]) -> List[Dict]:
+		last_contribution = dict()
+		last_contribution_index = dict()
+		group = dict()
+		processed_contributions = []
+
+		for i, contribution in enumerate(contributions):
+			user = contribution[USER_KEY]
+
+			if user in last_contribution_index and ((i - last_contribution_index[user]) <= DISTANCE):
+				last = last_contribution[user]
+				last[TEXT_KEY] += (' ' + contribution[TEXT_KEY])
+				group[i] = last
+
+			else:
+				last_contribution_index[user] = int(contribution[ID_KEY])
+				contribution[ID_KEY] = len(processed_contributions)
+				group[i] = contribution
+
+				processed_contributions.append(contribution)
+				last_contribution[user] = contribution
+			
+				parent_id = int(contribution[PARENT_ID_KEY])
+				if parent_id > 0:
+					parent = group[parent_id]
+
+					contribution[PARENT_ID_KEY] = parent[ID_KEY]
+
+		return processed_contributions
 
 	def parse_contributions(self, conversation_thread: Dict):
 		contribution_map = dict()
@@ -51,15 +118,20 @@ class Conversation(TextElement):
 
 		full_text = ''
 
-		for contribution in conversation_thread[CONTRIBUTIONS_KEY]:
-			index = contribution[ID_KEY]
+		# apply both heuristics before processing
+		contributions = conversation_thread[CONTRIBUTIONS_KEY]
+		contributions = self.time_heuristic(contributions)
+		contributions = self.distance_heuristic(contributions)
+
+		for contribution in contributions:
+			index = int(contribution[ID_KEY])
 			participant_id = contribution[USER_KEY]
 			users.add(participant_id)
 
 			# parent index will be -1 in JSON for the first post
-			parent_index = contribution[PARENT_ID_KEY]
+			parent_index = int(contribution[PARENT_ID_KEY])
 
-			timestamp = contribution[TIMESTAMP_KEY]
+			timestamp = int(contribution[TIMESTAMP_KEY])
 			text = contribution[TEXT_KEY].strip()
 			if text[-1] not in {'.', '!', '?'}:
 				text += "."
@@ -70,8 +142,17 @@ class Conversation(TextElement):
 				parent_contribution = contribution_map[parent_index]
 
 			full_text += text + "\n"
+			
+			participant = None
+
+			if participant_id in self.container.participant_map:
+				participant = self.container.participant_map[participant_id]
+			else:
+				participant = Participant(participant_id=participant_id)
+				self.container.participant_map[participant_id] = participant
+
 			current_contribution = Contribution(self.lang, text, container=self,
-												participant_id=participant_id,
+												participant=participant,
 												parent_contribution=parent_contribution,
 												timestamp=timestamp)
 
@@ -83,12 +164,13 @@ class Conversation(TextElement):
 
 			self.participant_contributions[participant_id].append(current_contribution)
 	
-		self.participants = list(users)
+		self.participants = [self.container.participant_map[user] for user in list(users)]
+
 		self.text = full_text
-		# way must be found to re-map parsed sentences to their original contribution
+
 		sentences = self.parse_full_text(full_text)
 		i = 0
-		for contribution in self:
+		for contribution in self.components:
 			left = len(contribution.text)
 			if "\n" in sentences[i].text[:-1]:
 				print("aici")
@@ -105,7 +187,7 @@ class Conversation(TextElement):
 		parsed_document = Block(self.lang, full_text)
 		return parsed_document.get_sentences()
 
-	def get_participants(self) -> List[str]:
+	def get_participants(self) -> List[Participant]:
 		return self.participants
 
 	def get_participant_contributions(self, participant_id: str) -> List[Contribution]:
@@ -113,6 +195,19 @@ class Conversation(TextElement):
 
 	def get_contributions(self) -> List[Contribution]:
 		return self.components
+
+	def init_scores(self):
+		for a in self.participants:
+			self.scores[a.get_id()] = dict()
+
+			for b in self.participants:
+				self.scores[a.get_id()][b.get_id()] = 0
+
+	def get_score(self, a: str, b: str) -> float:
+		return self.scores[a][b]
+
+	def set_score(self, a: str, b: str, value: float):
+		self.scores[a][b] += value
 
 	def __str__(self):
 		return NotImplemented

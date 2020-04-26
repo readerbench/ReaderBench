@@ -29,7 +29,11 @@ class TextElement:
                  depth: int,
                  container: 'TextElement' = None):
         from rb.complexity.complexity_index import ComplexityIndex
-        self.text = text.strip()  
+
+        self.text = None
+        if text != None:
+            self.text = text.strip()
+
         self.lang = lang
         self.container = container
         self.vectors = {}
@@ -39,7 +43,7 @@ class TextElement:
         self.depth = depth
     
     def is_community(self) -> bool:
-        return self.depth >= TextElement.COMM.value
+        return self.depth >= TextElementType.COMM.value
 
     def is_conversation(self) -> bool:
         return self.depth >= TextElementType.CONV.value

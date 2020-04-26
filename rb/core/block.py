@@ -40,4 +40,4 @@ class Block(TextElement):
 
     def __str__(self):
         return self.text
-    
+
