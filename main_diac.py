@@ -17,6 +17,9 @@ import sys
 # from bert.tokenization.bert_tokenization import FullTokenizer
 from rb.core.lang import Lang
 from rb.processings.encoders.bert import BertWrapper
+from tensorflow.keras.models import load_model
+from rb.processings.diacritics.BertCNN import weighted_categorical_crossentropy, categorical_acc
+import numpy as np
 
 
 
@@ -24,7 +27,7 @@ from rb.processings.encoders.bert import BertWrapper
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to dataset folder')
 absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
-absl.flags.DEFINE_integer('train_batch_size', 64, "Batch size to be used for training")
+absl.flags.DEFINE_integer('train_batch_size', 16, "Batch size to be used for training")
 absl.flags.DEFINE_integer('dev_batch_size', 64, "Batch size to be used for evaluation")
 absl.flags.DEFINE_integer('char_embedding_size', 50, "Dimension of character embedding")
 absl.flags.DEFINE_integer("cnn_filter_size", 50, "Size of cnn filters (it applies the same size to all filters)")
@@ -38,16 +41,13 @@ absl.flags.DEFINE_string('model_filename', 'modelX', 'Name of model to save')
 
 absl.flags.DEFINE_string('bert_model_type', "small", "BERT model type: small, base, large or multi_cased_base")
 absl.flags.DEFINE_boolean('bert_trainable', False, 'Whether to BERT is trainable or not')
+absl.flags.DEFINE_string('init_model', None, 'Initial model to start training from')
 absl.flags.DEFINE_integer('bert_max_seq_len', 128, "Maximum sequence length for BERT models")
 absl.flags.DEFINE_integer('batch_max_sentences', 10, "Maximum sentences per batch")
 absl.flags.DEFINE_integer('batch_max_windows', 280, "Maximum windows per batch")
 absl.flags.DEFINE_integer('no_classes', 5, "Number of classes for clasification")
 
 absl.flags.DEFINE_integer('dev_version', 1, "0 for 2-3-4-5, 1 for 2-3-4-5-11, 2 for simple FC")
-
-absl.flags.DEFINE_bool("use_tpu", False, "Use TPU or not")
-absl.flags.DEFINE_string("tpu_name", None, "Name of TPU instance")
-
 
 def main(argv):
 
@@ -115,9 +115,8 @@ def main(argv):
 		dev_size = 27100
 
 		model = BertCNN(window_size=FLAGS.window_size, alphabet_size=len(char_dict), conv_layers = conv_layers, fc_hidden_size = FLAGS.fc_hidden_size,
-						embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
-						bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate)
-
+					embedding_size=FLAGS.char_embedding_size, num_of_classes=FLAGS.no_classes, batch_max_sentences=FLAGS.batch_max_sentences, batch_max_windows=FLAGS.batch_max_windows,
+					bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, cnn_dropout_rate=FLAGS.dropout_rate, learning_rate=FLAGS.learning_rate, init_model=FLAGS.init_model)
 
 		# TODO: make this automatic
 		model_save_path = "rb/processings/diacritics/models/bert_models/" + FLAGS.model_filename

@@ -94,10 +94,11 @@ def main(argv):
 		model_path = os.path.join(models_path, FLAGS.model_name)
 		model = load_model(model_path, custom_objects={'BertModelLayer': bert_wrapper.bert_layer, 'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
 									'categorical_acc': categorical_acc})
+
 	
 	
 	# evaluate on dev
-	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, write_to_file=True, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
+	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, write_to_file=False, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
 	# TODO: remove this after computing test dataset
 	sys.exit()
 	# evaluate on test

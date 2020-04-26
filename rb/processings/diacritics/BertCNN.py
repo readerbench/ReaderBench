@@ -19,7 +19,7 @@ class BertCNN(object):
 
 
 	def __init__(self, window_size, alphabet_size, embedding_size, conv_layers, fc_hidden_size, num_of_classes, batch_max_sentences, batch_max_windows,
-				 bert_trainable, cnn_dropout_rate, bert_wrapper, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
+				 bert_trainable, cnn_dropout_rate, bert_wrapper, learning_rate, init_model, optimizer='adam', loss='categorical_crossentropy'):
 		"""
         Initialization for the Bert + Character Level CNN model.
         Args:
@@ -35,8 +35,9 @@ class BertCNN(object):
 			bert_trainable (bool): Whether to train BERT or not
 			batch_max_sentences (int): Maximum sentences in batch
 			batch_max_windows (int): Maximum windows in batch
+			
 
-
+			init_model (string): Name of model to start training from
 			fc_hidden_size (int): Size of hidden layer between features and prediction
 
 			num_of_classes (int): Number of classes in data
@@ -59,6 +60,8 @@ class BertCNN(object):
 		self.bert_wrapper.bert_layer.trainable = bert_trainable
 		self.batch_max_sentences = batch_max_sentences
 		self.batch_max_windows = batch_max_windows
+
+		self.init_model = init_model
 
 		if optimizer == "adam":
 			self.optimizer = keras.optimizers.Adam(lr=self.learning_rate)
@@ -192,10 +195,12 @@ class BertCNN(object):
 		# model.compile(optimizer=self.optimizer, loss=[self.loss, None], metrics=[tf.keras.metrics.categorical_accuracy])
 
 		self.bert_wrapper.load_weights()
+		if self.init_model != None:
+			# TODO: make this automatic from main
+			model.load_weights("rb/processings/diacritics/models/bert_models/" + self.init_model)
 		self.model = model
 		print("Bert+CharCNN model built: ")
 		self.model.summary()
-
 		
 
 	def train(self, train_dataset, train_batch_size, train_size, dev_dataset, dev_batch_size, dev_size, epochs, file_evalname, char_to_id_dict, model_filename):
