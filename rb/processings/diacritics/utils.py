@@ -520,16 +520,19 @@ def evaluate_model_on_file(model, filepath, char_to_id_dict, window_size):
     return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
 
 
-def evaluate_model(model, filepath, dataset, steps, write_to_file=False, outfile_name=None):
+def evaluate_model(model, filepath, dataset, steps, model_type="BertCNN", write_to_file=False, outfile_name=None):
 
     diacritics = set("aăâiîsștț")
     predictions = model.predict(dataset, steps=steps)
-    filtered_predictions = []
-    for index in range(len(predictions[0])):
-        if predictions[1][index] == 1:
-            filtered_predictions.append(predictions[0][index])
-        
-    predictions = np.array(filtered_predictions)
+    
+    if model_type == "BertCNN":
+        filtered_predictions = []
+        for index in range(len(predictions[0])):
+            if predictions[1][index] == 1:
+                filtered_predictions.append(predictions[0][index])
+            
+        predictions = np.array(filtered_predictions)
+    
     predicted_classes = list(map(lambda x: np.argmax(x), predictions))
     print(predictions.shape, len(predicted_classes))
     predicted_dia = []

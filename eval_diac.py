@@ -24,9 +24,9 @@ import numpy as np
 
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string('folder_path', 'rb/processings/diacritics', 'Path to base folder where we have the model and the dataset')
-absl.flags.DEFINE_string('model_name', 'model_11_bert0.h5', 'Model name')
-absl.flags.DEFINE_string('model_type', 'BertCNN', "Type of model: CharCNN or BertCNN")
-absl.flags.DEFINE_integer('batch_size', 64, "Batch size to be used for evaluation")
+absl.flags.DEFINE_string('model_name', 'model_11.h5', 'Model name')
+absl.flags.DEFINE_string('model_type', 'CharCNN', "Type of model: CharCNN or BertCNN")
+absl.flags.DEFINE_integer('batch_size', 32768, "Batch size to be used for evaluation")
 
 # absl.flags.DEFINE_string('dataset_folder_path', 'rb/processings/diacritics/dataset/split/', 'Path to bert dataset folder')
 # absl.flags.DEFINE_integer('window_size', 11, "Character total window size (left + center + right)")
@@ -98,11 +98,11 @@ def main(argv):
 	
 	
 	# evaluate on dev
-	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, write_to_file=False, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
-	# TODO: remove this after computing test dataset
-	sys.exit()
+	utils.evaluate_model(model, dev_path, dev_dataset, (dev_size//FLAGS.batch_size)+1, model_type=FLAGS.model_type, write_to_file=False, outfile_name=model_path.split(".")[0]+"_dev_out.txt")
+	# TODO: remove this after computing test dataset for BertCNN
+	# sys.exit()
 	# evaluate on test
-	utils.evaluate_model(model, test_path, test_dataset, (test_size//FLAGS.batch_size)+1, write_to_file=True, outfile_name=model_path.split(".")[0]+"_test_out.txt")
+	utils.evaluate_model(model, test_path, test_dataset, (test_size//FLAGS.batch_size)+1, model_type=FLAGS.model_type, write_to_file=True, outfile_name=model_path.split(".")[0]+"_test_out.txt")
 
 if __name__ == "__main__":
 	absl.app.run(main)
