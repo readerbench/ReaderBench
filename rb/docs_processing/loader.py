@@ -54,7 +54,7 @@ def parse_xls_file_and_add_articles_to_graph(file_path: str, graph: Graph):
 
     for i in range(1, sheet.nrows):
         date = "01-01-" + str(int(sheet.cell_value(i, 1)))
-        title = sheet.cell_value(i, 2)
+        title = sheet.cell_value(i, 2).replace('\n', ' ')
         authors = sheet.cell_value(i, 3).split(",")
         abstract = sheet.cell_value(i, 4)
         source = "NIC"

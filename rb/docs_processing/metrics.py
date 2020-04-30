@@ -4,6 +4,8 @@ from tabulate import tabulate
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 from pprint import pprint
+import numpy as np
+
 
 class GraphMetrics:
 
@@ -54,13 +56,33 @@ class GraphMetrics:
 
     def perform_articles_agglomerative_clustering(self):
         distance_threshold = self.graph.articles_mean
-        perform_agglomerative_clustering(self.graph.articles_set, self.semantic_distances_between_articles,
-                                         distance_threshold)
+        return perform_agglomerative_clustering(self.graph.articles_set, self.semantic_distances_between_articles,
+                                                distance_threshold)
 
     def perform_authors_agglomerative_clustering(self):
         distance_threshold = self.graph.authors_mean - self.graph.authors_std
-        perform_agglomerative_clustering(self.graph.authors_set, self.semantic_distances_between_authors,
-                                         distance_threshold)
+        return perform_agglomerative_clustering(self.graph.authors_set, self.semantic_distances_between_authors,
+                                                distance_threshold)
+
+    def get_top_clusters_of_articles_by_number_of_elements(self, number_of_clusters):
+        return self.get_top_clusters_of_articles_by_criteria(number_of_clusters, sort_clusters_by_size, self.graph)
+
+    def get_top_clusters_of_articles_by_degree_of_elements(self, number_of_clusters):
+        return self.get_top_clusters_of_articles_by_criteria(number_of_clusters, sort_clusters_by_degree, self.graph)
+
+    def get_top_clusters_of_articles_by_criteria(self, number_of_clusters, criteria_function, graph):
+        clusters = self.perform_articles_agglomerative_clustering()
+        sorted_clusters = criteria_function(clusters, graph.get_articles_by_type_degree)
+        counter = 0
+        results = []
+        for label, articles in sorted_clusters.items():
+            titles = ",\n".join([article.title for article in articles])
+            abstracts = "\n".join([article.abstract for article in articles])
+            results.append((titles, abstracts))
+            counter += 1
+            if counter >= number_of_clusters:
+                break
+        return results
 
 
 def build_distance_graph(distances_pairs):
@@ -109,17 +131,36 @@ def perform_agglomerative_clustering(entity_set, semantic_distances, distance_th
     results = model.fit(distance_matrix)
     print(max(results.labels_))
     # plot_clustering_labels(results.labels_, side)
-    print_agglomerative_clustering_results(results, build_inverse_dictionary(position_dictionary))
+    return structure_agglomerative_clustering_results(results, build_inverse_dictionary(position_dictionary))
 
 
-def print_agglomerative_clustering_results(results, inverse_position_dictionary):
+def structure_agglomerative_clustering_results(results, inverse_position_dictionary):
     clusters = {}
     for index, label in enumerate(results.labels_):
         clusters[label] = clusters.get(label, [])
-        clusters[label].append(inverse_position_dictionary[index].name)
-    pprint(clusters)
+        clusters[label].append(inverse_position_dictionary[index])  # add name or title if you want that
+    # pprint(clusters)
+    return clusters
 
 
 def plot_clustering_labels(labels, side):
     plt.scatter(range(side), range(side), c=labels, cmap='rainbow')
     plt.show()
+
+
+def build_degree_dictionary(rankings):
+    degree_dictionary = {}
+    for info in rankings:
+        degree_dictionary[info[0]] = info[1]
+    return degree_dictionary
+
+
+def sort_clusters_by_size(clusters, not_used):
+    return {k: v for k, v in sorted(clusters.items(), key=lambda item: len(item[1]), reverse=True)}
+
+
+def sort_clusters_by_degree(clusters, get_rankings_function):
+    rankings = get_rankings_function()
+    degree_dictionary = build_degree_dictionary(rankings)
+    return {k: v for k, v in sorted(clusters.items(), key=lambda item: np.mean([degree_dictionary.get(node, 0)
+                                                                               for node in item[1]]), reverse=True)}

@@ -8,6 +8,9 @@ from rb.docs_processing.loader import load_directory_xmls, load_directory_nic_xl
 from rb.docs_processing.coauthorship import CoAuthorship
 from rb.docs_processing.metrics import GraphMetrics
 
+from rb.processings.keywords.keywords_extractor import KeywordExtractor
+
+
 def test_similarities():
     doc1 = Document(Lang.EN, """Background. Being able to maintain personal hygiene plays a crucial role for independent living in old age or when suffering from disabilities. Within the European project 
 ICT Supported Bath Robots (I-SUPPORT) an intelligent robotic shower system is being developed, which enables patients to shower independently at home or in institutionalized settings. 
@@ -33,6 +36,18 @@ Results and discussion. The MEESTAR procedure was adapted to the research questi
     print(lda.similarity(doc1, doc2))
 
 
+def write_to_file_cluster_results(filename, results):
+    with open(filename, 'w', encoding="UTF-8") as f:
+        kw_extractor = KeywordExtractor()
+        for result in results:
+            f.write("! Articles in the cluster:\n" +
+                    result[0] +
+                    "\n--------\n! All the abstracts in the cluster:\n"
+                    + result[1] + "\n~~~~~~~~\n! Keywords:\n" +
+                    str(kw_extractor.extract_keywords(result[1], Lang.EN)) +
+                    "\n********\n")
+
+
 if __name__ == "__main__":
     # test_similarities()
     w2v = Word2Vec('coca', Lang.EN)
@@ -47,13 +62,22 @@ if __name__ == "__main__":
     print("Loading done")
     graph.extract_authors_dict()
     print("Author extraction done")
-    graph.build_edges_and_construct_author_rankings_graph()
+    graph.build_edges_and_construct_author_rankings_graph(include_authors=False)
     print("Build edges done")
 
-    graph_metrics = GraphMetrics(graph)
+    keyword_extractor = KeywordExtractor()
+    all_abstracts = " ".join([article.abstract for article in graph.articles_set])
+    with open("all_abstracts.txt", "w", encoding="UTF-8") as f:
+        f.write(all_abstracts)
+    print(keyword_extractor.extract_keywords(all_abstracts, Lang.EN))
+    # graph_metrics = GraphMetrics(graph)
+    # results_number = graph_metrics.get_top_clusters_of_articles_by_number_of_elements(10)
+    # results_degree = graph_metrics.get_top_clusters_of_articles_by_degree_of_elements(10)
+    # write_to_file_cluster_results("cluster_number.txt", results_number)
+    # write_to_file_cluster_results("cluster_degree.txt", results_degree)
     # graph_metrics.perform_articles_agglomerative_clustering()
-    graph_metrics.perform_authors_agglomerative_clustering()
-    print(len(graph.authors_set))
+    # graph_metrics.perform_authors_agglomerative_clustering()
+    # print(len(graph.authors_set))
     # print(graph_metrics.get_top_n_articles_by_closeness(10))
 
 

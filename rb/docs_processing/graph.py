@@ -42,15 +42,16 @@ class Graph:
         else:
             self.adjacent_list[entity2] = [(entity1, dist, link_type)]
 
-    def build_edges_and_construct_author_rankings_graph(self) -> None:
+    def build_edges_and_construct_author_rankings_graph(self, include_authors=True) -> None:
         articles_list = list(self.articles_set)
         authors_list = list(self.authors_set)
 
         self.build_edges_between_articles_and_save_the_distances(articles_list)
-        self.build_edges_between_articles_and_authors(articles_list, authors_list)
-        authors_semantic_similarities_dictionary = self.compute_semantic_similarities_between_authors(authors_list)
-        self.build_authors_ranking_graph(authors_semantic_similarities_dictionary)
-        self.build_edges_between_authors(authors_semantic_similarities_dictionary)
+        if include_authors:
+            self.build_edges_between_articles_and_authors(articles_list, authors_list)
+            authors_semantic_similarities_dictionary = self.compute_semantic_similarities_between_authors(authors_list)
+            self.build_authors_ranking_graph(authors_semantic_similarities_dictionary)
+            self.build_edges_between_authors(authors_semantic_similarities_dictionary)
 
     def build_edges_between_articles_and_authors(self, articles_list, authors_list):
         for i in range(len(articles_list)):
@@ -130,7 +131,7 @@ class Graph:
     def get_articles_by_type_degree(self, max_=None):
         articles = [(article, sum(1 - n for _, n, t in self.adjacent_list[article] if t == 'art-art'),
                      len([t for _, _, t in self.adjacent_list[article] if t == 'art-art'])) for article in
-                    self.articles_set]
+                    self.articles_set if article in self.adjacent_list]
         if max_:
             return sorted(articles, key=lambda x: x[1], reverse=True)[:max_]
         return sorted(articles, key=lambda x: x[1], reverse=True)
