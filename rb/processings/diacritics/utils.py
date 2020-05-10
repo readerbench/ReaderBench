@@ -607,6 +607,176 @@ def evaluate_model(model, filepath, dataset, steps, model_type="BertCNN", write_
 
     return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
 
+
+def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper):
+    
+    diacritics = "aăâiîsștț"
+    id_to_char_dict = {v: k for k, v in char_to_id_dict.items()}
+
+    sentence = string
+
+    basic_sentence = ''.join([get_char_basic(char) for char in sentence])
+    tokens = bert_wrapper.tokenizer.tokenize(basic_sentence)
+    sentence_bert_input_ids, sentence_bert_segment_ids = bert_wrapper.process_text(basic_sentence)
+    sentence_token_ids = []
+    sentence_char_cnn_windows = []
+    sentence_labels = []
+    # save map: char_diac_index -> bert_tokenizer_index
+    # example: privata -> 'privat' + '##a'
+    # 0 (first a) -> 0
+    # 1 (second a) -> 1
+    sentence_char_index = {}
+    
+    char_index = 0
+    for token_index, token in enumerate(tokens):
+        for char in token:
+            if char in diacritics:
+                # offset by 1 because of '[CLS]'
+                sentence_char_index[char_index] = token_index + 1
+                char_index += 1
+    
+    char_ids = [char_to_id_dict[get_char_basic(char)] for char in sentence]
+    values_to_pad = (window_size-1)//2
+    char_ids = [char_to_id_dict["<PAD>"]] * values_to_pad + char_ids + [char_to_id_dict["<PAD>"]] * values_to_pad
+
+    char_dia_index = 0
+    for char_index, char in enumerate(sentence):
+        # we padded vector
+        char_index += values_to_pad
+        if char in diacritics:
+
+            full_window = char_ids[(char_index - values_to_pad):(char_index + values_to_pad + 1)]
+            label = get_label(id_to_char_dict[char_ids[char_index]], char)
+            
+            categorical = np.zeros((5))
+            categorical[label] = 1
+            
+            sentence_labels.append(categorical)
+            sentence_token_ids.append(sentence_char_index[char_dia_index])
+            sentence_char_cnn_windows.append(full_window)
+            
+            char_dia_index += 1
+
+            # print(sentence_bert_input_ids, sentence_bert_segment_ids[char_dia_index], sentence_token_ids, sentence_char_cnn_windows,sentence_labels)
+    # sys.exit()
+    yield sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels
+
+
+def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper, max_sentences, max_windows):
+
+    padding_window = [0] * window_size
+    padding_labels = np.array([0, 0, 0, 0, 0])
+    padding_input_ids, padding_segment_ids = bert_wrapper.process_text("")
+
+    crt_sentences = 0
+    crt_windows = 0
+
+    bert_input_ids = []
+    bert_segment_ids =[]
+    token_ids = []
+    sentence_ids = []
+    windows_mask = []
+    char_windows = []
+    labels = []
+
+    sentence_generator = generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper)
+    for sentence_entry in sentence_generator:
+        sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels = sentence_entry
+        # print(sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels)
+        
+        bert_input_ids.append(sentence_bert_input_ids)
+        bert_segment_ids.append(sentence_bert_segment_ids)
+
+        for window_index in range(len(sentence_token_ids)):
+            token_ids.append(sentence_token_ids[window_index])
+            sentence_ids.append(crt_sentences)
+            windows_mask.append(1.0)
+            char_windows.append(sentence_char_cnn_windows[window_index])
+            labels.append(sentence_labels[window_index])
+            
+            crt_windows += 1
+
+            if crt_windows == max_windows:
+
+                sentences_to_pad = max_sentences - crt_sentences - 1
+                bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+                bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
+                
+                yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+                    'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+
+                # take the last sentence before padding
+                bert_input_ids = [bert_input_ids[crt_sentences]]
+                bert_segment_ids = [bert_segment_ids[crt_sentences]]
+                # reset global vars
+                crt_sentences = 0
+                crt_windows = 0
+
+                token_ids = []
+                sentence_ids = []
+                windows_mask = []
+                char_windows = []
+                labels = []
+
+        crt_sentences += 1
+        if crt_sentences == max_sentences:
+            # we have reached maximum sentence count
+            # we need to pad up to max_window_size
+            values_to_pad = max_windows - crt_windows
+
+            token_ids = token_ids + [0] * values_to_pad
+            sentence_ids = sentence_ids + [0] * values_to_pad
+            windows_mask = windows_mask + [0] * values_to_pad
+            char_windows = char_windows + [padding_window] * values_to_pad
+            labels = labels + [padding_labels] * values_to_pad
+
+            yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+                    'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+
+            # reset global vars
+            crt_sentences = 0
+            crt_windows = 0
+            bert_input_ids = []
+            bert_segment_ids =[]
+            token_ids = []
+            sentence_ids = []
+            windows_mask = []
+            char_windows = []
+            labels = []
+
+    # return uncompleted
+    # we have to pad up to max_sentences and max_windows
+    # pad up to max_sentences
+    sentences_to_pad = max_sentences - crt_sentences
+    bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+    bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
+
+    # pad up to max_windows
+    values_to_pad = max_windows - crt_windows
+    token_ids = token_ids + [0] * values_to_pad
+    sentence_ids = sentence_ids + [0] * values_to_pad
+    windows_mask = windows_mask + [0] * values_to_pad
+    char_windows = char_windows + [padding_window] * values_to_pad
+    labels = labels + [np.zeros(5)] * values_to_pad
+    
+    # print("BII", len(bert_input_ids))#, bert_input_ids)
+    # print("BSI", len(bert_segment_ids))#, bert_segment_ids)
+    # print("Token ids", len(token_ids))#, token_ids)
+    # print("Sent ids", len(sentence_ids))#, sentence_ids)
+    # print("Window mask", len(windows_mask))#, windows_mask)
+    # print("Char windows", len(char_windows))#, char_windows)
+    # print("Labels", len(labels))#, labels)
+
+    yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+            'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     print("utils.py")
     # build_char_vocab()
