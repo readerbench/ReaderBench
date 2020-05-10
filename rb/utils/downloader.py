@@ -33,9 +33,11 @@ LINKS = {
     },
     Lang.RO: {
         'models': {
-            'diacritics': {
-                "link": "https://nextcloud.readerbench.com/index.php/s/pfC25G64JgxcfZS/download",
-                "version": "https://nextcloud.readerbench.com/index.php/s/XmW7b3kLMbQtn5C/download"
+            'diacritice': {
+                'RoBERT_base+CNN': {
+                    "link": "https://nextcloud.readerbench.com/index.php/s/ZG6qSKwELj87pTF/download",
+                    "version": "https://nextcloud.readerbench.com/index.php/s/GRsJP7yFreeicaR/download"
+                }
             },
             'readme': {
                 "link": "https://nextcloud.readerbench.com/index.php/s/Sj94ysrmDDxX8YH/download",
