@@ -1,10 +1,14 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
+from rb.core.cscl.participant import Participant
+from rb.cna.cna_graph import CnaGraph
+from rb.similarity.vector_model_factory import create_vector_model
+from rb.similarity.vector_model import VectorModelType
 
 from rb.utils.rblogger import Logger
 
@@ -33,25 +37,21 @@ class Community(TextElement):
 		self.start_date = start_date
 		self.end_date = end_date
 
-		for conversation in community:
-			current_contribution = Contribution(lang, text, container=self,
+		self.participant_map = dict()
+
+		for conversation_thread in community:
+			current_conversation = Conversation(lang, container=self,
 						 						conversation_thread=conversation_thread)
 
-			self.components.append(current_contribution)
+			self.components.append(current_conversation)
 
-		self.participants = union_participants()
-		self.participant_contributions = union_contributions()
-		self.first_contribution_date, self.last_contribution_date = find_contribution_range()
+		self.participants = self.union_participants()
+		self.participant_contributions = self.union_contributions()
+		self.first_contribution_date, self.last_contribution_date = self.find_contribution_range()
 
 
-	def union_participants(self) -> List[str]:
-		all_participants = set()
-
-		for conversation in self.components:
-			for participant in conversation.get_participants():
-				all_participants.add(participant)
-
-		return list(all_participants)
+	def union_participants(self) -> List[Participant]:
+		return [self.participant_map[participant_id] for participant_id in self.participant_map]
 
 	def union_contributions(self) -> Dict:
 		contributions = dict()
@@ -59,13 +59,13 @@ class Community(TextElement):
 		for conversation in self.components:
 			for participant in conversation.get_participants():
 				if not (participant in contributions):
-					contributions[participant] = []
+					contributions[participant.get_id()] = []
 
-				contributions[participant] += conversation.get_participant_contributions(participant)
+				contributions[participant.get_id()] += conversation.get_participant_contributions(participant.get_id())
 
 		return contributions
 
-	def find_contribution_range(self) -> int, int:
+	def find_contribution_range(self) -> Tuple[int, int]:
 		first_contribution = None
 		last_contribution = None
 
@@ -84,7 +84,7 @@ class Community(TextElement):
 	def get_conversations(self) -> List[Conversation]:
 		return self.components
 
-	def get_participants(self) -> List[str]:
+	def get_participants(self) -> List[Participant]:
 		return self.participants
 
 	def get_participant_contributions(self, participant_id: str) -> List[Contribution]:

@@ -163,6 +163,6 @@ russian/*
 essays_ro/*
 example_correct.json
 debug.log.1
-rb/processings/diacritics/dataset/*
-rb/processings/diacritics/__pycache__/*
-rb/processings/diacritics/models/*
+
+#
+rbenv/

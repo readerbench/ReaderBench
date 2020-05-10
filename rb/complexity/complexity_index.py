@@ -108,4 +108,4 @@ def compute_indices(doc: Document, cna_graph: CnaGraph = None):
     num_cores = cpu_count()
     Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
         for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))
-        
+

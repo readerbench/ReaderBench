@@ -6,3 +6,4 @@ class EdgeType(Enum):
     SEMANTIC = auto()
     LEXICAL_OVERLAP = auto()
     COREF = auto()
+    EXPLICIT = auto()

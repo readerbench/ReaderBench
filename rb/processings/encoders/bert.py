@@ -81,6 +81,10 @@ class BertWrapper:
             return tf.keras.layers.Lambda(lambda x: x[:,0,:])(sequence_output)
         elif mode == "pool":
             return tf.keras.layers.GlobalAveragePooling1D()(sequence_output)
+        elif mode == "seq":
+            return sequence_output
+        else:
+            print("Unrecognized mode {}".format(mode))
         return None
 
     def __get_segments(self, tokens):

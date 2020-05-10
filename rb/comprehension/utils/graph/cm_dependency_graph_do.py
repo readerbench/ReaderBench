@@ -11,15 +11,13 @@ class CmDependencyGraf:
 
     def __init__(self):
         self.node_list: Set[Word] = set([])
-        self.adjacent_list:Dict[Word, Set[Word]] = {}
-
+        self.adjacent_list: Dict[Word, Set[Word]] = {}
 
     def get_actual_word(self, word):
         if word.in_coref:
             return word.coref_clusters[0].main.get_root()
         return word
 
-    
     def build_graph(self, sentence: Sentence) -> None:
         for index, dependency in enumerate(sentence.get_dependencies()):
             w0 = self.get_actual_word(dependency[0])
@@ -35,7 +33,6 @@ class CmDependencyGraf:
                 self.adjacent_list[w1].add(w0)
             else:
                 self.adjacent_list[w1] = set([w0])
-    
 
     def dfs(self, node: Word) -> List[Word]:
         results = []
@@ -56,18 +53,17 @@ class CmDependencyGraf:
 
         return results
 
-
-    def get_syntanctic_graph(self, sentence: Sentence) -> CmGraphDO:
+    def get_syntactic_graph(self, sentence: Sentence) -> CmGraphDO:
         self.build_graph(sentence)
         graph = CmGraphDO([], [])
         node_set = set([])
         for node in self.node_list:
             if node.is_content_word():
-                accesible_content_words = self.dfs(node)
+                accessible_content_words = self.dfs(node)
                 n1 = CmNodeDO(node, CmNodeType.TextBased)
                 n1.activate()
                 node_set.add(n1)
-                for word in accesible_content_words:
+                for word in accessible_content_words:
                     n2 = CmNodeDO(word, CmNodeType.TextBased)
                     n2.activate()
                     node_set.add(n2)

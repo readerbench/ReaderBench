@@ -2,11 +2,13 @@ import setuptools
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call
+import sys
+
 
 def do_post_install_tasks():
     # download spacy thing
-   
-    check_call("pip3 install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
+
+    check_call([sys.executable] + "-m pip install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
     # download nltk stuff
     from os import getenv, path
 
@@ -44,7 +46,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.7.3',
+    version='0.7.6',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
