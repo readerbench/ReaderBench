@@ -1,13 +1,14 @@
+#pylint: disable=import-error
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Concatenate, Convolution1D, GlobalMaxPooling1D, Embedding, Dropout
+from tensorflow.keras.layers import Input, Dense, Concatenate, Convolution1D, GlobalMaxPooling1D, Embedding, Dropout, Flatten
 from tensorflow.keras.layers import Conv1D
 from tensorflow.keras.callbacks import TensorBoard
 import sys
 import numpy as np
 from tensorflow.keras import backend as K
-import utils
+import rb.processings.diacritics.utils as utils
 
 
 class CharCNN(object):
@@ -17,17 +18,17 @@ class CharCNN(object):
     """
 
 
-	def __init__(self, input_size, alphabet_size, embedding_size, conv_layers, num_of_classes,
-					dropout_rate, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
+	def __init__(self, input_size, alphabet_size, embedding_size, conv_layers, num_of_classes, fc_hidden_size,
+					cnn_dropout_rate, learning_rate, optimizer='adam', loss='categorical_crossentropy'):
 		"""
         Initialization for the Character Level CNN model.
         Args:
             input_size (int): Size of input features
             alphabet_size (int): Size of alphabets to create embeddings for
             embedding_size (int): Size of embeddings
-            # conv_layers (list[list[int]]): List of Convolution layers for model
-            # fully_connected_layers (list[list[int]]): List of Fully Connected layers for model
+            conv_layers (list[list[int]]): List of Convolution layers for model
             num_of_classes (int): Number of classes in data
+			fc_hidden_size (int) : Size of hidden layer (between conv features and prediction)
             dropout_rate (float): Dropout Rate
             optimizer (str): Training optimizer
             loss (str): Loss function
@@ -37,7 +38,8 @@ class CharCNN(object):
 		self.embedding_size = embedding_size
 		self.conv_layers = conv_layers
 		self.num_of_classes = num_of_classes
-		self.dropout_rate = dropout_rate
+		self.fc_hidden_size = fc_hidden_size
+		self.cnn_dropout_rate = cnn_dropout_rate
 		self.learning_rate = learning_rate
 
 		if optimizer == "adam":
@@ -70,11 +72,12 @@ class CharCNN(object):
 		inputs = Input(shape=(self.input_size,), name='input_layer', dtype='int32')
 		# mask
 		mask = Embedding(self.alphabet_size, 5, input_length=1, trainable=False, weights=[embedding_mask_weights], name="mask_embedding")(inputs[:,(self.input_size-1)//2])
-		
 						
 		# Embedding layer
 		x = Embedding(self.alphabet_size, self.embedding_size, input_length=self.input_size, trainable=True, name="sequence_embedding")(inputs)
 		# x = (?batch_size, window_size, embedding_size)
+		middle_char_embedding = x[:,(self.input_size-1)//2]
+
 
 		# Convolution layers
 		convolution_output = []
@@ -86,12 +89,23 @@ class CharCNN(object):
 			# conv = (?batch_size, num_filters)
 			convolution_output.append(pool)
 
-		x = Concatenate()(convolution_output)
-		# x = (?batch_size, total_number_of_filters)
-		# x = Dropout(rate=self.dropout_rate)(x)
+
+		if convolution_output != []:
+			x = Concatenate()(convolution_output)
+			# x = (?batch_size, total_number_of_filters)
+			x = Dropout(rate=self.cnn_dropout_rate)(x)
+
+			# concatenate middle char
+			x = Concatenate()([x, middle_char_embedding])
+
+		else:
+			x = Flatten()(x)
+
+		hidden_layer = Dense(self.fc_hidden_size, activation='relu')(x)
+
 
 		# Output layer
-		predictions = Dense(self.num_of_classes, activation='softmax')(x)
+		predictions = Dense(self.num_of_classes, activation='softmax')(hidden_layer)
 		# mask predictions based on middle char
 		masked_predictions = keras.layers.multiply([predictions, mask])
 		# masked_predictions = predictions
@@ -99,41 +113,40 @@ class CharCNN(object):
 		# Build and compile model
 		model = Model(inputs=inputs, outputs=masked_predictions)
 
-		weights = np.ones(self.num_of_classes)
-
+		# weights = np.ones(self.num_of_classes)
 		# model.compile(optimizer=self.optimizer, loss=weighted_categorical_crossentropy(weights).loss, metrics=[tf.keras.metrics.categorical_accuracy])
 		model.compile(optimizer=self.optimizer, loss=self.loss, metrics=[tf.keras.metrics.categorical_accuracy])
 		self.model = model
 		print("CharCNN model built: ")
 		self.model.summary()
+		# sys.exit()
 
 
-	def train(self, train_dataset, train_batch_size, train_size, dev_dataset, dev_batch_size, dev_size, epochs, file_evalname, char_to_id_dict):
+	def train(self, train_dataset, train_batch_size, train_size, dev_dataset, dev_batch_size, dev_size, epochs, file_evalname, char_to_id_dict, model_filename):
 
 		best_wa_dia = -1
+		best_wa_all = -1
+		best_ca_dia = -1
+		best_ca_all = -1
 		best_epoch = -1
 
 		for i in range(epochs):
-			print("EPOCH ", i)
+			print("EPOCH ", (i+1))
 			self.model.fit(train_dataset, steps_per_epoch=train_size//train_batch_size, epochs=1, verbose=1)
-			self.model.evaluate(dev_dataset, steps=dev_size//dev_batch_size, verbose=1)
-			print("---------------")
-			wa_dia, wa_all, ca_dia, ca_all, predicted_words = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.input_size)
+			# self.model.evaluate(dev_dataset, steps=dev_size//dev_batch_size, verbose=1)
+			# print("---------------")
+			# wa_dia, wa_all, ca_dia, ca_all, _ = utils.evaluate_model_on_file(self.model, file_evalname, char_to_id_dict, self.input_size)
+			wa_dia, wa_all, ca_dia, ca_all, _ = utils.evaluate_model(self.model, file_evalname, dev_dataset, (dev_size//dev_batch_size)+1)
 			if wa_dia > best_wa_dia:
 				best_wa_dia = wa_dia
-				best_epoch = i
-				self.model.save('models/model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.h5'.format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate))
-
-				outfile_name = "models/output_{5}_model_ws{0}_tbs{1}_embdim{2}_lr{3}_drop{4}.txt".format(self.input_size, train_batch_size, self.embedding_size, self.learning_rate, self.dropout_rate, file_evalname.split("/")[-1].split(".")[0])
-				# also write to file
-				with open(outfile_name , "w", encoding="utf-8") as outfile:
-					for word in predicted_words:
-						if word[-1] == "\n":
-							outfile.write(word)
-						else:
-							outfile.write(word + " ")
-			
-			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", best_wa_dia)
+				best_wa_all = wa_all
+				best_ca_dia = ca_dia
+				best_ca_all = ca_all
+				best_epoch = i+1
+				self.model.save(model_filename+'.h5')
+				
+			print("Best model: epoch =", best_epoch, "best word_accuracy_dia =", format(best_wa_dia, '.4f'), "best word_accuracy_all =", format(best_wa_all, '.4f'), 
+							"best char_accuracy_dia =", format(best_ca_dia, '.4f'), "best char_accuracy_all =", format(best_ca_all, '.4f'))
 			print("---------------")
 
 class weighted_categorical_crossentropy(object):
@@ -152,7 +165,7 @@ class weighted_categorical_crossentropy(object):
 		self.weights = K.variable(weights)
         
 	def loss(self, y_true, y_pred):
-		# y_true = K.print_tensor(y_true)
+		y_true = K.print_tensor(y_true)
 		y_pred = K.print_tensor(y_pred)
 
 		# scale preds so that the class probas of each sample sum to 1
