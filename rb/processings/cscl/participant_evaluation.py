@@ -38,7 +38,7 @@ class ParticipantEvaluation:
 		for i, contribution1 in enumerate(contributions):
 			p1 = contribution1.get_participant().get_id()
 
-			conversation.set_score(p1, p1, importance[contribution1])
+			conversation.update_score(p1, p1, importance[contribution1])
 
 			for j in range(0, i):
 				contribution2 = contributions[j]
@@ -46,11 +46,10 @@ class ParticipantEvaluation:
 				if get_block_importance(block_importance, contribution1, contribution2) > 0:
 					p2 = contribution2.get_participant().get_id()
 
-					current_value = conversation.get_score(p1, p2)
-					current_value += importance[contribution1] * get_block_importance(block_importance,
+					added_kb = importance[contribution1] * get_block_importance(block_importance,
 																					contribution1, contribution2)
 
-					conversation.set_score(p1, p2, current_value)
+					conversation.update_score(p1, p2, added_kb)
 
 
 	@staticmethod

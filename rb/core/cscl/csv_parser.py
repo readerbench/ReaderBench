@@ -15,6 +15,7 @@ from rb.cna.cna_graph import CnaGraph
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.similarity.vector_model import VectorModelType
 from rb.processings.cscl.participant_evaluation import ParticipantEvaluation
+from rb.processings.cscl.community_processing import CommunityProcessing
 
 from rb.utils.rblogger import Logger
 
@@ -139,9 +140,58 @@ def compute_indices(conv: Conversation):
 			print('Score for ' + n1 + ' ' + n2 + ' is:')
 			print(conv.get_score(n1, n2))
 
+def test_community_processing():
+	print('Testing Community Processing')
+
+	conv_thread = CsvParser.parse_large_csv('./thread.csv')
+
+	community = Community(lang=Lang.EN, container=None, community=[conv_thread])
+	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
+
+	participant_list = community.get_participants()
+	names = list(map(lambda p: p.get_id(), participant_list))
+
+	print('Participants are:')
+	print(names)
+
+	print('Begin computing indices')
+
+	CommunityProcessing.determine_participant_contributions(community)
+	CommunityProcessing.determine_participation(community)
+	CommunityProcessing.compute_sna_metrics(community)
+
+	print('Finished computing indices')
+
+	for p in participant_list:
+		print('Printing for participant ' + p.get_id())
+
+		print(p.get_index(CsclIndices.SCORE))
+		print(p.get_index(CsclIndices.NO_NOUNS))
+		print(p.get_index(CsclIndices.NO_VERBS))
+		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
+		print(p.get_index(CsclIndices.SOCIAL_KB))
+		print(p.get_index(CsclIndices.INDEGREE))
+		print(p.get_index(CsclIndices.OUTDEGREE))
+		print(p.get_index(CsclIndices.NO_NEW_THREADS))
+		print(p.get_index(CsclIndices.NEW_THREADS_OVERALL_SCORE))
+		print(p.get_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
+		print(p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS))
+
+		print('---------------------')
+
+	for n1 in names:
+		for n2 in names:
+			print('Score for ' + n1 + ' ' + n2 + ' is:')
+			print(community.get_score(n1, n2))
+
 def main():
+	# Test community processing - English discussion csv
+	test_community_processing()
+
 	# Test for English discussion CSV
 
+	'''
 	print('Testing English CSV')
 
 	conv_thread = CsvParser.parse_large_csv('./thread.csv')
@@ -153,6 +203,7 @@ def main():
 	conv = community.get_conversations()[0]
 
 	compute_indices(conv)
+	'''
 
 	# Test for French discussion XML
 

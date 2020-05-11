@@ -12,6 +12,8 @@ from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
+SIGNIFICANT_LIMIT = 5
+
 class Contribution(Block):
 
     def __init__(self, lang: Lang, text: str,
@@ -41,6 +43,9 @@ class Contribution(Block):
 
     def get_timestamp(self) -> int:
     	return self.timestamp
+
+    def is_significant(self):
+        return len(self.get_words()) >= SIGNIFICANT_LIMIT
 
     def __str__(self):
         return NotImplemented
