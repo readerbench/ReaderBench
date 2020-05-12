@@ -46,7 +46,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.7.8',
+    version='0.7.9',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -72,6 +72,7 @@ setuptools.setup(
         'docutils',
         'Flask',
         'gensim==3.8.1',
+        'googletrans',
         'idna',
         'itsdangerous',
         'Jinja2',

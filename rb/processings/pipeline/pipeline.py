@@ -40,12 +40,13 @@ def filter_rare(dataset: Dataset):
             features.append(index)
     dataset.features = features
 
-def preprocess(folder: str, targets_file: str, limit: int = None) -> Dataset:
+def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) -> Dataset:
     files = {filename.replace(".txt", "").strip(): open(os.path.join(folder, filename), "rt", encoding='utf-8', errors='ignore').read().strip() 
              for filename in os.listdir(folder)
              if not filename.startswith(".")}
     texts = []
     targets = []
+    names = []
     with open(targets_file, "rt", encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',')
         header = next(reader)
@@ -56,7 +57,8 @@ def preprocess(folder: str, targets_file: str, limit: int = None) -> Dataset:
                 continue
             texts.append(files[filename])
             targets.append(line[1:])
-    dataset = Dataset(texts, targets)
+            names.append(filename)
+    dataset = Dataset(names, texts, targets)
     if limit is not None:
         dataset.train_texts = dataset.train_texts[:limit]
         dataset.dev_texts = dataset.dev_texts[:limit]
@@ -64,8 +66,8 @@ def preprocess(folder: str, targets_file: str, limit: int = None) -> Dataset:
             task.train_values = task.train_values[:limit]
             task.dev_values = task.dev_values[:limit]
     
-    dataset.train_docs = construct_documents(dataset.train_texts, Lang.EN)
-    dataset.dev_docs = construct_documents(dataset.dev_texts, Lang.EN)
+    dataset.train_docs = construct_documents(dataset.train_texts, lang)
+    dataset.dev_docs = construct_documents(dataset.dev_texts, lang)
     dataset.features = list(dataset.train_docs[0].indices.keys())
     filter_rare(dataset)
     for task in dataset.tasks:

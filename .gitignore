@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pkl
 
 # C extensions
 *.so
@@ -140,6 +141,10 @@ testem.log
 /models 
 /resources
 /summaries
+*.txt
+*.csv
+*.zip
+*.docx
 
 # System Files
 .DS_Store
