@@ -1,19 +1,17 @@
-from gensim.models import Word2Vec 
-import spacy
-from typing import List, Iterable
-from nltk.tokenize import sent_tokenize, WordPunctTokenizer
-from os.path import isdir, isfile, join
 from os import listdir
+from os.path import isdir, isfile, join
+from typing import Iterable, List
+
+import spacy
+from gensim.models import Word2Vec
+from nltk.tokenize import WordPunctTokenizer, sent_tokenize
 from rb.core.lang import Lang
 from rb.similarity.vector_model_factory import VectorModelType
-
 from spacy.lang.ro.lemmatizer import LOOKUP
-#from spacy.lang.ro.lex_attrs import words
 
-# nlp = spacy.load('en_core_web_sm')
-# nlp.remove_pipe('tagger')
-# nlp.remove_pipe('parser')
-# nlp.remove_pipe('ner')
+from googletrans import Translator
+
+translator = Translator()
 
 def split_sentences(fileName: str) -> Iterable[List[str]]:
     # sentences = []
@@ -58,16 +56,24 @@ def load_docs(folder: str) -> Iterable[str]:
                     yield current
 
 def str_to_lang(s: str) -> Lang:
-    s = s.lower()
-    if s.strip() == "ro" or s.strip() == "rou" or s.strip() == "romanian":
+    s = s.lower().strip()
+    if s in ["ro", "rou", "romanian"]:
         return Lang.RO
-    elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
+    elif s in ["en", "eng", "english"]:
         return Lang.EN
-    elif s.strip() == "es" or s.strip() == "esp" or s.strip() == "spanish":
+    elif s in ["es", "esp", "spanish"]:
         return Lang.ES
-    elif s.strip() == "ru" or s.strip() == "rus" or s.strip() == "russian":
+    elif s in ["ru", "rus", "russian"]:
         return Lang.RU
-    return Lang.EN
+    elif s in ["de", "deu", "ger", "german", "deutsch"]:
+        return Lang.DE
+    elif s in ["fr", "fra", "fre", "french"]:
+        return Lang.FR
+    elif s in ["it", "ita", "italian"]:
+        return Lang.IT
+    elif s in ["nl", "nld", "dut", "dutch"]:
+        return Lang.NL
+    return None
 
 def str_to_vmodel(s: str) -> VectorModelType:
     s = s.lower()
@@ -79,6 +85,10 @@ def str_to_vmodel(s: str) -> VectorModelType:
         return VectorModelType.WORD2VEC
     return VectorModelType.WORD2VEC
 
+def detect_lang(text: str) -> Lang:
+    prediction = translator.detect(text)
+    return str_to_lang(prediction.lang)
+
 if __name__ == "__main__":
     pass
     # with open("dict_ro.txt", "wt") as out:
@@ -86,4 +96,3 @@ if __name__ == "__main__":
     #     all_words = sorted(list(all_words))
     #     for word in all_words:
     #         out.write(word + "\n")
-
