@@ -35,14 +35,15 @@ def get_json_from_json_file(filename: str) -> Dict:
 
 	with open(filename, "rt", encoding='utf-8') as json_file:
 		contribution_list_json = json.load(json_file)
-		contribution = {
-				ID_KEY: contribution_list_json['genid'],
-				PARENT_ID_KEY: contribution_list_json["ref"],
-				TIMESTAMP_KEY: float(contribution_list_json['time']),
-				USER_KEY: contribution_list_json["nickname"],
-				TEXT_KEY: contribution_list_json["text"],
-		}
-		contribution_list.append(contribution)
+		for cnt in contribution_list_json:
+			contribution = {
+					ID_KEY: cnt['genid'],
+					PARENT_ID_KEY: cnt["ref"],
+					TIMESTAMP_KEY: float(cnt['time']),
+					USER_KEY: cnt["nickname"],
+					TEXT_KEY: cnt["text"],
+			}
+			contribution_list.append(contribution)
 
 	conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
@@ -161,6 +162,7 @@ def main():
 
 	print('Testing English JSON FILES')
 
+	conv_thread = []
 	for i in range(1, 501):
 		conversation = get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
