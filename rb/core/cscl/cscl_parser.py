@@ -162,7 +162,7 @@ def main():
 	print('Testing English JSON FILES')
 
 	for i in range(1, 501):
-		conversation = get_json_from_json_file("jsons\conversation_" + str(i) + ".json")
+		conversation = get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
