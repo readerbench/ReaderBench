@@ -49,6 +49,11 @@ class Community(TextElement):
 		self.participant_contributions = self.union_contributions()
 		self.first_contribution_date, self.last_contribution_date = self.find_contribution_range()
 
+		self.graph = None
+
+		self.eligible_contributions = []
+		self.scores = dict()
+		self.init_scores()
 
 	def union_participants(self) -> List[Participant]:
 		return [self.participant_map[participant_id] for participant_id in self.participant_map]
@@ -73,13 +78,28 @@ class Community(TextElement):
 			for contribution in conversation.get_contributions():
 				timestamp = contribution.get_timestamp()
 
-				if first_contribution == None or timestamp < first_contribution:
-					first_contribution = timestamp
+				if self.is_eligible(timestamp):
+					if first_contribution == None or timestamp < first_contribution:
+						first_contribution = timestamp
 
-				if last_contribution == None or timestamp > last_contribution:
-					last_contribution = timestamp
+					if last_contribution == None or timestamp > last_contribution:
+						last_contribution = timestamp
+
+		if self.start_date is None:
+			self.start_date = first_contribution
+		if self.end_date is None:
+			self.end_date = last_contribution
 
 		return first_contribution, last_contribution
+
+	def is_eligible(self, timestamp: int) -> bool:
+		if self.start_date != None and self.end_date != None:
+			return (timestamp >= self.start_date and timestamp <= self.end_date)
+		
+		return True
+
+	def add_eligible_contribution(self, contribution: Contribution):
+		self.eligible_contributions.append(contribution)
 
 	def get_conversations(self) -> List[Conversation]:
 		return self.components
@@ -95,3 +115,16 @@ class Community(TextElement):
 
 	def get_last_contribution_date(self) -> int:
 		return self.last_contribution_date
+
+	def init_scores(self):
+		for a in self.participants:
+			self.scores[a.get_id()] = dict()
+
+			for b in self.participants:
+				self.scores[a.get_id()][b.get_id()] = 0
+
+	def get_score(self, a: str, b: str) -> float:
+		return self.scores[a][b]
+
+	def update_score(self, a: str, b: str, value: float):
+		self.scores[a][b] += value

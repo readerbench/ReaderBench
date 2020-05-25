@@ -42,16 +42,6 @@ LINKS = {
             'readme': {
                 "link": "https://nextcloud.readerbench.com/index.php/s/Sj94ysrmDDxX8YH/download",
                 "version": "https://nextcloud.readerbench.com/index.php/s/QXd8847qLz5tNAa/download"
-            },
-            'gec': {
-                "transformer_768": {
-                    "link": "https://nextcloud.readerbench.com/index.php/s/CPAS95MNyZGsKas/download",
-                    "version": "https://nextcloud.readerbench.com/index.php/s/GaETKtdRkFmpDDH/download"
-                },
-                'transformer_64': {
-                    'version': 'https://nextcloud.readerbench.com/index.php/s/W9FB2dX5ykHqiLk/download',
-                    'link': 'https://nextcloud.readerbench.com/index.php/s/ZrP2mZszCXim4EW/download'
-                }
             }
         },
         'spacy': {
