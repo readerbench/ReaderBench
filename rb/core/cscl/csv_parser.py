@@ -173,6 +173,8 @@ def test_community_processing():
 		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
+	print(conv_thread[0])
+
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
 	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
 	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
