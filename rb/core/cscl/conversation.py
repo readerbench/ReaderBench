@@ -2,6 +2,8 @@ import json
 from typing import Dict, List
 
 import xmltodict
+from copy import deepcopy
+
 from rb.core.block import Block
 from rb.core.cscl.contribution import Contribution
 from rb.core.document import Document
@@ -46,16 +48,18 @@ class Conversation(TextElement):
 	'''
 	def __init__(self, lang: Lang, conversation_thread: Dict,
 				container: TextElement = None,
-                 depth: int = TextElementType.CONV.value,
+                 depth: int = TextElementType.DOC.value,
+				 apply_heuristics: bool = True
                  ):
 
 		TextElement.__init__(self, lang=lang, text="",
                              depth=depth, container=container)
 
+		self.participant_map = dict()
 		self.participants = []
 		self.participant_contributions = dict()
 
-		self.parse_contributions(conversation_thread)
+		self.parse_contributions(conversation_thread, apply_heuristics=apply_heuristics)
 
 		self.scores = dict()
 		self.init_scores()
@@ -120,7 +124,7 @@ class Conversation(TextElement):
 
 		return processed_contributions
 
-	def parse_contributions(self, conversation_thread: Dict):
+	def parse_contributions(self, conversation_thread: Dict, apply_heuristics: bool = True):
 		contribution_map = dict()
 		users = set()
 
@@ -128,8 +132,12 @@ class Conversation(TextElement):
 
 		# apply both heuristics before processing
 		contributions = conversation_thread[CONTRIBUTIONS_KEY]
-		contributions = self.time_heuristic(contributions)
-		contributions = self.distance_heuristic(contributions)
+
+		if apply_heuristics:
+			contributions = self.time_heuristic(contributions)
+			contributions = self.distance_heuristic(contributions)
+
+		self.participants = []
 
 		for contribution in contributions:
 			index = int(contribution[ID_KEY])
@@ -150,18 +158,26 @@ class Conversation(TextElement):
 				parent_contribution = contribution_map[parent_index]
 
 			full_text += text + "\n"
-			
+
 			participant = None
 
-			if participant_id in self.container.participant_map:
-				participant = self.container.participant_map[participant_id]
-			else:
+			if not (participant_id in self.participant_map):
 				participant = Participant(participant_id=participant_id)
-				self.container.participant_map[participant_id] = participant
+
+				self.participant_map[participant_id] = participant
+				self.participants.append(participant)
+			else:
+				participant = self.participant_map[participant_id]
+
+			if not (self.container is None):
+				if not (participant_id in self.container.participant_map):
+					global_participant = Participant(participant_id=participant_id)
+					self.container.participant_map[participant_id] = global_participant		
 
 			current_contribution = Contribution(self.lang, text, container=self,
 												participant=participant,
 												parent_contribution=parent_contribution,
+												contribution_raw=contribution,
 												timestamp=timestamp)
 
 			self.components.append(current_contribution)
@@ -171,8 +187,6 @@ class Conversation(TextElement):
 				self.participant_contributions[participant_id] = []
 
 			self.participant_contributions[participant_id].append(current_contribution)
-	
-		self.participants = [self.container.participant_map[user] for user in list(users)]
 
 		self.text = full_text
 
@@ -186,7 +200,6 @@ class Conversation(TextElement):
 				contribution.add_sentence(sentences[i])
 				left -= len(sentences[i].text)
 				i += 1
-		print("end")
 
 
 	def parse_full_text(self, full_text: str) -> List[Sentence]:
@@ -235,6 +248,37 @@ class Conversation(TextElement):
 
 	def __str__(self):
 		return NotImplemented
+
+	@staticmethod
+	def create_participant_conversation(lang: Lang, p: Participant) -> "Conversation":
+		conversation_thread = dict()
+		contribution_list = []
+
+		index = 0
+		old_index = dict()
+
+		for c in p.eligible_contributions:
+			contribution = deepcopy(c.get_raw_contribution())
+
+			old_index[contribution[ID_KEY]] = index
+			contribution[ID_KEY] = index
+
+			if contribution[PARENT_ID_KEY] in old_index:
+				contribution[PARENT_ID_KEY] = old_index[contribution[PARENT_ID_KEY]]
+			else:
+				contribution[PARENT_ID_KEY] = -1
+
+			contribution_list.append(contribution)
+			index += 1
+
+		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+
+		conversation = Conversation(lang=lang, container=None,
+									conversation_thread=conversation_thread,
+									apply_heuristics=False)
+
+		p.set_own_conversation(conversation)
+
 	
 	@staticmethod
 	def load_from_xml(lang: Lang, filename: str) -> "Conversation":

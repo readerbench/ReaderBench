@@ -24,14 +24,14 @@ class Community(TextElement):
 					 the same structure as described in Conversation class
 	'''
 	def __init__(self, lang: Lang, 
-                 community: List[Dict],
+				 community: List[Dict],
 				 container: TextElement = None,
-                 depth: int = TextElementType.COMM.value,
-                 start_date: int = None,
-                 end_date: int = None):
+				 depth: int = TextElementType.COMM.value,
+				 start_date: int = None,
+				 end_date: int = None):
 
 		TextElement.__init__(self, lang=lang, text=None,
-                             depth=depth, container=container)
+							 depth=depth, container=container)
 
 		self.components = []
 		self.start_date = start_date
@@ -52,8 +52,11 @@ class Community(TextElement):
 		self.graph = None
 
 		self.eligible_contributions = []
+		self.timeframe_subcommunities = []
 		self.scores = dict()
 		self.init_scores()
+
+		self.community_raw = community
 
 	def union_participants(self) -> List[Participant]:
 		return [self.participant_map[participant_id] for participant_id in self.participant_map]
@@ -69,6 +72,9 @@ class Community(TextElement):
 				contributions[participant.get_id()] += conversation.get_participant_contributions(participant.get_id())
 
 		return contributions
+
+	def get_community_raw(self) -> List[Dict]:
+		return self.community_raw
 
 	def find_contribution_range(self) -> Tuple[int, int]:
 		first_contribution = None
@@ -101,8 +107,14 @@ class Community(TextElement):
 	def add_eligible_contribution(self, contribution: Contribution):
 		self.eligible_contributions.append(contribution)
 
+	def add_subcommunity(self, community):
+		self.timeframe_subcommunities.append(community)
+
 	def get_conversations(self) -> List[Conversation]:
 		return self.components
+
+	def get_participant(self, participant_id: str) -> Participant:
+		return self.participant_map[participant_id]
 
 	def get_participants(self) -> List[Participant]:
 		return self.participants

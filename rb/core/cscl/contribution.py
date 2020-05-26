@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from rb.core.block import Block
 from rb.core.lang import Lang
@@ -19,8 +19,9 @@ class Contribution(Block):
     def __init__(self, lang: Lang, text: str,
         participant: Participant,
         parent_contribution: "Contribution",
+        contribution_raw: Dict,
         timestamp: int,
-        depth: int = TextElementType.DOC.value,
+        depth: int = TextElementType.BLOCK.value,
         container: TextElement = None,
         ):
         Block.__init__(self, lang=lang, text=text,
@@ -29,6 +30,9 @@ class Contribution(Block):
         self.parent_contribution = parent_contribution
         self.participant = participant
         self.timestamp = timestamp
+
+        # used for creating per-participant conversations, based on original contributions
+        self.contribution_raw = contribution_raw
 
 
     def add_sentence(self, sentence: Sentence):
@@ -46,6 +50,9 @@ class Contribution(Block):
 
     def is_significant(self):
         return len(self.get_words()) >= SIGNIFICANT_LIMIT
+
+    def get_raw_contribution(self) -> "Contribution":
+        return self.contribution_raw
 
     def __str__(self):
         return NotImplemented
