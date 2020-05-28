@@ -1,8 +1,9 @@
 from rb.processings.sentiment.SentimentAnalysis import SentimentAnalysis
+from rb.core.lang import Lang
 
 if __name__ == "__main__":
     
-    sa = SentimentAnalysis(model_type="base")
+    sa = SentimentAnalysis(Lang.RO, model_type="base")
     
     rev0 = "un produs de foarte bună calitate. foarte mulțumit de achiziție"
     rev1 = "dezamăgit de acest produs. raport calitate preț foarte slab"

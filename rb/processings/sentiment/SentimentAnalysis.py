@@ -17,14 +17,18 @@ class SentimentAnalysis(object):
 	Wrapper for Sentiment Analysis
     """
 
-	def __init__(self, model_type="base"):
+	def __init__(self, lang: Lang, model_type="base", max_seq_len=512):
 		# load model
+		self.lang = lang
+		self.max_seq_len = max_seq_len
 		self._load_model(model_type)
 
 	# loads best sentiment model
 	def _load_model(self, model_type):
-		self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=512, model_name=model_type)
-		model_path = "rb/processings/sentiment/{0}.h5".format(model_type)
+		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type)
+		if check_version(Lang.RO, ["models", "sentiment", model_type]):
+			download_model(Lang.RO, ["models", "sentiment", model_type])
+		model_path = f"resources/{self.lang.value}/models/sentiment/{model_type}/{model_type}.h5"
 		self.model = load_model(model_path, custom_objects={'BertModelLayer': self.bert_wrapper.bert_layer})
 
 

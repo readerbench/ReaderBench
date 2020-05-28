@@ -117,7 +117,7 @@ class VectorModel:
             no_of_dimensions = int(line_split[1])
             self.size = no_of_dimensions
 
-            for line in f.readlines():
+            for line in f:
                 line_split = line.split()
                 word = line_split[0]
                 self.vectors[word] = Vector(np.array(line_split[1:], dtype=np.float))
