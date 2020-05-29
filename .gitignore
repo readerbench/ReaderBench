@@ -163,6 +163,7 @@ russian/*
 essays_ro/*
 example_correct.json
 debug.log.1
-
+*.h5
+*.txt
 #
 rbenv/
