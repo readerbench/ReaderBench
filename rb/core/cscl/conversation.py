@@ -186,8 +186,7 @@ class Conversation(TextElement):
 				contribution.add_sentence(sentences[i])
 				left -= len(sentences[i].text)
 				i += 1
-		print("end")
-
+		
 
 	def parse_full_text(self, full_text: str) -> List[Sentence]:
 		parsed_document = Block(self.lang, full_text)

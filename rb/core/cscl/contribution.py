@@ -14,18 +14,17 @@ logger = Logger.get_logger()
 
 SIGNIFICANT_LIMIT = 5
 
-class Contribution(Block):
+class Contribution(TextElement):
 
     def __init__(self, lang: Lang, text: str,
         participant: Participant,
         parent_contribution: "Contribution",
         timestamp: int,
-        depth: int = TextElementType.DOC.value,
+        depth: int = TextElementType.BLOCK.value,
         container: TextElement = None,
         ):
-        Block.__init__(self, lang=lang, text=text,
-                             depth=depth, container=container)
-
+        
+        super().__init__(lang=lang, text=text, depth=depth, container=container)
         self.parent_contribution = parent_contribution
         self.participant = participant
         self.timestamp = timestamp
