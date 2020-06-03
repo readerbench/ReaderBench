@@ -145,10 +145,10 @@ class VectorModel:
             self.word_clusters[hash].append(w) 
 
     def save_clusters(self):
-        folder = "resources/{}/models/{}".format(self.lang.value, self.corpus)
+        folder = f"resources/{self.lang.value}/models/{self.corpus}"
         os.makedirs(folder, exist_ok=True)     
     
-        with open("{}/{}-clusters.txt".format(folder, self.type.name), "wt", encoding='utf-8') as f:
+        with open(f"{folder}/{self.type.name}-clusters.txt", "wt", encoding='utf-8') as f:
             f.write("{}\n".format(len(self.base_vectors)))
             for base in self.base_vectors:
                 f.write(" ".join(str(x) for x in base.values) + "\n")
@@ -158,7 +158,7 @@ class VectorModel:
                     f.write("{} {}\n".format(word, hash))
 
     def load_clusters(self):
-        with open("resources/{}/models/{}/{}-clusters.txt".format(self.lang.value, self.corpus, self.type.name), "rt") as f:
+        with open(f"resources/{self.lang.value}/models/{self.corpus}/{self.type.name}-clusters.txt", "rt", encoding="utf-8") as f:
             n = int(f.readline())
             for i in range(n):
                 line = f.readline()
