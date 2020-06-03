@@ -25,7 +25,7 @@ def construct_documents(dataset: List[str], lang: Lang) -> List[Document]:
     model = get_default_model(lang)
     result = []
     for text in dataset:
-        text = "\n".join(line for line in text.split("\n") if len(line) < 50)
+        text = "\n".join(line for line in text.split("\n") if len(line) > 50)
         doc = Document(lang, text)
         cna_graph = CnaGraph(docs=doc, models=[model])
         compute_indices(doc=doc, cna_graph=cna_graph)
