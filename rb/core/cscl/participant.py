@@ -13,6 +13,9 @@ class Participant:
 		self.participant_id = participant_id
 		self.indices = dict()
 
+		self.eligible_contributions = []
+		self.significant_contributions = []
+
 	def get_id(self) -> str:
 		return self.participant_id
 
@@ -24,3 +27,9 @@ class Participant:
 
 	def set_index(self, index: str, value: float):
 		self.indices[index] = value
+
+	def add_eligible_contribution(self, contribution):
+		self.eligible_contributions.append(contribution)
+
+	def add_significant_contribution(self, contribution):
+		self.significant_contributions.append(contribution)

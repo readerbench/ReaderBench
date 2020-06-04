@@ -8,6 +8,8 @@ from rb.core.block import Block
 from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.pos import POS
+from rb.core.cscl.community import Community
+from rb.core.cscl.conversation import Conversation
 from rb.core.text_element import TextElement
 from rb.core.cscl.contribution import Contribution
 from rb.core.word import Word
@@ -15,26 +17,23 @@ from rb.similarity.vector_model import VectorModel
 
 
 class CnaGraph:
-	def __init__(self, docs: Union[Document, List[Document]], models: List[VectorModel]):
-		if isinstance(docs, Document):
+	def __init__(self, docs: Union[TextElement, List[TextElement]], models: List[VectorModel]):
+		if isinstance(docs, TextElement):
 			docs = [docs]
 		self.graph = nx.MultiDiGraph()
-		for doc in docs:
-			self.add_element(doc)
 		self.models = models
-		levels = dict()
-		for n in self.graph.nodes:
-			if not n.is_word():
-				if n.depth in levels:
-					levels[n.depth].append(n)
-				else:
-					levels[n.depth] = [n]
+		if all(isinstance(doc, Community) for doc in docs):
+			for doc in docs:
+				self.graph.add_node(doc)
+				for conv in doc.components:
+					nodes = self.add_element(conv)
+					self.graph.add_edge(conv, doc, type=EdgeType.PART_OF)
+					self.add_links(nodes)
+		else:
+			for doc in docs:
+				self.add_element(doc)
+			self.add_links(self.graph.nodes)
 		
-		for depth, elements in levels.items():
-			self.add_lexical_links(elements, lambda w: w.pos in {POS.ADJ, POS.ADV, POS.NOUN, POS.VERB}, OverlapType.CONTENT_OVERLAP)
-			self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.VERB}, OverlapType.TOPIC_OVERLAP)
-			self.add_lexical_links(elements, lambda w: w.pos in {POS.NOUN, POS.PRON}, OverlapType.ARGUMENT_OVERLAP)
-			self.add_semantic_links(elements)
 		self.importance = self.compute_importance()
 
 		# if docs[0].lang == Lang.EN:
@@ -42,16 +41,30 @@ class CnaGraph:
 		self.add_explicit_links()
 		self.block_importance = self.compute_block_importance()
 
-		doc.cna_graph = self
-		
-	def add_element(self, element: TextElement):
+	def add_links(self, nodes):
+		levels = dict()
+		for n in nodes:
+			if not n.is_word():
+				if n.depth in levels:
+					levels[n.depth].append(n)
+				else:
+					levels[n.depth] = [n]
+		for depth, elements in levels.items():
+			self.add_lexical_links(elements, lambda w: w.pos in [POS.ADJ, POS.ADV, POS.NOUN, POS.VERB], OverlapType.CONTENT_OVERLAP)
+			self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.VERB], OverlapType.TOPIC_OVERLAP)
+			self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.PRON], OverlapType.ARGUMENT_OVERLAP)
+			self.add_semantic_links(elements)
+
+	def add_element(self, element: TextElement) -> List[TextElement]:
 		self.graph.add_node(element)
+		result = [element]
 		if not element.is_sentence():
 			for child in element.components:
-				self.add_element(child)
+				result += self.add_element(child)
 				self.graph.add_edge(child, element, type=EdgeType.PART_OF)
 			self.graph.add_edges_from(zip(element.components[:-1], element.components[1:]), type=EdgeType.ADJACENT)
-	
+		return result
+
 	def add_semantic_links(self, elements: List[TextElement]):
 		for i, a in enumerate(elements[:-1]):
 			for b in elements[i+1:]:
@@ -61,10 +74,11 @@ class CnaGraph:
 					self.graph.add_edge(b, a, type=EdgeType.SEMANTIC, model=model, value=sim)
 		
 	def add_lexical_links(self, elements: List[TextElement], test: Callable[[Word], bool], link_type: OverlapType):
+		words = {element: {word.lemma for word in element.get_words() if test(word)} for element in elements}
 		for i, a in enumerate(elements[:-1]):
 			for b in elements[i+1:]:
-				words_a = {word.lemma for word in a.get_words() if test(word)}
-				words_b = {word.lemma for word in b.get_words() if test(word)}
+				words_a = words[a]
+				words_b = words[b]
 				weight = len(words_a & words_b) / (1e-5 + len(words_a | words_b))
 				self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
 				self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
