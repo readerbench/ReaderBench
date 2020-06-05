@@ -2,36 +2,57 @@ import csv
 import math
 import os
 from heapq import heapify, heappop
-from typing import List, Dict, Iterable
+from typing import Dict, Iterable, List
 
+from joblib import Parallel, delayed
 from rb.cna.cna_graph import CnaGraph
-from rb.complexity.complexity_index import compute_indices, ComplexityIndex
+from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.core.document import Document
 from rb.core.lang import Lang
+from rb.core.meta_document import MetaDocument
 from rb.processings.pipeline.dataset import Dataset, TargetType, Task
-from rb.similarity.vector_model_factory import get_default_model
-from scipy.stats import f_oneway, pearsonr
 from rb.processings.pipeline.estimator import Estimator
-from rb.processings.pipeline.svm import SVM
-from rb.processings.pipeline.svr import SVR
-from rb.processings.pipeline.ridge_regression import RidgeRegression
 from rb.processings.pipeline.mlp import MLP
 from rb.processings.pipeline.random_forrest import RandomForest
+from rb.processings.pipeline.ridge_regression import RidgeRegression
+from rb.processings.pipeline.svm import SVM
+from rb.processings.pipeline.svr import SVR
+from rb.similarity.vector_model import VectorModel
+from rb.similarity.vector_model_factory import get_default_model
+from scipy.stats import f_oneway, pearsonr
+import numpy as np
 
 CLASSIFIERS = [SVM, RandomForest, MLP]
 REGRESSORS = [SVR, RidgeRegression]
-
+        
+ 
+def construct_document(lang: Lang, text: str) -> MetaDocument:
+    sections = ["\n".join(line for line in section.split("\n") if len(line) > 50) for section in text.split("\n\n")]
+    return MetaDocument(lang, sections)
+    
+    
+def compute_features(doc: MetaDocument, model: VectorModel):
+    cna_graph = CnaGraph(docs=doc, models=[model])
+    for section in doc.components:
+        compute_indices(doc=section, cna_graph=cna_graph, parallel=False)     
+    doc.indices = {
+        feature: np.mean([section.indices[feature] for section in doc.components]) 
+        for feature in doc.components[0].indices.keys()
+    }
+        
 def construct_documents(dataset: List[str], lang: Lang) -> List[Document]:
+    print("Loading model..")
     model = get_default_model(lang)
-    result = []
-    for text in dataset:
-        text = "\n".join(line for line in text.split("\n") if len(line) > 50)
-        doc = Document(lang, text)
-        cna_graph = CnaGraph(docs=doc, models=[model])
-        compute_indices(doc=doc, cna_graph=cna_graph)
-        result.append(doc)
-    return result
-
+    print("Constructing documents..")
+    docs = Parallel(n_jobs=1, backend="multiprocessing", prefer="processes")( \
+        delayed(construct_document)(lang, text) \
+        for text in dataset)
+    print("Constructing graphs..")
+    Parallel(n_jobs=-1, prefer="threads")( \
+        delayed(compute_features)(doc, model) \
+        for doc in docs)
+    return docs
+    
 def filter_rare(dataset: Dataset):
     features = []
     for index in dataset.features:
@@ -41,7 +62,7 @@ def filter_rare(dataset: Dataset):
             features.append(index)
     dataset.features = features
 
-def preprocess(folder: str, targets_file: str, limit: int = None) -> Dataset:
+def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) -> Dataset:
     files = {filename.replace(".txt", "").strip(): open(os.path.join(folder, filename), "rt", encoding='utf-8', errors='ignore').read().strip() 
              for filename in os.listdir(folder)
              if not filename.startswith(".")}
@@ -65,10 +86,11 @@ def preprocess(folder: str, targets_file: str, limit: int = None) -> Dataset:
             task.train_values = task.train_values[:limit]
             task.dev_values = task.dev_values[:limit]
     
-    dataset.train_docs = construct_documents(dataset.train_texts, Lang.EN)
-    dataset.dev_docs = construct_documents(dataset.dev_texts, Lang.EN)
+    dataset.train_docs = construct_documents(dataset.train_texts, lang)
+    dataset.dev_docs = construct_documents(dataset.dev_texts, lang)
     dataset.features = list(dataset.train_docs[0].indices.keys())
     filter_rare(dataset)
+    print("Removing colinear..")
     for task in dataset.tasks:
         remove_colinear(dataset, task)
     return dataset
@@ -140,6 +162,3 @@ def grid_search(dataset: Dataset, task: Task) -> Estimator:
             model = estimator(dataset, [task], config)
             acc = model.cross_validation()
             print("{} - {}".format(estimator, acc))
-            
-           
-    

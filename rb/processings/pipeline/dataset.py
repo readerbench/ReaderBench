@@ -110,6 +110,7 @@ class Dataset:
             header = next(reader)
             return [[float(x) for x in row[1:]] for row in reader]
 
+    @staticmethod
     def load(filename: str) -> "Dataset":
         with open(filename, "rb") as f:
             return pickle.load(f)

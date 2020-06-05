@@ -37,7 +37,3 @@ class Block(TextElement):
 
     def get_sentences(self) -> List[Sentence]:
         return self.components
-
-    def __str__(self):
-        return self.text
-

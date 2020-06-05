@@ -5,13 +5,14 @@ import numpy as np
 from rb.cna.edge_type import EdgeType
 from rb.cna.overlap_type import OverlapType
 from rb.core.block import Block
+from rb.core.cscl.community import Community
+from rb.core.cscl.contribution import Contribution
+from rb.core.cscl.conversation import Conversation
 from rb.core.document import Document
 from rb.core.lang import Lang
+from rb.core.meta_document import MetaDocument
 from rb.core.pos import POS
-from rb.core.cscl.community import Community
-from rb.core.cscl.conversation import Conversation
 from rb.core.text_element import TextElement
-from rb.core.cscl.contribution import Contribution
 from rb.core.word import Word
 from rb.similarity.vector_model import VectorModel
 
@@ -22,7 +23,7 @@ class CnaGraph:
 			docs = [docs]
 		self.graph = nx.MultiDiGraph()
 		self.models = models
-		if all(isinstance(doc, Community) for doc in docs):
+		if all(isinstance(doc, Community) or isinstance(doc, MetaDocument) for doc in docs):
 			for doc in docs:
 				self.graph.add_node(doc)
 				for conv in doc.components:
@@ -123,11 +124,15 @@ class CnaGraph:
 		return False
 
 	def compute_block_importance(self) -> Dict[Block, Dict[Block, float]]:
-		block_links = []
-		
-		for a, b, value in self.edges(None, edge_type=EdgeType.SEMANTIC):
-			if isinstance(a, Block) and isinstance(b, Block):
-				block_links.append((a, b, value))
+		block_links = [
+        	(a, b, edge["value"])
+        	for a, nbrsdict in self.graph.adjacency()
+			if isinstance(a, Block)
+			for b, edges in nbrsdict.items()
+			if isinstance(b, Block)
+			for edge in edges.values()
+			if edge["type"] == EdgeType.SEMANTIC
+		]
 
 		mean = np.mean([value for _, _, value in block_links])
 		stdev = np.std([value for _, _, value in block_links])
