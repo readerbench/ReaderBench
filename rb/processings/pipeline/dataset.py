@@ -47,9 +47,8 @@ class Task:
 
 class Dataset:
 
-    def __init__(self, doc_names: List[str], docs: List[str], labels: List[List[str]]):
+    def __init__(self, docs: List[str], labels: List[List[str]]):
         self.docs = docs
-        self.names = doc_names
         self.tasks = self.convert_labels(labels)
         self.train_texts: List[str] = []
         self.dev_texts: List[str] = []
@@ -66,9 +65,7 @@ class Dataset:
         dev_indices = indices[:n_dev]
         train_indices = indices[n_dev:]
         self.train_texts = [self.docs[index] for index in train_indices]
-        self.train_names = [self.names[index] for index in train_indices]
         self.dev_texts = [self.docs[index] for index in dev_indices]
-        self.dev_names = [self.names[index] for index in dev_indices]
         for task in self.tasks:
             task.train_values = [task.values[index] for index in train_indices]
             task.dev_values = [task.values[index] for index in dev_indices]
@@ -98,10 +95,9 @@ class Dataset:
     def save_features(self, filename: str):
         with open(filename, "wt", encoding="utf-8") as f:
             writer = csv.writer(f, delimiter=",")
-            writer.writerow(["filename"] + [repr(index) for index in self.features])
-            
-            for doc, name in zip(self.train_docs + self.dev_docs, self.train_names + self.dev_names):
-                writer.writerow([name] + [doc.indices[index] if index in doc.indices else "" for index in self.features])
+            writer.writerow([repr(index) for index in self.features])
+            for doc in self.train_docs:
+                writer.writerow([doc.indices[index] if index in doc.indices else "" for index in self.features])
 
     def save(self, filename: str):
         with open(filename, "wb") as f:
@@ -114,6 +110,7 @@ class Dataset:
             header = next(reader)
             return [[float(x) for x in row[1:]] for row in reader]
 
+    @staticmethod
     def load(filename: str) -> "Dataset":
         with open(filename, "rb") as f:
             return pickle.load(f)

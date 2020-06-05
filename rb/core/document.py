@@ -32,6 +32,3 @@ class Document(TextElement):
 
     def get_blocks(self) -> List[Block]:
         return self.components
-
-    def __str__(self):
-        return self.text
