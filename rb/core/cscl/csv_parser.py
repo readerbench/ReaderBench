@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict
 import csv
 from dateutil import parser
@@ -30,6 +31,27 @@ TEXT_KEY = 'text'
 USER_KEY = 'user'
 
 class CsvParser:
+
+	@staticmethod
+	def get_json_from_json_file(filename: str) -> Dict:
+		conversation_thread = dict()
+		contribution_list = []
+
+		with open(filename, "rt", encoding='utf-8') as json_file:
+			contribution_list_json = json.load(json_file)
+			for cnt in contribution_list_json:
+				contribution = {
+					ID_KEY: cnt['genid'],
+					PARENT_ID_KEY: cnt["ref"],
+					TIMESTAMP_KEY: int(float(cnt['time'])),
+					USER_KEY: cnt["nickname"],
+					TEXT_KEY: cnt["text"],
+				}
+				contribution_list.append(contribution)
+
+		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+
+		return conversation_thread
 
 	@staticmethod
 	def get_json_from_csv(filename: str) -> Dict:
@@ -149,9 +171,12 @@ def export_textual_complexity(participants: List[Participant], filename: str):
 def test_community_processing():
 	print('Testing Community Processing')
 
-	conv_thread = CsvParser.parse_large_csv('./thread.csv')
+	conv_thread = []
+	for i in range(1, 20):
+		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+		conv_thread.append(conversation)
 
-	community = Community(lang=Lang.EN, container=None, community=[conv_thread])
+	community = Community(lang=Lang.EN, container=None, community=conv_thread)
 	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
 	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
 
@@ -202,9 +227,12 @@ def test_community_processing():
 def test_participant_evaluation():
 	print('Testing English CSV')
 
-	conv_thread = CsvParser.parse_large_csv('./thread.csv')
+	conv_thread = []
+	for i in range(1, 20):
+		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+		conv_thread.append(conversation)
 
-	community = Community(lang=Lang.EN, container=None, community=[conv_thread])
+	community = Community(lang=Lang.EN, container=None, community=conv_thread)
 	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
 	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
 

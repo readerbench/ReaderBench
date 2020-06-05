@@ -2,5 +2,6 @@ fix_py.sh
 thread1.csv
 thread2.csv
 resources/
+jsons/
 individualStats.csv
 textualComplexity.csv
