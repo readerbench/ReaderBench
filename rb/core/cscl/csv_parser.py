@@ -13,10 +13,11 @@ from rb.core.cscl.conversation import Conversation
 from rb.core.cscl.community import Community
 from rb.core.cscl.cscl_indices import CsclIndices
 from rb.cna.cna_graph import CnaGraph
+from rb.core.cscl.participant import Participant
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.similarity.vector_model import VectorModelType
-from rb.processings.cscl.participant_evaluation import ParticipantEvaluation
-from rb.processings.cscl.community_processing import CommunityProcessing
+from rb.processings.cscl.participant_evaluation import *
+from rb.processings.cscl.community_processing import *
 
 from rb.utils.rblogger import Logger
 
@@ -129,43 +130,55 @@ class CsvParser:
 			return {CONTRIBUTIONS_KEY: contributions}
 
 
-def compute_indices(conv: Conversation):
-	participant_list = conv.get_participants()
-	names = list(map(lambda p: p.get_id(), participant_list))
+def export_individual_statistics(participants: List[Participant], filename: str):
+	first = True
 
-	print('Participants are:')
-	print(names)
+	cscl_keys = [CsclIndices.SCORE, CsclIndices.SOCIAL_KB, CsclIndices.NO_CONTRIBUTION, CsclIndices.OUTDEGREE, CsclIndices.INDEGREE,
+				CsclIndices.NO_NEW_THREADS, CsclIndices.NEW_THREADS_OVERALL_SCORE, CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
+				CsclIndices.AVERAGE_LENGTH_NEW_THREADS]
 
-	print('Begin computing indices')
+	with open(filename, 'w') as f:
+		for p in participants:
+			indices = p.indices
+			keys = ['participant'] + [str(k.value) for k in CsclIndices]
+			values = [p.get_id()] + [str(p.get_index(k)) for k in cscl_keys]
 
-	ParticipantEvaluation.evaluate_interaction(conv)
-	ParticipantEvaluation.evaluate_involvement(conv)
-	ParticipantEvaluation.evaluate_used_concepts(conv)
-	ParticipantEvaluation.perform_sna(conv, False)
+			if first:
+				f.write(','.join(keys) + '\n')
+				first = False
 
-	print('Finished computing indices')
+			f.write(','.join(values) + '\n')
+		f.flush()
+		f.close()
 
-	for p in participant_list:
-		print('Printing for participant ' + p.get_id())
+def export_textual_complexity(participants: List[Participant], filename: str):
+	first = True
 
-		print("SCORE  " + str(p.get_index(CsclIndices.SCORE)))
-		print("NO_NOUNS " + str(p.get_index(CsclIndices.NO_NOUNS)))
-		print("NO_VERBS " + str(p.get_index(CsclIndices.NO_VERBS)))
-		print("NO_CONTRIBUTION " + str(p.get_index(CsclIndices.NO_CONTRIBUTION)))
-		print("SOCIAL_KB " + str(p.get_index(CsclIndices.SOCIAL_KB)))
-		print("INDEGREE " + str(p.get_index(CsclIndices.INDEGREE)))
-		print("OUTDEGREE " + str(p.get_index(CsclIndices.OUTDEGREE)))
+	with open(filename, 'w') as f:
+		for p in participants:
+			indices = p.textual_complexity_indices
+			keys = ['participant'] + [str(k) for k in indices.keys()]
+			values = [p.get_id()] + [str(indices[k]) for k in indices.keys()]
 
-		print('---------------------')
+			if first:
+				f.write(','.join(keys) + '\n')
+				first = False
 
-	for n1 in names:
-		for n2 in names:
-			print('Score for ' + n1 + ' ' + n2 + ' is:')
-			print(conv.get_score(n1, n2))
+			f.write(','.join(values) + '\n')
+		f.flush()
+		f.close()
 
-
-def test_community_processing(community: Community):
+def test_community_processing():
 	print('Testing Community Processing')
+
+	conv_thread = []
+	for i in range(1, 20):
+		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+		conv_thread.append(conversation)
+
+	community = Community(lang=Lang.EN, container=None, community=conv_thread)
+	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
 
 	participant_list = community.get_participants()
 	names = list(map(lambda p: p.get_id(), participant_list))
@@ -175,9 +188,10 @@ def test_community_processing(community: Community):
 
 	print('Begin computing indices')
 
-	CommunityProcessing.determine_participant_contributions(community)
-	CommunityProcessing.determine_participation(community)
-	CommunityProcessing.compute_sna_metrics(community)
+	determine_participant_contributions(community)
+	determine_participation(community)
+	compute_sna_metrics(community)
+	# determine_textual_complexity(community)
 
 	print('Finished computing indices')
 
@@ -185,8 +199,6 @@ def test_community_processing(community: Community):
 		print('Printing for participant ' + p.get_id())
 
 		print(p.get_index(CsclIndices.SCORE))
-		print(p.get_index(CsclIndices.NO_NOUNS))
-		print(p.get_index(CsclIndices.NO_VERBS))
 		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
 		print(p.get_index(CsclIndices.SOCIAL_KB))
 		print(p.get_index(CsclIndices.INDEGREE))
@@ -196,6 +208,11 @@ def test_community_processing(community: Community):
 		print(p.get_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
 		print(p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS))
 
+		# print('Printing textual complexity for participant ' + p.get_id())
+		# indices = p.textual_complexity_indices
+		#
+		# for key, value in indices.items():
+		# 	print('Index ' + key + ' is ' + str(value))
 
 		print('---------------------')
 
@@ -204,8 +221,12 @@ def test_community_processing(community: Community):
 			print('Score for ' + n1 + ' ' + n2 + ' is:')
 			print(community.get_score(n1, n2))
 
-def main():
-	# Test community processing - English discussion csv
+	export_individual_statistics(community.get_participants(), './individualStats.csv')
+	# export_textual_complexity(community.get_participants(), './textualComplexity.csv')
+
+def test_participant_evaluation():
+	print('Testing English CSV')
+
 	conv_thread = []
 	for i in range(1, 20):
 		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
@@ -216,25 +237,54 @@ def main():
 	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
 
 	conv = community.get_conversations()[0]
-	conv.container.graph = CnaGraph(docs=[conv], models=[en_coca_word2vec])
-	compute_indices(conv)
-	# test_community_processing(community)
 
-	# Test for English discussion CSV
+	# participant_list = conv.get_participants()
+	participant_list = community.get_participants()
+	names = list(map(lambda p: p.get_id(), participant_list))
 
-	'''
-	print('Testing English CSV')
+	print('Participants are:')
+	print(names)
 
-	conv_thread = CsvParser.parse_large_csv('./thread.csv')
+	print('Begin computing indices')
 
-	community = Community(lang=Lang.EN, container=None, community=[conv_thread])
-	en_coca_word2vec = create_vector_model(Lang.EN, VectorModelType.from_str("word2vec"), "coca")
-	community.graph = CnaGraph(docs=[community], models=[en_coca_word2vec])
+	evaluate_interaction(conv)
+	evaluate_involvement(conv)
+	# evaluate_textual_complexity(conv)
+	perform_sna(conv, False)
 
-	conv = community.get_conversations()[0]
+	print('Finished computing indices')
 
-	compute_indices(conv)
-	'''
+	for p in participant_list:
+		print('Printing for participant ' + p.get_id())
+
+		print(p.get_index(CsclIndices.SCORE))
+		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
+		print(p.get_index(CsclIndices.SOCIAL_KB))
+		print(p.get_index(CsclIndices.INDEGREE))
+		print(p.get_index(CsclIndices.OUTDEGREE))
+
+		# print('Printing textual complexity for participant ' + p.get_id())
+		# indices = p.textual_complexity_indices
+		#
+		# for key, value in indices.items():
+		# 	print('Index ' + key + ' is ' + str(value))
+
+		print('---------------------')
+
+	for n1 in names:
+		for n2 in names:
+			print('Score for ' + n1 + ' ' + n2 + ' is:')
+			print(conv.get_score(n1, n2))
+
+	export_individual_statistics(conv.get_participants(), './individualStats.csv')
+	# export_textual_complexity(conv.get_participants(), './textualComplexity.csv')
+
+def main():
+	# Test community processing - English discussion csv
+	test_community_processing()
+
+	# Test participant evaluation - English discussion csv
+	#test_participant_evaluation()
 
 	# Test for French discussion XML
 
