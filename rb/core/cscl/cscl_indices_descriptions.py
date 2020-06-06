@@ -1,5 +1,5 @@
 from enum import Enum, unique
-
+ 
 @unique
 class CsclIndicesDescriptions(Enum):
     INTER_ANIMATION_DEGREE = 'Degree of inter-animation'
