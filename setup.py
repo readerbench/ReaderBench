@@ -109,6 +109,7 @@ setuptools.setup(
         'pyLDAvis',
         'unidecode',
         'xlrd',
+        'xmltodict',
       ],
     extras_require={
         "tf": ["tensorflow>=2"],
