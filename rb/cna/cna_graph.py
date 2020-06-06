@@ -37,7 +37,6 @@ class CnaGraph:
 		
 		self.importance = self.compute_importance()
 
-		# if docs[0].lang == Lang.EN:
 		self.add_coref_links()
 		self.add_explicit_links()
 		self.block_importance = self.compute_block_importance()

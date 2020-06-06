@@ -96,7 +96,7 @@ class Dataset:
         with open(filename, "wt", encoding="utf-8") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow([repr(index) for index in self.features])
-            for doc in self.train_docs:
+            for doc in self.docs:
                 writer.writerow([doc.indices[index] if index in doc.indices else "" for index in self.features])
 
     def save(self, filename: str):
