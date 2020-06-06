@@ -35,12 +35,12 @@ def compute_features(doc: MetaDocument, model: VectorModel):
     cna_graph = CnaGraph(docs=doc, models=[model])
     for section in doc.components:
         compute_indices(doc=section, cna_graph=cna_graph, parallel=False)     
-    doc.indices = {
+    return {
         feature: np.mean([section.indices[feature] for section in doc.components]) 
         for feature in doc.components[0].indices.keys()
     }
         
-def construct_documents(dataset: List[str], lang: Lang) -> List[Document]:
+def construct_documents(dataset: List[str], lang: Lang) -> List[Dict[ComplexityIndex, float]]:
     print("Loading model..")
     model = get_default_model(lang)
     print("Constructing documents..")
@@ -48,15 +48,15 @@ def construct_documents(dataset: List[str], lang: Lang) -> List[Document]:
         delayed(construct_document)(lang, text) \
         for text in dataset)
     print("Constructing graphs..")
-    Parallel(n_jobs=-1, prefer="threads")( \
+    return Parallel(n_jobs=-1, prefer="threads")( \
         delayed(compute_features)(doc, model) \
         for doc in docs)
-    return docs
+
     
 def filter_rare(dataset: Dataset):
     features = []
     for index in dataset.features:
-        values = [doc.indices[index] for doc in dataset.train_docs]
+        values = [indices[index] for indices in dataset.train_features]
         zeros = sum(1 for val in values if val == 0)
         if zeros / len(values) < 0.2:
             features.append(index)
@@ -66,6 +66,7 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
     files = {filename.replace(".txt", "").strip(): open(os.path.join(folder, filename), "rt", encoding='utf-8', errors='ignore').read().strip() 
              for filename in os.listdir(folder)
              if not filename.startswith(".")}
+    names = []
     texts = []
     targets = []
     with open(targets_file, "rt", encoding='utf-8') as f:
@@ -76,19 +77,16 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
             if filename not in files:
                 print(filename)
                 continue
+            names.append(filename)
             texts.append(files[filename])
             targets.append(line[1:])
-    dataset = Dataset(texts, targets)
-    if limit is not None:
-        dataset.train_texts = dataset.train_texts[:limit]
-        dataset.dev_texts = dataset.dev_texts[:limit]
-        for task in dataset.tasks:
-            task.train_values = task.train_values[:limit]
-            task.dev_values = task.dev_values[:limit]
+            if limit is not None and len(names) == limit:
+                break
+    dataset = Dataset(names, texts, targets)
     
-    dataset.train_docs = construct_documents(dataset.train_texts, lang)
-    dataset.dev_docs = construct_documents(dataset.dev_texts, lang)
-    dataset.features = list(dataset.train_docs[0].indices.keys())
+    dataset.train_features = construct_documents(dataset.train_texts, lang)
+    dataset.dev_features = construct_documents(dataset.dev_texts, lang)
+    dataset.features = list(dataset.train_features[0].keys())
     filter_rare(dataset)
     print("Removing colinear..")
     for task in dataset.tasks:
@@ -97,7 +95,7 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
     # dataset.save_features("features.csv")
 
 def correlation_with_targets(feature: ComplexityIndex, dataset: Dataset, task: Task) -> float:
-    values = [doc.indices[feature] for doc in dataset.train_docs]
+    values = [indices[feature] for indices in dataset.train_features]
     if task.type is TargetType.FLOAT:
         corr, p = pearsonr(values, task.train_values)
         return abs(corr)
@@ -113,8 +111,8 @@ def remove_colinear(dataset: Dataset, task: Task) -> None:
     heap = []
     for i, a in enumerate(dataset.features[:-1]):
         for j, b in enumerate(dataset.features[i+1:]):
-            values_a = [doc.indices[a] for doc in dataset.train_docs]
-            values_b = [doc.indices[b] for doc in dataset.train_docs]
+            values_a = [indices[a] for indices in dataset.train_features]
+            values_b = [indices[b] for indices in dataset.train_features]
             corr, p = pearsonr(values_a, values_b)
             if math.isnan(corr):
                 continue
