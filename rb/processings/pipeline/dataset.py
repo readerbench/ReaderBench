@@ -57,11 +57,9 @@ class Dataset:
         self.features: List[ComplexityIndex] = []
         self.train_features: List[Dict[ComplexityIndex, float]] = []
         self.dev_features: List[Dict[ComplexityIndex, float]] = []
-        
+        self.all_features: List[Dict[ComplexityIndex, float]] = []
         self.train_indices: List[int] = []
         self.dev_indices: List[int] = []
-        self.split(0.2)
-        self.expand()
     
     def split(self, dev_ratio: float):
         indices = list(range(len(self.texts)))
@@ -69,10 +67,13 @@ class Dataset:
         n_dev = int(dev_ratio * len(self.texts))
         self.dev_indices = indices[:n_dev]
         self.train_indices = indices[n_dev:]
+        self.expand()
     
     def expand(self):
         self.train_texts = [self.texts[index] for index in self.train_indices]
         self.dev_texts = [self.texts[index] for index in self.dev_indices]
+        self.train_features = [self.all_features[index] for index in self.train_indices]
+        self.dev_features = [self.all_features[index] for index in self.dev_indices]
         for task in self.tasks:
             task.train_values = [task.values[index] for index in self.train_indices]
             task.dev_values = [task.values[index] for index in self.dev_indices]
@@ -96,13 +97,11 @@ class Dataset:
         return tasks
 
     def save_features(self, filename: str):
-        features_dict = {idx: self.train_features[i] for i, idx in enumerate(self.train_indices)}
-        features_dict.update({idx: self.dev_features[i] for i, idx in enumerate(self.dev_indices)})
         with open(filename, "wt", encoding="utf-8") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow(["name"] + [repr(index) for index in self.features])
-            for i, name in enumerate(self.names):
-                writer.writerow([name] + [features_dict[i][index] for index in self.features])
+            for name, features in zip(self.names, self.all_features):
+                writer.writerow([name] + [features[index] for index in self.features])
 
     def save(self, filename: str):
         with open(filename, "wb") as f:

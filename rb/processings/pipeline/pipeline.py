@@ -31,7 +31,8 @@ def construct_document(lang: Lang, text: str) -> MetaDocument:
     return MetaDocument(lang, sections)
     
     
-def compute_features(doc: MetaDocument, model: VectorModel):
+def compute_features(doc: MetaDocument):
+    model = get_default_model(doc.lang)
     cna_graph = CnaGraph(docs=doc, models=[model])
     for section in doc.components:
         compute_indices(doc=section, cna_graph=cna_graph, parallel=False)     
@@ -41,15 +42,13 @@ def compute_features(doc: MetaDocument, model: VectorModel):
     }
         
 def construct_documents(dataset: List[str], lang: Lang) -> List[Dict[ComplexityIndex, float]]:
-    print("Loading model..")
-    model = get_default_model(lang)
     print("Constructing documents..")
-    docs = Parallel(n_jobs=1, backend="multiprocessing", prefer="processes")( \
+    docs = Parallel(n_jobs=1)( \
         delayed(construct_document)(lang, text) \
         for text in dataset)
     print("Constructing graphs..")
-    return Parallel(n_jobs=-1, prefer="threads")( \
-        delayed(compute_features)(doc, model) \
+    return Parallel(n_jobs=-1, prefer="processes")( \
+        delayed(compute_features)(doc) \
         for doc in docs)
 
     
@@ -84,9 +83,9 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
                 break
     dataset = Dataset(names, texts, targets)
     
-    dataset.train_features = construct_documents(dataset.train_texts, lang)
-    dataset.dev_features = construct_documents(dataset.dev_texts, lang)
-    dataset.features = list(dataset.train_features[0].keys())
+    dataset.all_features = construct_documents(dataset.texts, lang)
+    dataset.features = list(dataset.all_features[0].keys())
+    dataset.split(0.2)
     filter_rare(dataset)
     print("Removing colinear..")
     for task in dataset.tasks:
