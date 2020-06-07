@@ -1,21 +1,20 @@
 
-from multiprocessing import Pool, cpu_count
 from typing import Callable, Iterable, List, Tuple
 
+from rb.cna.cna_graph import CnaGraph
 from rb.complexity.index_category import IndexCategory
-from rb.complexity.measure_function import MeasureFunction, average, standard_deviation
-from rb.core.lang import Lang
+from rb.complexity.measure_function import (MeasureFunction, average,
+                                            standard_deviation)
 from rb.core.document import Document
+from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
-from rb.utils.rblogger import Logger
 from rb.similarity.lda import LDA
 from rb.similarity.lsa import LSA
-from rb.similarity.word2vec import Word2Vec
-from joblib import Parallel, delayed
 from rb.similarity.vector_model import VectorModel
-from rb.cna.cna_graph import CnaGraph
+from rb.similarity.word2vec import Word2Vec
 from rb.utils.downloader import download_wordlist
+from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
 
@@ -102,15 +101,9 @@ def compute_index(index: ComplexityIndex, element: TextElement) -> float:
     return index.process(element)
 
 # computed indices and saves for each TextElement in indices dictionary
-def compute_indices(doc: Document, cna_graph: CnaGraph = None, parallel = True):
+def compute_indices(doc: Document, cna_graph: CnaGraph = None):
     logger.info('Starting computing all indices for {0} type element'.format(type(doc).__name__))
     download_wordlist(doc.lang)
-    num_cores = cpu_count()
-    if parallel:
-        Parallel(n_jobs=num_cores, prefer="threads")(delayed(compute_index)(index, doc) \
-            for cat in IndexCategory for index in cat.create(doc.lang, cna_graph))
-    else:
-        for cat in IndexCategory:
-            for index in cat.create(doc.lang, cna_graph):
-                compute_index(index, doc)
-
+    for cat in IndexCategory:
+        for index in cat.create(doc.lang, cna_graph):
+            compute_index(index, doc)

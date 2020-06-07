@@ -4,14 +4,16 @@ from typing import Dict, Iterable, List, Union
 
 import neuralcoref
 import spacy
-from nltk import sent_tokenize
+from nltk.tokenize import sent_tokenize
 from rb.core.lang import Lang
 from rb.core.pos import POS
 from rb.utils.downloader import check_spacy_version, download_spacy_model
 from rb.utils.rblogger import Logger
 from spacy.lang.ro import Romanian
 from spacy.language import Language
-from spacy.tokens import Token, Doc, Span
+from spacy.tokens import Doc, Span, Token
+
+from sentence_splitter import SentenceSplitter
 
 # JSON Example localhost:8081/spacy application/json
 # {
@@ -34,6 +36,11 @@ models = {
 
 custom_models = {Lang.RO, Lang.RU}
 
+splitters = {
+    Lang.RO: SentenceSplitter('ro'),
+    Lang.RU: SentenceSplitter('ru'),
+}
+
 normalization = {
     'ro': [
         (re.compile("ş"), "ș"),
@@ -43,6 +50,8 @@ normalization = {
         (re.compile("(\w)î(\w)"), "\g<1>â\g<2>")
     ]
 }
+
+re_missing_space = re.compile("([a-z]+)\.([A-Z][a-z]+)")
 
 def convertToPenn(pos: str, lang: Lang) -> str:
     if lang == Lang.FR:
@@ -173,8 +182,9 @@ class SpacyParser:
         # return [(token.text, token.lemma_) for token in doc]
 
     def parse_block(self, block: str, lang: Lang) -> List[Span]:
+        block = re.sub(re_missing_space, r"\1. \2", block)
         if lang in custom_models:
-            return [self.parse(sent, lang) for sent in sent_tokenize(block)]
+            return [self.parse(sent, lang) for sent in splitters[lang].split(block)]
         else:
             doc = self.parse(block, lang)
             return [sent for sent in doc.sents]

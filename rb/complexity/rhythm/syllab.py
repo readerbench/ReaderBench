@@ -62,3 +62,11 @@ class Syllab(ComplexityIndex):
         else:
             logger.error('wrong reduce depth value.')
         return values
+    
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key != "pyphen"
+        }
+        

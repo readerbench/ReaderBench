@@ -83,7 +83,28 @@ class Dataset:
         del self.texts
         del self.train_texts
         del self.dev_texts
-    
+        self.all_features = [
+            {
+                feature: indices[feature]
+                for feature in self.features
+            }
+            for indices in self.all_features
+        ]
+        self.train_features = [
+            {
+                feature: indices[feature]
+                for feature in self.features
+            }
+            for indices in self.train_features
+        ]
+        self.dev_features = [
+            {
+                feature: indices[feature]
+                for feature in self.features
+            }
+            for indices in self.dev_features
+        ]
+        
     def convert_labels(self, labels: List[List[str]]) -> List[Task]:
         values = zip(*labels)
         tasks = []

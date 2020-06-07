@@ -46,7 +46,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.7.13',
+    version='0.8.1',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -93,6 +93,7 @@ setuptools.setup(
         'requests',
         's3transfer',
         'scipy',
+        'sentence-splitter',
         'six',
         'sklearn',
         'smart-open',

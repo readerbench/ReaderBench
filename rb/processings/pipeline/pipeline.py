@@ -4,6 +4,7 @@ import os
 from heapq import heapify, heappop
 from typing import Dict, Iterable, List
 
+import numpy as np
 from joblib import Parallel, delayed
 from rb.cna.cna_graph import CnaGraph
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
@@ -19,11 +20,13 @@ from rb.processings.pipeline.svm import SVM
 from rb.processings.pipeline.svr import SVR
 from rb.similarity.vector_model import VectorModel
 from rb.similarity.vector_model_factory import get_default_model
+from rb.utils.rblogger import Logger
 from scipy.stats import f_oneway, pearsonr
-import numpy as np
 
 CLASSIFIERS = [SVM, RandomForest, MLP]
 REGRESSORS = [SVR, RidgeRegression]
+    
+logger = Logger.get_logger()
         
  
 def construct_document(lang: Lang, text: str) -> MetaDocument:
@@ -35,18 +38,18 @@ def compute_features(doc: MetaDocument):
     model = get_default_model(doc.lang)
     cna_graph = CnaGraph(docs=doc, models=[model])
     for section in doc.components:
-        compute_indices(doc=section, cna_graph=cna_graph, parallel=False)     
+        compute_indices(doc=section, cna_graph=cna_graph)     
     return {
         feature: np.mean([section.indices[feature] for section in doc.components]) 
         for feature in doc.components[0].indices.keys()
     }
         
 def construct_documents(dataset: List[str], lang: Lang) -> List[Dict[ComplexityIndex, float]]:
-    print("Constructing documents..")
+    logger.info("Constructing documents..")
     docs = Parallel(n_jobs=1)( \
         delayed(construct_document)(lang, text) \
         for text in dataset)
-    print("Constructing graphs..")
+    logger.info("Constructing graphs..")
     return Parallel(n_jobs=-1, prefer="processes")( \
         delayed(compute_features)(doc) \
         for doc in docs)
@@ -87,7 +90,7 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
     dataset.features = list(dataset.all_features[0].keys())
     dataset.split(0.2)
     filter_rare(dataset)
-    print("Removing colinear..")
+    logger.info("Removing colinear..")
     for task in dataset.tasks:
         remove_colinear(dataset, task)
     return dataset
@@ -106,7 +109,6 @@ def correlation_with_targets(feature: ComplexityIndex, dataset: Dataset, task: T
     return f_oneway(*values_per_class.values())
 
 def remove_colinear(dataset: Dataset, task: Task) -> None:
-    # features = list(zip(*Dataset.load_features("features.csv")))
     heap = []
     for i, a in enumerate(dataset.features[:-1]):
         for j, b in enumerate(dataset.features[i+1:]):
