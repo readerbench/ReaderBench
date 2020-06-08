@@ -13,11 +13,11 @@ class BertClassifier(Classifier, Regressor):
 
     def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, object]):
         super(Classifier, self).__init__(dataset, tasks, params)
-        self.max_seq_length = 128
+        self.max_seq_length = 256
         self.bert = BertWrapper(dataset.lang, max_seq_len=self.max_seq_length)
         self.tasks = tasks
-        self.model = self.create_model()
-        self.bert.load_weights()
+        # self.model = self.create_model()
+        # self.bert.load_weights()
         
     def create_model(self) -> keras.Model:
         inputs, bert_output = self.bert.create_inputs_and_model()
@@ -54,13 +54,23 @@ class BertClassifier(Classifier, Regressor):
         inputs = self.bert.process_input(self.dataset.train_texts)
         inputs.append(np.array(features))
         outputs = [np.array(task.get_train_targets()) for task in self.tasks]
+        best = (0, float('inf'))
+        losses = []
         for train_index, dev_index in kf.split(inputs[0]):
             train_inputs = [input[train_index] for input in inputs]
             dev_inputs = [input[dev_index] for input in inputs]
             train_outputs = [output[train_index] for output in outputs]
             dev_outputs = [output[dev_index] for output in outputs]
+            self.model = self.create_model()
+            self.bert.load_weights()
             history = self.model.fit(train_inputs, train_outputs, batch_size=32, epochs=10, validation_data=[dev_inputs, dev_outputs])
-            print(history.history.keys())
+            epoch, loss = min(enumerate(history.history["val_loss"]), key=lambda x: x[1])
+            losses.append(loss)
+            if loss < best[1]:
+                best = (epoch, loss)
+        print(best)
+        print(np.mean(losses))
+        return best
             
     def train(self):
         train_features = [[doc.indices[feature] for feature in self.dataset.features]
