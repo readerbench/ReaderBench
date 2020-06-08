@@ -1,13 +1,16 @@
 
-from typing import List, Tuple, Dict
-from enum import Enum, auto
-import random
 import copy
-from rb.core.document import Document
-from rb.complexity.complexity_index import ComplexityIndex
 import csv
 import pickle
+import random
+from enum import Enum, auto
+from typing import Dict, List, Tuple
+
 import numpy as np
+from rb.complexity.complexity_index import ComplexityIndex
+from rb.core.document import Document
+from rb.core.lang import Lang
+
 
 class TargetType(Enum):
     FLOAT = auto()
@@ -48,7 +51,8 @@ class Task:
 
 class Dataset:
 
-    def __init__(self, names: List[str], texts: List[str], labels: List[List[str]]):
+    def __init__(self, lang: Lang, names: List[str], texts: List[str], labels: List[List[str]]):
+        self.lang = lang
         self.names = names
         self.texts = texts
         self.tasks = self.convert_labels(labels)
@@ -80,9 +84,6 @@ class Dataset:
             task.values = None
     
     def reduce_size(self):
-        del self.texts
-        del self.train_texts
-        del self.dev_texts
         self.all_features = [
             {
                 feature: indices[feature]
@@ -153,7 +154,3 @@ def is_int(value: str) -> bool:
     except ValueError:
         return False
     return True
-
-        
-
-

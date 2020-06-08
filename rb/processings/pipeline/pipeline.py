@@ -13,7 +13,7 @@ from rb.core.lang import Lang
 from rb.core.meta_document import MetaDocument
 from rb.processings.pipeline.dataset import Dataset, TargetType, Task
 from rb.processings.pipeline.estimator import Estimator
-from rb.processings.pipeline.mlp import MLP
+from rb.processings.pipeline.mlp import MLPClassifier, MLPRegressor
 from rb.processings.pipeline.random_forrest import RandomForest
 from rb.processings.pipeline.ridge_regression import RidgeRegression
 from rb.processings.pipeline.svm import SVM
@@ -22,9 +22,10 @@ from rb.similarity.vector_model import VectorModel
 from rb.similarity.vector_model_factory import get_default_model
 from rb.utils.rblogger import Logger
 from scipy.stats import f_oneway, pearsonr
+from rb.processings.pipeline.bert_classifier import BertClassifier
 
-CLASSIFIERS = [SVM, RandomForest, MLP]
-REGRESSORS = [SVR, RidgeRegression]
+CLASSIFIERS = [SVM, RandomForest, MLPClassifier]
+REGRESSORS = [SVR, RidgeRegression, MLPRegressor]
     
 logger = Logger.get_logger()
         
@@ -84,7 +85,8 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
             targets.append(line[1:])
             if limit is not None and len(names) == limit:
                 break
-    dataset = Dataset(names, texts, targets)
+    return texts
+    dataset = Dataset(lang, names, texts, targets)
     
     dataset.all_features = construct_documents(dataset.texts, lang)
     dataset.features = list(dataset.all_features[0].keys())
@@ -134,13 +136,15 @@ def remove_colinear(dataset: Dataset, task: Task) -> None:
                 task.mask[i] = False
 
 
-def next_config(parameters: Dict[str, List]) -> Iterable[Dict[str, str]]:
+def next_config(estimator, parameters: Dict[str, List]) -> Iterable[Dict[str, str]]:
     solution  = [-1] * len(parameters)
     keys = list(parameters.keys())
     current = 0
     while current >= 0:
         if current == len(parameters):
-            yield {keys[i]: parameters[keys[i]][j] for i, j in enumerate(solution)}
+            config = {keys[i]: parameters[keys[i]][j] for i, j in enumerate(solution)}
+            if estimator.valid_config(config):
+                yield config
             current -= 1
         if solution[current] == len(parameters[keys[current]]) - 1:
             solution[current] = -1
@@ -153,11 +157,30 @@ def next_config(parameters: Dict[str, List]) -> Iterable[Dict[str, str]]:
 def grid_search(dataset: Dataset, task: Task) -> Estimator:
     if task.type is TargetType.FLOAT:
         estimators = REGRESSORS
+        default_best = (None, float('inf'))
+        better = lambda a, b: a < b
     else:
         estimators = CLASSIFIERS
+        default_best = (None, 0)
+        better = lambda a, b: a > b
+    results = []    
     for estimator in estimators:
         parameters = estimator.parameters()
-        for config in next_config(parameters):
+        best = default_best
+        for config in next_config(estimator, parameters):
             model = estimator(dataset, [task], config)
             acc = model.cross_validation()
-            print("{} - {}".format(estimator, acc))
+            if better(acc, best[1]):
+                best = (model, acc)
+            print(f"{model} - {acc}")
+        model = best[0]
+        score = model.evaluate()
+        results.append((model, score))
+    return results
+
+def bert_grid_search(dataset: Dataset) -> BertClassifier:
+    parameters = BertClassifier.parameters()
+    for config in next_config(BertClassifier, parameters):
+        model = BertClassifier(dataset, dataset.tasks, config)
+        model.cross_validation()
+    
