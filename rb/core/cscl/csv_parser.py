@@ -1,4 +1,5 @@
 import json
+import pathlib
 from typing import List, Dict
 import csv
 from dateutil import parser
@@ -29,6 +30,8 @@ PARENT_ID_KEY = 'parent_id'
 TIMESTAMP_KEY = 'timestamp'
 TEXT_KEY = 'text'
 USER_KEY = 'user'
+
+JSONS_PATH = './jsons/'
 
 class CsvParser:
 
@@ -171,9 +174,14 @@ def export_textual_complexity(participants: List[Participant], filename: str):
 def test_community_processing():
 	print('Testing Community Processing')
 
+	count_jsons = 0
+	for path in pathlib.Path(JSONS_PATH).iterdir():
+		if path.is_file():
+			count_jsons = count_jsons + 1
+
 	conv_thread = []
-	for i in range(1, 20):
-		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+	for i in range(1, count_jsons + 1):
+		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
@@ -227,9 +235,14 @@ def test_community_processing():
 def test_participant_evaluation():
 	print('Testing English CSV')
 
+	count_jsons = 0
+	for path in pathlib.Path(JSONS_PATH).iterdir():
+		if path.is_file():
+			count_jsons = count_jsons + 1
+
 	conv_thread = []
-	for i in range(1, 20):
-		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+	for i in range(1, count_jsons + 1):
+		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
