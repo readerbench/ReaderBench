@@ -85,7 +85,6 @@ def preprocess(folder: str, targets_file: str, lang: Lang, limit: int = None) ->
             targets.append(line[1:])
             if limit is not None and len(names) == limit:
                 break
-    return texts
     dataset = Dataset(lang, names, texts, targets)
     
     dataset.all_features = construct_documents(dataset.texts, lang)
@@ -146,6 +145,8 @@ def next_config(estimator, parameters: Dict[str, List]) -> Iterable[Dict[str, st
             if estimator.valid_config(config):
                 yield config
             current -= 1
+        if current < 0:
+            break
         if solution[current] == len(parameters[keys[current]]) - 1:
             solution[current] = -1
             current -= 1
@@ -180,7 +181,15 @@ def grid_search(dataset: Dataset, task: Task) -> Estimator:
 
 def bert_grid_search(dataset: Dataset) -> BertClassifier:
     parameters = BertClassifier.parameters()
+    best = (None, 0, float('inf'))
     for config in next_config(BertClassifier, parameters):
         model = BertClassifier(dataset, dataset.tasks, config)
-        model.cross_validation()
+        epoch, loss = model.cross_validation()
+        if loss < best[2]:
+            best = (model, epoch, loss)
+    model, epoch, loss = best
+    print(f"Best model after {epoch} epochs with loss={loss}")
+    scores = model.train(epoch)
+    print(scores)
+    return model
     
