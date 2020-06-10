@@ -19,6 +19,7 @@ from rb.similarity.vector_model_factory import create_vector_model
 from rb.similarity.vector_model import VectorModelType
 from rb.processings.cscl.participant_evaluation import *
 from rb.processings.cscl.community_processing import *
+from rb.processings.keywords.keywords_extractor import *
 
 from rb.utils.rblogger import Logger
 
@@ -291,12 +292,49 @@ def test_participant_evaluation():
 	export_individual_statistics(conv.get_participants(), './individualStats.csv')
 	export_textual_complexity(conv.get_participants(), './textualComplexity.csv')
 
+
+def keyword_extraction():
+	print('Keyword Extraction')
+
+	count_jsons = 0
+	for path in pathlib.Path(JSONS_PATH).iterdir():
+		if path.is_file():
+			count_jsons = count_jsons + 1
+
+	conv_thread = []
+	text_corpora = ""
+	for i in range(1, count_jsons + 1):
+		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
+		for contribution in conversation:
+			text = contribution['text']
+			text_corpora = text_corpora + " " + text
+		conv_thread.append(conversation)
+
+	keyword_extractor = KeywordExtractor()
+	keyword_list = keyword_extractor.extract_keywords(text_corpora, lang= Lang.EN)
+	keyword_heatmap = keyword_extractor.keywords_heatmap(text_corpora, lang=Lang.EN)
+	keyword_graph = keyword_extractor.transform_for_visualization(keyword_list, lang=Lang.EN)
+
+	print('-----Keyword Heatmap-----')
+	print(keyword_heatmap)
+	print('---------------------')
+
+	print('------Keyword Graph-------')
+	print(keyword_graph)
+	print('---------------')
+
+
+
+
 def main():
 	# Test community processing - English discussion csv
 	test_community_processing()
 
 	# Test participant evaluation - English discussion csv
 	#test_participant_evaluation()
+
+	#Test Keyword Extraction - English
+	# keyword_extraction()
 
 	# Test for French discussion XML
 

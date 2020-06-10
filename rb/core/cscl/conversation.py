@@ -194,8 +194,8 @@ class Conversation(TextElement):
 		i = 0
 		for contribution in self.components:
 			left = len(contribution.text)
-			if "\n" in sentences[i].text[:-1]:
-				print("aici")
+			# if "\n" in sentences[i].text[:-1]:
+			# 	print("aici")
 			while i < len(sentences) and len(sentences[i].text) <= left:
 				contribution.add_sentence(sentences[i])
 				left -= len(sentences[i].text)
