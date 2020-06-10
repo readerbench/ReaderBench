@@ -63,6 +63,8 @@ def str_to_lang(s: str) -> Lang:
         return Lang.RO
     elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
         return Lang.EN
+    elif s.strip() == "fr" or s.strip() == "fra" or s.strip() == "fre" or s.strip() == "french":
+        return Lang.FR
     elif s.strip() == "es" or s.strip() == "esp" or s.strip() == "spanish":
         return Lang.ES
     elif s.strip() == "ru" or s.strip() == "rus" or s.strip() == "russian":
