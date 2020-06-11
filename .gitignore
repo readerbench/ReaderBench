@@ -140,6 +140,7 @@ testem.log
 /models 
 /resources
 /summaries
+jsons
 
 # System Files
 .DS_Store
