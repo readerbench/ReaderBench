@@ -1,9 +1,13 @@
-from rb.processings.pipeline.dataset import Dataset, Task
-from rb.core.document import Document
+from typing import Dict, List
+
 import numpy as np
-from typing import List, Dict
-from sklearn.model_selection import cross_val_score
+from rb.complexity.complexity_index import ComplexityIndex
+from rb.core.document import Document
+from rb.processings.pipeline.dataset import Dataset, Task
 from sklearn.base import BaseEstimator
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score, make_scorer, mean_squared_error
+
 
 class Estimator:
     def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, str]):
@@ -12,33 +16,45 @@ class Estimator:
         self.model: BaseEstimator = None
         self.scoring = "accuracy"
 
-    def predict(self, doc: Document):
-        pass
+    def predict(self, indices: Dict[ComplexityIndex, float]):
+        return self.model.predict(self.construct_input(indices))
 
-    def construct_input(self, doc: Document) -> np.ndarray:
-        result = [doc.indices[feature]
+    def construct_input(self, indices: Dict[ComplexityIndex, float]) -> np.ndarray:
+        result = [indices[feature]
                   for i, feature in enumerate(self.dataset.features)
                   if self.tasks[0].mask[i]]
         return np.array(result)
 
     def cross_validation(self, n=5) -> float:
-        x = [self.construct_input(doc) for doc in self.dataset.train_docs]
-        y = self.tasks[0].get_targets()
-        scores = cross_val_score(self.model, x, y, scoring=self.scoring)
+        x = [self.construct_input(indices) for indices in self.dataset.train_features]
+        y = self.tasks[0].get_train_targets()
+        scores = cross_val_score(self.model, x, y, scoring=make_scorer(self.scoring), cv=n)
         return scores.mean()
+    
+    def evaluate(self) -> float:
+        x = [self.construct_input(indices) for indices in self.dataset.train_features]
+        y = self.tasks[0].get_train_targets()
+        self.model.fit(x, y)
+        x = [self.construct_input(indices) for indices in self.dataset.dev_features]
+        y = self.tasks[0].get_dev_targets()
+        predicted = self.model.predict(x)
+        return self.scoring(y, predicted)
 
     @classmethod
     def parameters(cls) -> Dict[str, List]:
         return {}
+    
+    @classmethod
+    def valid_config(cls, config) -> bool:
+        return True
 
 class Classifier(Estimator):
     def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, str]):
         super().__init__(dataset, tasks, params)
-        self.scoring = "accuracy"
+        self.scoring = accuracy_score
 
 class Regressor(Estimator):
     def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, str]):
         super().__init__(dataset, tasks, params)
-        self.scoring = "neg_root_mean_squared_error"
-
+        self.scoring = mean_squared_error
 

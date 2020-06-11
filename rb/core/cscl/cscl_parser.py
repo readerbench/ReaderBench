@@ -35,104 +35,98 @@ USER_KEY = 'user'
 
 JSONS_PATH = './jsons/'
 
-class CsvParser:
+def get_json_from_json_file(filename: str) -> Dict:
+    conversation_thread = dict()
+    contribution_list = []
 
-	@staticmethod
-	def get_json_from_json_file(filename: str) -> Dict:
-		conversation_thread = dict()
-		contribution_list = []
+    with open(filename, "rt", encoding='utf-8') as json_file:
+        contribution_list_json = json.load(json_file)
+        for cnt in contribution_list_json:
+            contribution = {
+                ID_KEY: cnt['genid'],
+                PARENT_ID_KEY: cnt["ref"],
+                TIMESTAMP_KEY: int(float(cnt['time'])),
+                USER_KEY: cnt["nickname"],
+                TEXT_KEY: cnt["text"],
+            }
+            contribution_list.append(contribution)
 
-		with open(filename, "rt", encoding='utf-8') as json_file:
-			contribution_list_json = json.load(json_file)
-			for cnt in contribution_list_json:
-				contribution = {
-					ID_KEY: cnt['genid'],
-					PARENT_ID_KEY: cnt["ref"],
-					TIMESTAMP_KEY: int(float(cnt['time'])),
-					USER_KEY: cnt["nickname"],
-					TEXT_KEY: cnt["text"],
-				}
-				contribution_list.append(contribution)
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    return conversation_thread
 
-		return conversation_thread
+def get_json_from_csv(filename: str) -> Dict:
+    conversation_thread = dict()
+    contribution_list = []
 
-	@staticmethod
-	def get_json_from_csv(filename: str) -> Dict:
-		conversation_thread = dict()
-		contribution_list = []
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        first = True			
 
-		with open(filename) as csv_file:
-			csv_reader = csv.reader(csv_file, delimiter=',')
-			first = True			
+        for row in csv_reader:
+            if first:
+                first = False
+            else:
+                contribution = dict()
 
-			for row in csv_reader:
-				if first:
-					first = False
-				else:
-					contribution = dict()
+                contribution[ID_KEY] = row[0]
+                contribution[PARENT_ID_KEY] = row[1]
+                contribution[USER_KEY] = row[2]
+                contribution[TEXT_KEY] = row[3]
+                contribution[TIMESTAMP_KEY] = row[4]
 
-					contribution[ID_KEY] = row[0]
-					contribution[PARENT_ID_KEY] = row[1]
-					contribution[USER_KEY] = row[2]
-					contribution[TEXT_KEY] = row[3]
-					contribution[TIMESTAMP_KEY] = row[4]
+                contribution_list.append(contribution)
 
-					contribution_list.append(contribution)
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    return conversation_thread
 
-		return conversation_thread
+def parse_large_csv(filename: str) -> Dict:
+    conversation_thread = dict()
+    contribution_list = []
 
-	@staticmethod
-	def parse_large_csv(filename: str) -> Dict:
-		conversation_thread = dict()
-		contribution_list = []
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        first = True			
 
-		with open(filename) as csv_file:
-			csv_reader = csv.reader(csv_file, delimiter=',')
-			first = True			
+        for row in csv_reader:
+            if first:
+                first = False
+            else:
+                contribution = dict()
 
-			for row in csv_reader:
-				if first:
-					first = False
-				else:
-					contribution = dict()
+                contribution[ID_KEY] = row[0]
+                contribution[PARENT_ID_KEY] = row[1]
+                if row[1] == '':
+                    contribution[PARENT_ID_KEY] = '-1'
 
-					contribution[ID_KEY] = row[0]
-					contribution[PARENT_ID_KEY] = row[1]
-					if row[1] == '':
-						contribution[PARENT_ID_KEY] = '-1'
+                contribution[USER_KEY] = row[2]
+                contribution[TEXT_KEY] = row[6]
 
-					contribution[USER_KEY] = row[2]
-					contribution[TEXT_KEY] = row[6]
+                contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
 
-					contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
+                contribution_list.append(contribution)
 
-					contribution_list.append(contribution)
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-		conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    return conversation_thread
 
-		return conversation_thread
+def load_from_xml(lang: Lang, filename: str) -> Dict:
+    with open(filename, "rt") as f:
+        my_dict=xmltodict.parse(f.read())
+        contributions = [
+            {
+                ID_KEY: int(utterance["@genid"]) - 1,
+                PARENT_ID_KEY: int(utterance["@ref"]) - 1,
+                TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%H.%M.%S').replace(year=2020)),
+                USER_KEY: turn["@nickname"],
+                TEXT_KEY: utterance["#text"],
+            }
+            for turn in my_dict["corpus"]["Dialog"]["Body"]["Turn"]
+            for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
+        ]
 
-	@staticmethod
-	def load_from_xml(lang: Lang, filename: str) -> Dict:
-		with open(filename, "rt") as f:
-			my_dict=xmltodict.parse(f.read())
-			contributions = [
-				{
-					ID_KEY: int(utterance["@genid"]) - 1,
-					PARENT_ID_KEY: int(utterance["@ref"]) - 1,
-					TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%H.%M.%S').replace(year=2020)),
-					USER_KEY: turn["@nickname"],
-					TEXT_KEY: utterance["#text"],
-				}
-				for turn in my_dict["corpus"]["Dialog"]["Body"]["Turn"]
-				for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
-			]
-
-			return {CONTRIBUTIONS_KEY: contributions}
+        return {CONTRIBUTIONS_KEY: contributions}
 
 
 def export_individual_statistics(participants: List[Participant], filename: str):
@@ -205,7 +199,7 @@ def test_community_processing():
 
 	conv_thread = []
 	for i in range(1, count_jsons + 1):
-		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
+		conversation = get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)

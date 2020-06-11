@@ -58,16 +58,24 @@ def load_docs(folder: str) -> Iterable[str]:
                     yield current
 
 def str_to_lang(s: str) -> Lang:
-    s = s.lower()
-    if s.strip() == "ro" or s.strip() == "rou" or s.strip() == "romanian":
+    s = s.lower().strip()
+    if s in ["ro", "rou", "romanian"]:
         return Lang.RO
-    elif s.strip() == "en" or s.strip() == "eng" or s.strip() == "english":
+    elif s in ["en", "eng", "english"]:
         return Lang.EN
-    elif s.strip() == "es" or s.strip() == "esp" or s.strip() == "spanish":
+    elif s in ["es", "esp", "spanish"]:
         return Lang.ES
-    elif s.strip() == "ru" or s.strip() == "rus" or s.strip() == "russian":
+    elif s in ["ru", "rus", "russian"]:
         return Lang.RU
-    return Lang.EN
+    elif s in ["de", "deu", "ger", "german", "deutsch"]:
+        return Lang.DE
+    elif s in ["fr", "fra", "fre", "french"]:
+        return Lang.FR
+    elif s in ["it", "ita", "italian"]:
+        return Lang.IT
+    elif s in ["nl", "nld", "dut", "dutch"]:
+        return Lang.NL
+    return None
 
 def str_to_vmodel(s: str) -> VectorModelType:
     s = s.lower()

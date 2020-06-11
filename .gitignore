@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pkl
 
 # C extensions
 *.so
@@ -141,6 +142,11 @@ testem.log
 /resources
 /summaries
 jsons
+rb/core/csvl/jsons
+*.txt
+*.csv
+*.zip
+*.docx
 
 # System Files
 .DS_Store
@@ -164,6 +170,7 @@ russian/*
 essays_ro/*
 example_correct.json
 debug.log.1
+*.h5
 
 #
 rbenv/

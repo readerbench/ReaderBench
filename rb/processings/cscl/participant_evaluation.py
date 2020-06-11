@@ -77,7 +77,6 @@ def evaluate_involvement(conversation: Conversation):
 		current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
 		p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
 
-
 def evaluate_textual_complexity(conversation: Conversation):
 	participants = conversation.get_participants()
 	

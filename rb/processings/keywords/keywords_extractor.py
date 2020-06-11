@@ -25,6 +25,9 @@ class KeywordExtractor():
         elif lang is Lang.EN:
             vector_model = create_vector_model(
                 Lang.EN, VectorModelType.from_str("word2vec"), "coca")
+        elif lang is Lang.FR:
+            vector_model = create_vector_model(
+                Lang.FR, VectorModelType.from_str("word2vec"), "le_monde_small")                
         elif lang is Lang.ES:
             vector_model = create_vector_model(
                 Lang.ES, VectorModelType.from_str("word2vec"), "jose_antonio") 
@@ -37,9 +40,10 @@ class KeywordExtractor():
             vector_model = None
         return vector_model
 
-    def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40) -> List[Tuple[float, Word]]:
+    def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40, vector_model: VectorModel = None) -> List[Tuple[float, Word]]:
 
-        vector_model: VectorModel = self.get_vector_model(lang=lang)
+        if vector_model is None:
+            vector_model = self.get_vector_model(lang=lang)
         logger.info('Computing keywords...')
         doc: Document = Document(lang=lang, text=text)
         lemma_words, raw_words = [], []

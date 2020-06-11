@@ -4,50 +4,101 @@ import numpy as np
 import tensorflow as tf
 from rb.core.lang import Lang
 from rb.processings.encoders.bert import BertWrapper
-from rb.processings.pipeline.dataset import Dataset, Task
-from rb.processings.pipeline.estimator import Classifier
+from rb.processings.pipeline.dataset import Dataset, TargetType, Task
+from rb.processings.pipeline.estimator import Classifier, Regressor
 from tensorflow import keras
+from sklearn.model_selection import KFold, StratifiedKFold
 
-
-class BertClassifier(Classifier):
+class BertClassifier(Classifier, Regressor):
 
     def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, object]):
-        super().__init__(dataset, tasks, params)
-        self.max_seq_length = 128
-        self.bert = BertWrapper(dataset.train_docs[0].lang, max_seq_len=self.max_seq_length)
+        super(Classifier, self).__init__(dataset, tasks, params)
+        self.max_seq_length = 256
+        self.bert = BertWrapper(dataset.lang, max_seq_len=self.max_seq_length)
         self.tasks = tasks
+        self.output = params["output"]
+        self.hidden = params["hidden"]
         self.model = self.create_model()
         self.bert.load_weights()
+        self.initial_weights = self.model.get_weights()
+        
         
     def create_model(self) -> keras.Model:
         inputs, bert_output = self.bert.create_inputs_and_model()
-        cls_output = self.bert.get_output(bert_output, "cls")
+        cls_output = self.bert.get_output(bert_output, self.output)
         features = tf.keras.layers.Input(shape=(len(self.dataset.features),), dtype=tf.float32, name="features")
         outputs = []
-        global_hidden = tf.keras.layers.Dense(128)
+        global_hidden = tf.keras.layers.Dense(self.hidden)
         for i, task in enumerate(self.tasks):
             masked_features = keras.layers.Lambda(lambda x: x * task.mask)(features)
             concat = keras.layers.concatenate([cls_output, masked_features])
             hidden = global_hidden(cls_output)
-            output = keras.layers.Dense(len(task.classes), activation='softmax')(hidden)
+            if task.type is TargetType.FLOAT:
+                output = keras.layers.Dense(1, name=f"output{i}")(hidden)
+            else:
+                output = keras.layers.Dense(len(task.classes), activation='softmax', name=f"output{i}")(hidden)
             outputs.append(output)
         model = keras.Model(inputs=inputs + [features], outputs=outputs)
-        optimizer = keras.optimizers.Adam(learning_rate=1e-6)
-        model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        optimizer = keras.optimizers.Adam(learning_rate=1e-5)
+        losses = {
+            f"output{i}": tf.keras.losses.MeanSquaredError() if task.type is TargetType.FLOAT else tf.keras.losses.SparseCategoricalCrossentropy()
+            for i, task in enumerate(self.tasks)
+        }
+        metrics = {
+            f"output{i}": tf.keras.metrics.RootMeanSquaredError() if task.type is TargetType.FLOAT else "accuracy"
+            for i, task in enumerate(self.tasks)
+        }
+        model.compile(optimizer=optimizer, loss=losses, metrics=metrics)
         return model
-
-
-
-    def train(self):
-        train_features = [[doc.indices[feature] for feature in self.dataset.features]
-                          for doc in self.dataset.train_docs]
-        train_inputs = self.bert.process_input(doc.text for doc in self.dataset.train_docs)
+    
+    def metric(self, task: Task) -> str:
+        return "root_mean_squared_error" if task.type is TargetType.FLOAT else "accuracy"
+    
+    def cross_validation(self, n=5):
+        kf = KFold(n, shuffle=True)
+        features = [[indices[feature] for feature in self.dataset.features]
+                    for indices in self.dataset.train_features]
+        inputs = self.bert.process_input(self.dataset.train_texts)
+        inputs.append(np.array(features))
+        outputs = [np.array(task.get_train_targets()) for task in self.tasks]
+        losses = []
+        epochs = []
+        for train_index, dev_index in kf.split(inputs[0]):
+            train_inputs = [input[train_index] for input in inputs]
+            dev_inputs = [input[dev_index] for input in inputs]
+            train_outputs = [output[train_index] for output in outputs]
+            dev_outputs = [output[dev_index] for output in outputs]
+            self.model.set_weights(self.initial_weights)
+            history = self.model.fit(train_inputs, train_outputs, batch_size=24, epochs=10, validation_data=[dev_inputs, dev_outputs])
+            epoch, loss = min(enumerate(history.history["val_loss"]), key=lambda x: x[1])
+            losses.append(loss)
+            epochs.append(epoch + 1)
+        return int(np.mean(epochs)), np.mean(losses)
+            
+    def train(self, epochs: int) -> float:
+        self.model.set_weights(self.initial_weights)
+        train_features = [
+            [indices[feature] for feature in self.dataset.features]
+            for indices in self.dataset.train_features
+        ]
+        train_inputs = self.bert.process_input(self.dataset.train_texts)
         train_inputs.append(np.array(train_features))
         train_outputs = [np.array(task.get_train_targets()) for task in self.tasks]
-        dev_features = [[doc.indices[feature] for feature in self.dataset.features]
-                          for doc in self.dataset.dev_docs]
-        dev_inputs = self.bert.process_input(doc.text for doc in self.dataset.dev_docs)
+        dev_features = [
+            [indices[feature] for feature in self.dataset.features]
+            for indices in self.dataset.dev_features
+        ]
+        dev_inputs = self.bert.process_input(self.dataset.dev_texts)
         dev_inputs.append(np.array(dev_features))
         dev_outputs = [np.array(task.get_dev_targets()) for task in self.tasks]
         
-        self.model.fit(train_inputs, train_outputs, batch_size=32, epochs=10, validation_data=[dev_inputs, dev_outputs])
+        history = self.model.fit(train_inputs, train_outputs, batch_size=24, epochs=epochs, validation_data=[dev_inputs, dev_outputs])
+        return [history.history[f"val_output{i}_{self.metric(task)}"][-1] for i, task in enumerate(self.tasks)]
+
+    @classmethod
+    def parameters(cls):
+        return {
+            "output": ["cls", "pool"],
+            "hidden": [64, 128, 256],
+        }
+    

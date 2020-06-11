@@ -1,18 +1,18 @@
+import json
 import logging
 import logging.config
-import os 
-import json
+import os
 
 
 class Logger():
     logger = None
 
     @staticmethod
-    def get_logger():
+    def get_logger() -> logging.Logger:
         return Logger.set_up()
 
     @staticmethod   
-    def set_up():
+    def set_up() -> logging.Logger:
         if Logger.logger is None:
             Logger.setup_logging()
             Logger.logger = logging.getLogger(__name__) 

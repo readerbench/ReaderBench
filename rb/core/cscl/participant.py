@@ -20,6 +20,9 @@ class Participant:
 
 		self.own_conversation = None
 
+		self.eligible_contributions = []
+		self.significant_contributions = []
+
 	def get_id(self) -> str:
 		return self.participant_id
 
@@ -53,7 +56,5 @@ class Participant:
 	def export_individual_statistics(self, filename: str):
 		with open('mycsvfile.csv','wb') as f:
 			w = csv.writer(f)
-
-			
 			w.writerow(somedict.keys())
 			w.writerow(somedict.values())
