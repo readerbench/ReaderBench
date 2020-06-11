@@ -20,6 +20,7 @@ from rb.similarity.vector_model import VectorModelType
 from rb.processings.cscl.participant_evaluation import *
 from rb.processings.cscl.community_processing import *
 from rb.processings.keywords.keywords_extractor import *
+from rb.processings.cscl.regularity_processing import *
 
 from rb.utils.rblogger import Logger
 
@@ -172,6 +173,28 @@ def export_textual_complexity(participants: List[Participant], filename: str):
 		f.flush()
 		f.close()
 
+
+def export_regularity_statistics(participants: List[Participant], filename: str):
+	first = True
+
+	regularity_keys = [RegularityIndices.PWD, RegularityIndices.PDH, RegularityIndices.WS1, RegularityIndices.WS2,
+					   RegularityIndices.WS3]
+
+	with open(filename, 'w') as f:
+		for p in participants:
+			indices = p.indices
+			keys = ['participant'] + [str(k.value) for k in RegularityIndices]
+			values = [p.get_id()] + [str(p.get_index(k)) for k in regularity_keys]
+
+			if first:
+				f.write(','.join(keys) + '\n')
+				first = False
+
+			f.write(','.join(values) + '\n')
+		f.flush()
+		f.close()
+
+
 def test_community_processing():
 	print('Testing Community Processing')
 
@@ -202,6 +225,8 @@ def test_community_processing():
 	compute_sna_metrics(community)
 	determine_textual_complexity(community)
 
+	determine_regularity(community)
+
 	print('Finished computing indices')
 
 	for p in participant_list:
@@ -216,6 +241,13 @@ def test_community_processing():
 		print(p.get_index(CsclIndices.NEW_THREADS_OVERALL_SCORE))
 		print(p.get_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
 		print(p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS))
+
+		print('Printing regularity for participant ' + p.get_id())
+		print(p.get_index(RegularityIndices.PWD))
+		print(p.get_index(RegularityIndices.PDH))
+		print(p.get_index(RegularityIndices.WS1))
+		print(p.get_index(RegularityIndices.WS2))
+		print(p.get_index(RegularityIndices.WS3))
 
 		print('Printing textual complexity for participant ' + p.get_id())
 		indices = p.textual_complexity_indices
@@ -232,6 +264,7 @@ def test_community_processing():
 
 	export_individual_statistics(community.get_participants(), './individualStats.csv')
 	export_textual_complexity(community.get_participants(), './textualComplexity.csv')
+	export_regularity_statistics(community.get_participants(), './regularityStats.csv')
 
 def test_participant_evaluation():
 	print('Testing English CSV')
