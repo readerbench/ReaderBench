@@ -219,7 +219,7 @@ def test_community_processing():
 	compute_sna_metrics(community)
 	determine_textual_complexity(community)
 
-	determine_regularity(community)
+	# determine_regularity(community)
 
 	print('Finished computing indices')
 
@@ -236,12 +236,12 @@ def test_community_processing():
 		print(p.get_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
 		print(p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS))
 
-		print('Printing regularity for participant ' + p.get_id())
-		print(p.get_index(RegularityIndices.PWD))
-		print(p.get_index(RegularityIndices.PDH))
-		print(p.get_index(RegularityIndices.WS1))
-		print(p.get_index(RegularityIndices.WS2))
-		print(p.get_index(RegularityIndices.WS3))
+		# print('Printing regularity for participant ' + p.get_id())
+		# print(p.get_index(RegularityIndices.PWD))
+		# print(p.get_index(RegularityIndices.PDH))
+		# print(p.get_index(RegularityIndices.WS1))
+		# print(p.get_index(RegularityIndices.WS2))
+		# print(p.get_index(RegularityIndices.WS3))
 
 		print('Printing textual complexity for participant ' + p.get_id())
 		indices = p.textual_complexity_indices
@@ -258,7 +258,7 @@ def test_community_processing():
 
 	export_individual_statistics(community.get_participants(), './individualStats.csv')
 	export_textual_complexity(community.get_participants(), './textualComplexity.csv')
-	export_regularity_statistics(community.get_participants(), './regularityStats.csv')
+	# export_regularity_statistics(community.get_participants(), './regularityStats.csv')
 
 def test_participant_evaluation():
 	print('Testing English CSV')
