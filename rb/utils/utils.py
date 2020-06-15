@@ -1,19 +1,31 @@
-from gensim.models import Word2Vec 
-import spacy
-from typing import List, Iterable
-from nltk.tokenize import sent_tokenize, WordPunctTokenizer
-from os.path import isdir, isfile, join
+import os
+import sys
 from os import listdir
+from os.path import isdir, isfile, join
+from typing import Iterable, List
+
+import spacy
+from gensim.models import Word2Vec
+from nltk.tokenize import WordPunctTokenizer, sent_tokenize
 from rb.core.lang import Lang
 from rb.similarity.vector_model_factory import VectorModelType
-
 from spacy.lang.ro.lemmatizer import LOOKUP
+
 #from spacy.lang.ro.lex_attrs import words
 
 # nlp = spacy.load('en_core_web_sm')
 # nlp.remove_pipe('tagger')
 # nlp.remove_pipe('parser')
 # nlp.remove_pipe('ner')
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 def split_sentences(fileName: str) -> Iterable[List[str]]:
     # sentences = []
@@ -94,4 +106,3 @@ if __name__ == "__main__":
     #     all_words = sorted(list(all_words))
     #     for word in all_words:
     #         out.write(word + "\n")
-

@@ -11,6 +11,7 @@ from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.meta_document import MetaDocument
+from rb.processings.pipeline.bert_classifier import BertClassifier
 from rb.processings.pipeline.dataset import Dataset, TargetType, Task
 from rb.processings.pipeline.estimator import Estimator
 from rb.processings.pipeline.mlp import MLPClassifier, MLPRegressor
@@ -22,7 +23,6 @@ from rb.similarity.vector_model import VectorModel
 from rb.similarity.vector_model_factory import get_default_model
 from rb.utils.rblogger import Logger
 from scipy.stats import f_oneway, pearsonr
-from rb.processings.pipeline.bert_classifier import BertClassifier
 
 CLASSIFIERS = [SVM, RandomForest, MLPClassifier]
 REGRESSORS = [SVR, RidgeRegression, MLPRegressor]
@@ -185,11 +185,12 @@ def bert_grid_search(dataset: Dataset) -> BertClassifier:
     for config in next_config(BertClassifier, parameters):
         model = BertClassifier(dataset, dataset.tasks, config)
         epoch, loss = model.cross_validation()
+        print(f"{config}: loss={loss}")
         if loss < best[2]:
             best = (model, epoch, loss)
     model, epoch, loss = best
     print(f"Best model after {epoch} epochs with loss={loss}")
+    model.initialize()
     scores = model.train(epoch)
     print(scores)
     return model
-    

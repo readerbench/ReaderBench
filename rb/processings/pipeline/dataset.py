@@ -105,7 +105,19 @@ class Dataset:
             }
             for indices in self.dev_features
         ]
-        
+    
+    def normalize_features(self):
+        self.normalized_train_features = [{} for _ in range(len(self.train_features))]
+        self.normalized_dev_features = [{} for _ in range(len(self.dev_features))]
+        for feature in self.features:
+            values = [indices[feature] for indices in self.train_features]
+            min_value = min(values)
+            max_value = max(values)
+            for indices, val in zip(self.normalized_train_features, values):
+                indices[feature] = (val - min_value) / (max_value - min_value)
+            for indices, val in zip(self.normalized_dev_features, [indices[feature] for indices in self.dev_features]):
+                indices[feature] = (val - min_value) / (max_value - min_value)
+            
     def convert_labels(self, labels: List[List[str]]) -> List[Task]:
         values = zip(*labels)
         tasks = []

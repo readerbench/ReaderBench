@@ -26,16 +26,16 @@ class Estimator:
         return np.array(result)
 
     def cross_validation(self, n=5) -> float:
-        x = [self.construct_input(indices) for indices in self.dataset.train_features]
+        x = [self.construct_input(indices) for indices in self.dataset.normalized_train_features]
         y = self.tasks[0].get_train_targets()
         scores = cross_val_score(self.model, x, y, scoring=make_scorer(self.scoring), cv=n)
         return scores.mean()
     
     def evaluate(self) -> float:
-        x = [self.construct_input(indices) for indices in self.dataset.train_features]
+        x = [self.construct_input(indices) for indices in self.dataset.normalized_train_features]
         y = self.tasks[0].get_train_targets()
         self.model.fit(x, y)
-        x = [self.construct_input(indices) for indices in self.dataset.dev_features]
+        x = [self.construct_input(indices) for indices in self.dataset.normalized_dev_features]
         y = self.tasks[0].get_dev_targets()
         predicted = self.model.predict(x)
         return self.scoring(y, predicted)

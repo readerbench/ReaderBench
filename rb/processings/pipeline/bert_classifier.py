@@ -8,6 +8,7 @@ from rb.processings.pipeline.dataset import Dataset, TargetType, Task
 from rb.processings.pipeline.estimator import Classifier, Regressor
 from tensorflow import keras
 from sklearn.model_selection import KFold, StratifiedKFold
+from rb.utils.utils import HiddenPrints
 
 class BertClassifier(Classifier, Regressor):
 
@@ -18,21 +19,31 @@ class BertClassifier(Classifier, Regressor):
         self.tasks = tasks
         self.output = params["output"]
         self.hidden = params["hidden"]
+        self.use_indices = False
+        self.initialize()
+
+    def initialize(self):
+        tf.keras.backend.clear_session()
         self.model = self.create_model()
-        self.bert.load_weights()
+        with HiddenPrints():
+            self.bert.load_weights()
         self.initial_weights = self.model.get_weights()
-        
-        
+
     def create_model(self) -> keras.Model:
         inputs, bert_output = self.bert.create_inputs_and_model()
         cls_output = self.bert.get_output(bert_output, self.output)
         features = tf.keras.layers.Input(shape=(len(self.dataset.features),), dtype=tf.float32, name="features")
         outputs = []
-        global_hidden = tf.keras.layers.Dense(self.hidden)
+        global_hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")
         for i, task in enumerate(self.tasks):
-            masked_features = keras.layers.Lambda(lambda x: x * task.mask)(features)
-            concat = keras.layers.concatenate([cls_output, masked_features])
-            hidden = global_hidden(cls_output)
+            if self.use_indices:
+                masked_features = keras.layers.Lambda(lambda x: x * task.mask)(features)
+                # masked_features = features
+                concat = keras.layers.concatenate([cls_output, masked_features])
+            else:
+                concat = cls_output
+            hidden = global_hidden(concat)
+            # hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")(concat)
             if task.type is TargetType.FLOAT:
                 output = keras.layers.Dense(1, name=f"output{i}")(hidden)
             else:
@@ -57,7 +68,7 @@ class BertClassifier(Classifier, Regressor):
     def cross_validation(self, n=5):
         kf = KFold(n, shuffle=True)
         features = [[indices[feature] for feature in self.dataset.features]
-                    for indices in self.dataset.train_features]
+                    for indices in self.dataset.normalized_train_features]
         inputs = self.bert.process_input(self.dataset.train_texts)
         inputs.append(np.array(features))
         outputs = [np.array(task.get_train_targets()) for task in self.tasks]
@@ -69,30 +80,31 @@ class BertClassifier(Classifier, Regressor):
             train_outputs = [output[train_index] for output in outputs]
             dev_outputs = [output[dev_index] for output in outputs]
             self.model.set_weights(self.initial_weights)
-            history = self.model.fit(train_inputs, train_outputs, batch_size=24, epochs=10, validation_data=[dev_inputs, dev_outputs])
+            history = self.model.fit(train_inputs, train_outputs, batch_size=16, epochs=5, validation_data=[dev_inputs, dev_outputs])
             epoch, loss = min(enumerate(history.history["val_loss"]), key=lambda x: x[1])
             losses.append(loss)
             epochs.append(epoch + 1)
+            break
         return int(np.mean(epochs)), np.mean(losses)
             
     def train(self, epochs: int) -> float:
         self.model.set_weights(self.initial_weights)
         train_features = [
             [indices[feature] for feature in self.dataset.features]
-            for indices in self.dataset.train_features
+            for indices in self.dataset.normalized_train_features
         ]
         train_inputs = self.bert.process_input(self.dataset.train_texts)
         train_inputs.append(np.array(train_features))
         train_outputs = [np.array(task.get_train_targets()) for task in self.tasks]
         dev_features = [
             [indices[feature] for feature in self.dataset.features]
-            for indices in self.dataset.dev_features
+            for indices in self.dataset.normalized_dev_features
         ]
         dev_inputs = self.bert.process_input(self.dataset.dev_texts)
         dev_inputs.append(np.array(dev_features))
         dev_outputs = [np.array(task.get_dev_targets()) for task in self.tasks]
         
-        history = self.model.fit(train_inputs, train_outputs, batch_size=24, epochs=epochs, validation_data=[dev_inputs, dev_outputs])
+        history = self.model.fit(train_inputs, train_outputs, batch_size=16, epochs=epochs, validation_data=[dev_inputs, dev_outputs])
         return [history.history[f"val_output{i}_{self.metric(task)}"][-1] for i, task in enumerate(self.tasks)]
 
     @classmethod
