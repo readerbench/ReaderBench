@@ -12,14 +12,16 @@ from rb.utils.utils import HiddenPrints
 
 class BertClassifier(Classifier, Regressor):
 
-    def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, object]):
+    def __init__(self, dataset: Dataset, tasks: List[Task], params: Dict[str, object], use_indices=True, use_mask=True, shared=True):
         super(Classifier, self).__init__(dataset, tasks, params)
         self.max_seq_length = 256
         self.bert = BertWrapper(dataset.lang, max_seq_len=self.max_seq_length)
         self.tasks = tasks
         self.output = params["output"]
         self.hidden = params["hidden"]
-        self.use_indices = False
+        self.use_indices = use_indices
+        self.use_mask = use_mask
+        self.shared = shared
         self.initialize()
 
     def initialize(self):
@@ -34,16 +36,21 @@ class BertClassifier(Classifier, Regressor):
         cls_output = self.bert.get_output(bert_output, self.output)
         features = tf.keras.layers.Input(shape=(len(self.dataset.features),), dtype=tf.float32, name="features")
         outputs = []
-        global_hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")
+        if self.shared:
+            global_hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")
         for i, task in enumerate(self.tasks):
             if self.use_indices:
-                masked_features = keras.layers.Lambda(lambda x: x * task.mask)(features)
-                # masked_features = features
+                if self.use_mask:
+                    masked_features = keras.layers.Lambda(lambda x: x * task.mask)(features)
+                else:
+                    masked_features = features
                 concat = keras.layers.concatenate([cls_output, masked_features])
             else:
                 concat = cls_output
-            hidden = global_hidden(concat)
-            # hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")(concat)
+            if self.shared:
+                hidden = global_hidden(concat)
+            else:
+                hidden = tf.keras.layers.Dense(self.hidden, activation="tanh")(concat)
             if task.type is TargetType.FLOAT:
                 output = keras.layers.Dense(1, name=f"output{i}")(hidden)
             else:
@@ -68,10 +75,10 @@ class BertClassifier(Classifier, Regressor):
     def cross_validation(self, n=5):
         kf = KFold(n, shuffle=True)
         features = [[indices[feature] for feature in self.dataset.features]
-                    for indices in self.dataset.normalized_train_features]
-        inputs = self.bert.process_input(self.dataset.train_texts)
+                    for indices in self.dataset.normalized_train_features[:1000]]
+        inputs = self.bert.process_input(self.dataset.train_texts[:1000])
         inputs.append(np.array(features))
-        outputs = [np.array(task.get_train_targets()) for task in self.tasks]
+        outputs = [np.array(task.get_train_targets()[:1000]) for task in self.tasks]
         losses = []
         epochs = []
         for train_index, dev_index in kf.split(inputs[0]):
@@ -91,11 +98,11 @@ class BertClassifier(Classifier, Regressor):
         self.model.set_weights(self.initial_weights)
         train_features = [
             [indices[feature] for feature in self.dataset.features]
-            for indices in self.dataset.normalized_train_features
+            for indices in self.dataset.normalized_train_features[:1000]
         ]
-        train_inputs = self.bert.process_input(self.dataset.train_texts)
+        train_inputs = self.bert.process_input(self.dataset.train_texts[:1000])
         train_inputs.append(np.array(train_features))
-        train_outputs = [np.array(task.get_train_targets()) for task in self.tasks]
+        train_outputs = [np.array(task.get_train_targets()[:1000]) for task in self.tasks]
         dev_features = [
             [indices[feature] for feature in self.dataset.features]
             for indices in self.dataset.normalized_dev_features

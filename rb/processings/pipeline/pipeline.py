@@ -2,7 +2,7 @@ import csv
 import math
 import os
 from heapq import heapify, heappop
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -179,11 +179,11 @@ def grid_search(dataset: Dataset, task: Task) -> Estimator:
         results.append((model, score))
     return results
 
-def bert_grid_search(dataset: Dataset) -> BertClassifier:
+def bert_grid_search(dataset: Dataset, use_indices=True, use_mask=True, shared=True) -> Tuple[Estimator, List[float]]:
     parameters = BertClassifier.parameters()
     best = (None, 0, float('inf'))
     for config in next_config(BertClassifier, parameters):
-        model = BertClassifier(dataset, dataset.tasks, config)
+        model = BertClassifier(dataset, dataset.tasks, config, use_indices, use_mask, shared)
         epoch, loss = model.cross_validation()
         print(f"{config}: loss={loss}")
         if loss < best[2]:
@@ -192,5 +192,13 @@ def bert_grid_search(dataset: Dataset) -> BertClassifier:
     print(f"Best model after {epoch} epochs with loss={loss}")
     model.initialize()
     scores = model.train(epoch)
-    print(scores)
-    return model
+    return model, scores
+
+def evaluate_bert_models(dataset: Dataset) -> List[Tuple[Estimator, List[float]]]:
+    results = []
+    results.append(bert_grid_search(dataset, use_indices=False, shared=False))
+    results.append(bert_grid_search(dataset, use_indices=True, shared=False, use_mask=False))
+    results.append(bert_grid_search(dataset, use_indices=True, use_mask=True, shared=False))
+    results.append(bert_grid_search(dataset, use_indices=True, use_mask=False, shared=True))
+    results.append(bert_grid_search(dataset, use_indices=True, use_mask=True, shared=True))
+    return results
