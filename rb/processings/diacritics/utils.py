@@ -587,11 +587,11 @@ def evaluate_model(model, filepath, dataset, steps, model_type="BertCNN", write_
     char_accuracy = compute_char_accuracy(global_true_chars, global_predicted_chars)
 
 
-    print("Word accuracy dia =", format(word_accuracy_dia, '.4f'))
-    print("Word accuracy all =", format(word_accuracy, '.4f'))
+    print("Word accuracy dia =", format(word_accuracy_dia, '.6f'))
+    print("Word accuracy all =", format(word_accuracy, '.6f'))
 
-    print("Char accuracy dia =", format(char_accuracy_dia, '.4f'))
-    print("Char accuracy all =", format(char_accuracy, '.4f'))
+    print("Char accuracy dia =", format(char_accuracy_dia, '.6f'))
+    print("Char accuracy all =", format(char_accuracy, '.6f'))
 
     # print(len(predicted_dia), len(predicted_cla))
     print(Counter(predicted_dia), Counter(predicted_cla))
