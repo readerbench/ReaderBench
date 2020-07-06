@@ -26,6 +26,7 @@ LINKS = {
         },
         'spacy': {},
         'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download',
+        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/9zzptWpYT9BbxYS/download"
         'wordlists': {
             'link': 'https://nextcloud.readerbench.com/index.php/s/XyeiJCSripBWpx7/download',
             'version': 'https://nextcloud.readerbench.com/index.php/s/xyyGMqeLwTkBRms/download'
@@ -78,6 +79,8 @@ LINKS = {
                 'version': 'https://nextcloud.readerbench.com/index.php/s/afE4ZYAMoya9Ekp/download'
             }
         },
+        'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
+        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/opifiTCqXNzRsxF/download"
         'bert':{
             'small': {
                 'link': 'https://nextcloud.readerbench.com/index.php/s/WbtmEn9XebfbBFy/download',
@@ -144,25 +147,28 @@ LINKS = {
 
 logger = Logger.get_logger()
 
+
 def download_folder(link: str, destination: str):
     os.makedirs(destination, exist_ok=True)     
     filename = wget.download(link, out=destination, bar=wget.bar_thermometer)
     logger.info('Downloaded {}'.format(filename))
     if zipfile.is_zipfile(filename):
         logger.info('Extracting files from {}'.format(filename))
-        with zipfile.ZipFile(filename,"r") as zip_ref:
+        with zipfile.ZipFile(filename, "r") as zip_ref:
             zip_ref.extractall(destination)
         os.remove(filename)
+
 
 def download_file(link: str, destination: str):
     os.makedirs(destination, exist_ok=True)
     filename = wget.download(link, out=destination, bar=wget.bar_thermometer)
     logger.info('Downloaded {}'.format(filename))
 
+
 def download_model(lang: Lang, name: Union[str, List[str]]) -> bool:
     if isinstance(name, str):
         name = ['models', name]
-    if not lang in LINKS:
+    if lang not in LINKS:
         logger.info('{} not supported.'.format(lang))
         return False
     path = "/".join(name)
@@ -225,6 +231,7 @@ def download_tags(lang: Lang) -> bool:
 def download_spacy_model(lang: Lang, name: str) -> bool:
     return download_model(lang, ['spacy', name])
 
+
 def download_wordnet(lang: Lang, folder: str) -> bool:
     if lang not in LINKS:
         logger.info('{} not supported.'.format(lang))
@@ -234,6 +241,7 @@ def download_wordnet(lang: Lang, folder: str) -> bool:
         return False
     link = LINKS[lang]['wordnet']
     download_folder(link, folder)
+
 
 def download_aoa(lang: Lang) -> bool:
     path = "resources/{}/aoa/AoA.csv".format(lang.value)
@@ -248,6 +256,20 @@ def download_aoa(lang: Lang) -> bool:
         return False
     link = LINKS[lang]['aoa']
     download_file(link, "resources/{}/aoa/".format(lang.value))
+
+def download_syllabified_dict(lang: Lang) -> bool:
+    path = "resources/{}/dict/syllabified_dict.dict".format(lang.value)
+    if os.path.isfile(path):
+        logger.info('Dictionary already downloaded.')
+        return True
+    if lang not in LINKS:
+        logger.info('{} not supported,'.format(lang))
+        return False
+    if 'syllabified_dict' not in LINKS[lang]:
+        logger.info('No syllabified dictionary found.')
+        return False
+    link = LINKS[lang]['syllabified_dict']
+    download_file(link, "resources/{}/dict".format(lang.value))
     return True
 
 def download_scoring(lang: Lang) -> bool:
@@ -284,6 +306,7 @@ def download_classifier(lang: Lang) -> bool:
 def check_spacy_version(lang: Lang, name: str) -> bool:
     return check_version(lang, ['spacy', name])
 
+
 def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
     logger.info('Checking version for model {}, {}'.format(name, lang.value))
     if isinstance(name, str):
@@ -292,11 +315,11 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
     folder = "resources/{}/{}".format(lang.value, path)
     try:
         local_version = read_version(folder + "/version.txt")
-    except:
+    except FileNotFoundError:
         logger.info('Local model {} for {} not found.'.format(path, lang))
         return True
-        
-    if not lang in LINKS:
+
+    if lang not in LINKS:
         logger.info('{} not supported.'.format(lang))
         return False
     root = LINKS[lang]
@@ -309,17 +332,19 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
         filename = wget.download(root['version'], out="resources/")
         try:
             remote_version = read_version(filename)
-        except:
+        except FileNotFoundError:
             logger.info('Error reading remote version for {} ({})'.format(path, lang))
             return False
         return newer_version(remote_version, local_version)
     else:
         logger.info('Could not find version link in links json')
         return True
-    
+
+
 def read_version(filename: str) -> str:
     with open(filename, "r") as f:
         return f.readline()
+
 
 def newer_version(remote_version: str, local_version: str) -> bool:
     remote_version = remote_version.split(".")
@@ -335,7 +360,6 @@ def newer_version(remote_version: str, local_version: str) -> bool:
     logger.info('Remote version {} is the same as local version {}'.format(remote_version, local_version))
     return False   
     
-        
 
 if __name__ == "__main__":
     download_model(Lang.EN, 'coca')
