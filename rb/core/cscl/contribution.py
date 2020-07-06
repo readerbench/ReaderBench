@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from rb.core.block import Block
 from rb.core.lang import Lang
@@ -29,6 +29,9 @@ class Contribution(TextElement):
         self.participant = participant
         self.timestamp = timestamp
 
+        # used for creating per-participant conversations, based on original contributions
+        self.contribution_raw = contribution_raw
+
 
     def add_sentence(self, sentence: Sentence):
         self.components.append(sentence)
@@ -45,6 +48,9 @@ class Contribution(TextElement):
 
     def is_significant(self):
         return len(self.get_words()) >= SIGNIFICANT_LIMIT
+
+    def get_raw_contribution(self) -> "Contribution":
+        return self.contribution_raw
 
     def __str__(self):
         return NotImplemented

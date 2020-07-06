@@ -8,6 +8,7 @@ from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.cna.cna_graph import CnaGraph
 from rb.core.cscl.cscl_indices import CsclIndices
+from rb.complexity.complexity_index import compute_indices
 
 from rb.utils.rblogger import Logger
 
@@ -76,7 +77,6 @@ def evaluate_involvement(conversation: Conversation):
 		current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
 		p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
 
-	
 def evaluate_used_concepts(conversation: Conversation):
 	participants = conversation.get_participants()
 	

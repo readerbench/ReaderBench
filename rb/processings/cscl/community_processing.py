@@ -1,14 +1,12 @@
 from typing import List, Dict
 
-from rb.core.lang import Lang
-from rb.core.text_element import TextElement
 from rb.core.block import Block
-from rb.core.pos import POS
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.core.cscl.community import Community
 from rb.cna.cna_graph import CnaGraph
 from rb.core.cscl.cscl_indices import CsclIndices
+from rb.complexity.complexity_index import compute_indices
 
 from rb.utils.rblogger import Logger
 

@@ -46,10 +46,10 @@ class TextElement:
         return self.depth >= TextElementType.COMM.value
 
     def is_conversation(self) -> bool:
-        return self.depth >= TextElementType.CONV.value
+        return self.depth >= TextElementType.DOC.value
 
     def is_contribution(self) -> bool:
-        return self.depth == TextElementType.DOC.value
+        return self.depth == TextElementType.BLOCK.value
 
     def is_document(self) -> bool:
         return self.depth >= TextElementType.DOC.value
