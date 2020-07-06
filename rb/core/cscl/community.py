@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement

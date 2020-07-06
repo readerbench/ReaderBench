@@ -53,7 +53,5 @@ class Participant:
 	def export_individual_statistics(self, filename: str):
 		with open('mycsvfile.csv','wb') as f:
 			w = csv.writer(f)
-
-			
 			w.writerow(somedict.keys())
 			w.writerow(somedict.values())

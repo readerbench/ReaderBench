@@ -141,6 +141,8 @@ testem.log
 /models 
 /resources
 /summaries
+jsons
+rb/core/csvl/jsons
 *.txt
 *.csv
 *.zip

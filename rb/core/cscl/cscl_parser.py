@@ -34,81 +34,83 @@ TIMESTAMP_KEY = 'timestamp'
 TEXT_KEY = 'text'
 USER_KEY = 'user'
 
+JSONS_PATH = './jsons/'
+
 def get_json_from_json_file(filename: str) -> Dict:
-	conversation_thread = dict()
-	contribution_list = []
+    conversation_thread = dict()
+    contribution_list = []
 
-	with open(filename, "rt", encoding='utf-8') as json_file:
-		contribution_list_json = json.load(json_file)
-		for cnt in contribution_list_json:
-			contribution = {
-				ID_KEY: cnt['genid'],
-				PARENT_ID_KEY: cnt["ref"],
-				TIMESTAMP_KEY: int(float(cnt['time'])),
-				USER_KEY: cnt["nickname"],
-				TEXT_KEY: cnt["text"],
-			}
-			contribution_list.append(contribution)
+    with open(filename, "rt", encoding='utf-8') as json_file:
+        contribution_list_json = json.load(json_file)
+        for cnt in contribution_list_json:
+            contribution = {
+                ID_KEY: cnt['genid'],
+                PARENT_ID_KEY: cnt["ref"],
+                TIMESTAMP_KEY: int(float(cnt['time'])),
+                USER_KEY: cnt["nickname"],
+                TEXT_KEY: cnt["text"],
+            }
+            contribution_list.append(contribution)
 
-	conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-	return conversation_thread
+    return conversation_thread
 
 def get_json_from_csv(filename: str) -> Dict:
-	conversation_thread = dict()
-	contribution_list = []
+    conversation_thread = dict()
+    contribution_list = []
 
-	with open(filename) as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		first = True			
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        first = True			
 
-		for row in csv_reader:
-			if first:
-				first = False
-			else:
-				contribution = dict()
+        for row in csv_reader:
+            if first:
+                first = False
+            else:
+                contribution = dict()
 
-				contribution[ID_KEY] = row[0]
-				contribution[PARENT_ID_KEY] = row[1]
-				contribution[USER_KEY] = row[2]
-				contribution[TEXT_KEY] = row[3]
-				contribution[TIMESTAMP_KEY] = row[4]
+                contribution[ID_KEY] = row[0]
+                contribution[PARENT_ID_KEY] = row[1]
+                contribution[USER_KEY] = row[2]
+                contribution[TEXT_KEY] = row[3]
+                contribution[TIMESTAMP_KEY] = row[4]
 
-				contribution_list.append(contribution)
+                contribution_list.append(contribution)
 
-	conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-	return conversation_thread
+    return conversation_thread
 
 def parse_large_csv(filename: str) -> Dict:
-	conversation_thread = dict()
-	contribution_list = []
+    conversation_thread = dict()
+    contribution_list = []
 
-	with open(filename) as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		first = True			
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        first = True			
 
-		for row in csv_reader:
-			if first:
-				first = False
-			else:
-				contribution = dict()
+        for row in csv_reader:
+            if first:
+                first = False
+            else:
+                contribution = dict()
 
-				contribution[ID_KEY] = row[0]
-				contribution[PARENT_ID_KEY] = row[1]
-				if row[1] == '':
-					contribution[PARENT_ID_KEY] = '-1'
+                contribution[ID_KEY] = row[0]
+                contribution[PARENT_ID_KEY] = row[1]
+                if row[1] == '':
+                    contribution[PARENT_ID_KEY] = '-1'
 
-				contribution[USER_KEY] = row[2]
-				contribution[TEXT_KEY] = row[6]
+                contribution[USER_KEY] = row[2]
+                contribution[TEXT_KEY] = row[6]
 
-				contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
+                contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
 
-				contribution_list.append(contribution)
+                contribution_list.append(contribution)
 
-	conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
+    conversation_thread[CONTRIBUTIONS_KEY] = contribution_list
 
-	return conversation_thread
+    return conversation_thread
 
 def load_from_xml(lang: Lang, filename: str) -> Dict:
 	with open(filename, "rt") as f:
@@ -230,8 +232,8 @@ def test_participant_evaluation():
 	print('Testing English CSV')
 
 	conv_thread = []
-	for i in range(1, 20):
-		conversation = get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+	for i in range(1, count_jsons + 1):
+		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
@@ -280,7 +282,6 @@ def test_participant_evaluation():
 			print(conv.get_score(n1, n2))
 
 	export_individual_statistics(conv.get_participants(), './individualStats.csv')
-	# export_textual_complexity(conv.get_participants(), './textualComplexity.csv')
 
 def main():
 	# Test community processing - English discussion csv
@@ -295,7 +296,7 @@ def main():
 
 	print('Testing French XML')
 
-	conv_thread = load_from_xml(Lang.FR, './conpa-MEEF-anonyme.xml')
+	conv_thread = CsvParser.load_from_xml(Lang.FR, './conpa-MEEF-anonyme.xml')
 	
 	community = Community(lang=Lang.FR, container=None, community=[conv_thread])
 	fr_coca_word2vec = create_vector_model(Lang.FR, VectorModelType.from_str("word2vec"), "coca")

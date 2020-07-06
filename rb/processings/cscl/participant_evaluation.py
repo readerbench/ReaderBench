@@ -77,18 +77,23 @@ def evaluate_involvement(conversation: Conversation):
 		current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
 		p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
 
-def evaluate_used_concepts(conversation: Conversation):
+def evaluate_textual_complexity(conversation: Conversation):
 	participants = conversation.get_participants()
 	
 	for p in participants:
-		for contribution in conversation.get_participant_contributions(p.get_id()):
-			for word in contribution.get_words():
-				if word.pos.to_wordnet() == 'n':
-					current_value = p.get_index(CsclIndices.NO_NOUNS)
-					p.set_index(CsclIndices.NO_NOUNS, current_value + 1)
-				if word.pos.to_wordnet() == 'v':
-					current_value = p.get_index(CsclIndices.NO_VERBS)
-					p.set_index(CsclIndices.NO_VERBS, current_value + 1)
+		contributions = conversation.get_participant_contributions(p.get_id())
+		p.set_eligible_contributions(contributions)
+
+		Conversation.create_participant_conversation(conversation.lang, p)
+
+		own_conversation = p.own_conversation
+
+		print('Begin computing textual complexity')
+		compute_indices(doc=own_conversation)
+		print('Finished computing textual complexity')
+
+		for key, value in own_conversation.indices.items():
+			p.set_textual_index(repr(key), value)
 
 
 def perform_sna(conversation: Conversation, needs_anonymization: bool):
