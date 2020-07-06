@@ -7,7 +7,7 @@ import os
 from sklearn.utils import class_weight
 import numpy as np
 from collections import Counter
-from bert.tokenization.bert_tokenization import FullTokenizer
+# from bert.tokenization.bert_tokenization import FullTokenizer
 
 # split train file in train and dev
 def splitDataset(filepath, train_ratio):
@@ -198,7 +198,7 @@ def generator_sentence_bert_cnn_features(filepath, char_to_id_dict, window_size,
 
             basic_sentence = ''.join([get_char_basic(char) for char in sentence])
             tokens = bert_wrapper.tokenizer.tokenize(basic_sentence)
-            sentence_bert_input_ids, sentence_bert_segment_ids = bert_wrapper.process_text(basic_sentence)
+            sentence_bert_input_ids, sentence_bert_attention_ids, sentence_bert_segment_ids = bert_wrapper.process_text(basic_sentence)
             sentence_token_ids = []
             sentence_char_cnn_windows = []
             sentence_labels = []
@@ -240,7 +240,7 @@ def generator_sentence_bert_cnn_features(filepath, char_to_id_dict, window_size,
 
                     # print(sentence_bert_input_ids, sentence_bert_segment_ids[char_dia_index], sentence_token_ids, sentence_char_cnn_windows,sentence_labels)
             # sys.exit()
-            yield sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels
+            yield sentence_bert_input_ids, sentence_bert_attention_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels
     
 
 # high level generator for bert+cnn   
@@ -256,12 +256,13 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
 
     padding_window = [0] * window_size
     padding_labels = np.array([0, 0, 0, 0, 0])
-    padding_input_ids, padding_segment_ids = bert_wrapper.process_text("")
+    padding_input_ids, padding_attention_ids, padding_segment_ids = bert_wrapper.process_text("")
 
     crt_sentences = 0
     crt_windows = 0
 
     bert_input_ids = []
+    bert_attention_ids = []
     bert_segment_ids =[]
     token_ids = []
     sentence_ids = []
@@ -271,10 +272,11 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
 
     sentence_generator = generator_sentence_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wrapper)
     for sentence_entry in sentence_generator:
-        sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels = sentence_entry
+        sentence_bert_input_ids, sentence_bert_attention_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels = sentence_entry
         # print(sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels)
         
         bert_input_ids.append(sentence_bert_input_ids)
+        bert_attention_ids.append(sentence_bert_attention_ids)
         bert_segment_ids.append(sentence_bert_segment_ids)
 
         for window_index in range(len(sentence_token_ids)):
@@ -290,13 +292,15 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
 
                 sentences_to_pad = max_sentences - crt_sentences - 1
                 bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+                bert_attention_ids = bert_attention_ids + [padding_attention_ids] * sentences_to_pad
                 bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
                 
-                yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+                yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
                 # take the last sentence before padding
                 bert_input_ids = [bert_input_ids[crt_sentences]]
+                bert_attention_ids = [bert_attention_ids[crt_sentences]]
                 bert_segment_ids = [bert_segment_ids[crt_sentences]]
                 # reset global vars
                 crt_sentences = 0
@@ -320,13 +324,15 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
             char_windows = char_windows + [padding_window] * values_to_pad
             labels = labels + [padding_labels] * values_to_pad
 
-            yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+            yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+
 
             # reset global vars
             crt_sentences = 0
             crt_windows = 0
             bert_input_ids = []
+            bert_attention_ids = []
             bert_segment_ids =[]
             token_ids = []
             sentence_ids = []
@@ -339,6 +345,7 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
     # pad up to max_sentences
     sentences_to_pad = max_sentences - crt_sentences
     bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+    bert_attention_ids = bert_attention_ids + [padding_attention_ids] * sentences_to_pad
     bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
 
     # pad up to max_windows
@@ -357,8 +364,9 @@ def generator_bert_cnn_features(filepath, char_to_id_dict, window_size, bert_wra
     # print("Char windows", len(char_windows))#, char_windows)
     # print("Labels", len(labels))#, labels)
 
-    yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
-            'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+    yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+                    'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
+
 
 # from diacritics site
 # word level accuracy on word that accept dia 
@@ -508,11 +516,11 @@ def evaluate_model_on_file(model, filepath, char_to_id_dict, window_size):
     char_accuracy = compute_char_accuracy(global_true_chars, global_predicted_chars)
 
 
-    print("Word accuracy dia =", format(word_accuracy_dia, '.4f'))
-    print("Word accuracy all =", format(word_accuracy, '.4f'))
+    print("Word accuracy dia =", format(word_accuracy_dia, '.6f'))
+    print("Word accuracy all =", format(word_accuracy, '.6f'))
 
-    print("Char accuracy dia =", format(char_accuracy_dia, '.4f'))
-    print("Char accuracy all =", format(char_accuracy, '.4f'))
+    print("Char accuracy dia =", format(char_accuracy_dia, '.6f'))
+    print("Char accuracy all =", format(char_accuracy, '.6f'))
 
     # print(len(predicted_dia), len(predicted_cla))
     print(Counter(predicted_dia), Counter(predicted_cla))
@@ -666,12 +674,13 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
 
     padding_window = [0] * window_size
     padding_labels = np.array([0, 0, 0, 0, 0])
-    padding_input_ids, padding_segment_ids = bert_wrapper.process_text("")
+    padding_input_ids, padding_attention_ids, padding_segment_ids = bert_wrapper.process_text("")
 
     crt_sentences = 0
     crt_windows = 0
 
     bert_input_ids = []
+    bert_attentions_ids = []
     bert_segment_ids =[]
     token_ids = []
     sentence_ids = []
@@ -685,6 +694,7 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
         # print(sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels)
         
         bert_input_ids.append(sentence_bert_input_ids)
+        bert_attention_ids.append(sentence_bert_attentions_ids)
         bert_segment_ids.append(sentence_bert_segment_ids)
 
         for window_index in range(len(sentence_token_ids)):
@@ -700,13 +710,15 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
 
                 sentences_to_pad = max_sentences - crt_sentences - 1
                 bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+                bert_attention_ids = bert_attention_ids + [padding_attention_ids] * sentences_to_pad
                 bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
                 
-                yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+                yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
                 # take the last sentence before padding
                 bert_input_ids = [bert_input_ids[crt_sentences]]
+                bert_attention_ids = [bert_attention_ids[crt_sentences]]
                 bert_segment_ids = [bert_segment_ids[crt_sentences]]
                 # reset global vars
                 crt_sentences = 0
@@ -730,13 +742,14 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
             char_windows = char_windows + [padding_window] * values_to_pad
             labels = labels + [padding_labels] * values_to_pad
 
-            yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+            yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
                     'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
             # reset global vars
             crt_sentences = 0
             crt_windows = 0
             bert_input_ids = []
+            bert_attention_ids = []
             bert_segment_ids =[]
             token_ids = []
             sentence_ids = []
@@ -749,6 +762,7 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
     # pad up to max_sentences
     sentences_to_pad = max_sentences - crt_sentences
     bert_input_ids = bert_input_ids + [padding_input_ids] * sentences_to_pad
+    bert_attention_ids = bert_attention_ids + [padding_attention_ids] * sentences_to_pad
     bert_segment_ids = bert_segment_ids + [padding_segment_ids] * sentences_to_pad
 
     # pad up to max_windows
@@ -767,7 +781,7 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
     # print("Char windows", len(char_windows))#, char_windows)
     # print("Labels", len(labels))#, labels)
 
-    yield {'bert_input_ids':bert_input_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
+    yield {'bert_input_ids':bert_input_ids, 'bert_attention_ids':bert_attention_ids, 'bert_segment_ids':bert_segment_ids, 'token_ids': token_ids, 
             'sent_ids': sentence_ids, 'mask': windows_mask, 'char_windows': char_windows}, labels
 
 
