@@ -88,6 +88,9 @@ class TextElement:
     def __iter__(self):
         return iter(self.components)
 
+    def __str__(self):
+        return self.text
+
     def __getstate__(self):
         return {
             key: value

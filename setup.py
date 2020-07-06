@@ -46,7 +46,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.7.6',
+    version='0.8.5',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -72,6 +72,7 @@ setuptools.setup(
         'docutils',
         'Flask',
         'gensim==3.8.1',
+        'googletrans',
         'idna',
         'itsdangerous',
         'Jinja2',
@@ -92,6 +93,7 @@ setuptools.setup(
         'requests',
         's3transfer',
         'scipy',
+        'sentence-splitter',
         'six',
         'sklearn',
         'smart-open',
@@ -108,6 +110,7 @@ setuptools.setup(
         'pyLDAvis',
         'unidecode',
         'xlrd',
+        'xmltodict',
       ],
     extras_require={
         "tf": ["tensorflow>=2"],

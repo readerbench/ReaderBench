@@ -48,6 +48,3 @@ class Sentence(TextElement):
     
     def get_words(self) -> List[Word]:
         return self.components
-
-    def __str__(self):
-        return self.text

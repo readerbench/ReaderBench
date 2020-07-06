@@ -1,25 +1,28 @@
 #pylint: disable=import-error
+import os
+#     except RuntimeError as e:
+#         print(e)
+import pickle
+import sys
+
+import absl
+import numpy as np
+import rb.processings.diacritics.utils as utils
 import tensorflow as tf
+from rb.core.lang import Lang
+from rb.processings.diacritics.BertCNN import (
+    BertCNN, categorical_acc, weighted_categorical_crossentropy)
+from rb.processings.diacritics.CharCNN import CharCNN
+from rb.processings.encoders.bert import BertWrapper
+from rb.utils.downloader import check_version, download_model
+from tensorflow.keras.models import load_model
+
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # if gpus:
 #     try:
 #         for gpu in gpus:
 #             tf.config.experimental.set_memory_growth(gpu, True)
 
-#     except RuntimeError as e:
-#         print(e)
-import pickle
-import absl
-import rb.processings.diacritics.utils as utils
-from rb.processings.diacritics.CharCNN import CharCNN
-from rb.processings.diacritics.BertCNN import BertCNN
-from rb.processings.diacritics.BertCNN import weighted_categorical_crossentropy, categorical_acc
-import sys
-from rb.core.lang import Lang
-from rb.processings.encoders.bert import BertWrapper
-import os
-from tensorflow.keras.models import load_model
-import numpy as np
 
 
 
@@ -36,8 +39,10 @@ class DiacriticsRestoration(object):
 	# loads best diacritics model, i.e CharCNN + RoBERT-base FN
 	def _load_model(self):
 		self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name="base")
-		self.char_to_id_dict = pickle.load(open("rb/processings/diacritics/dataset/split/char_dict", "rb"))
-		model_path = os.path.join("rb/processings/diacritics/models/bert_models/model_11_bert1_tr.h5")
+		if check_version(Lang.RO, ["models", "diacritice", "RoBERT_base+CNN"]):
+			download_model(Lang.RO, ["models", "diacritice", "RoBERT_base+CNN"])
+		self.char_to_id_dict = pickle.load(open("resources/ro/models/diacritice/RoBERT_base+CNN/char_dict", "rb"))
+		model_path = "resources/ro/models/diacritice/RoBERT_base+CNN/model_11_bert1_tr.h5"
 		self.model = load_model(model_path, custom_objects={'BertModelLayer': self.bert_wrapper.bert_layer, 'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
    							'categorical_acc': categorical_acc})
 
@@ -108,4 +113,3 @@ class DiacriticsRestoration(object):
 			complete_string += new_char
 
 		return complete_string
-
