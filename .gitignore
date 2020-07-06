@@ -169,6 +169,8 @@ essays_ro/*
 example_correct.json
 debug.log.1
 *.h5
+*.txt
+rb/processings/diacritics/rotransformers/bert_models/*
+rb/processings/diacritics/rotransformers/uncased-v1/*
 
-#
 rbenv/
