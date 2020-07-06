@@ -1,5 +1,6 @@
 from enum import Enum, unique
 
+
 @unique
 class Lang(Enum):
     EN = 'en'
@@ -10,3 +11,7 @@ class Lang(Enum):
     RU = 'ru'
     IT = 'it'
     NL = 'nl'
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_

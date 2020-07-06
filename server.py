@@ -10,14 +10,14 @@ from pathlib import Path
 
 import spacy
 
-from werkzeug import secure_filename
+# from werkzeug import secure_filename
 import uuid
 from flask import (Flask, Response, abort, flash, jsonify, render_template,
                    request)
 from flask_cors import CORS
 from rb.processings.ro_corrections.ro_correct import correct_text_ro
 from rb.core.lang import Lang
-from rb.diacritics.model_diacritice import Diacritics
+# from rb.diacritics.model_diacritice import Diacritics
 from rb.parser.spacy_parser import SpacyParser
 from rb.utils.downloader import download_model
 from rb.processings.scoring.essay_scoring import EssayScoring
@@ -63,12 +63,12 @@ def check_connection():
     response = jsonify("alive")
     return response, 200
 
-@app.route('/ro_correct', methods=['POST'])
-def ro_correct():
-    data = request.get_json()
-    text = data['text']
-    res = correct_text_ro(text, spellchecking=True)
-    return jsonify(res)
+# @app.route('/ro_correct', methods=['POST'])
+# def ro_correct():
+#     data = request.get_json()
+#     text = data['text']
+#     res = correct_text_ro(text, spellchecking=True)
+#     return jsonify(res)
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
@@ -80,33 +80,33 @@ def feedback():
     res = feedback.compute_indices_and_tokenization(text, lang)
     return jsonify(res)
 
-@app.route('/en_correct', methods=['POST'])
-def en_correct():
-
-    import hunspell
-    en_hunspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic', '/usr/share/hunspell/en_US.aff')
-
-    data = request.get_json()
-    text = data['text']
-    paragraphs = text.split('\n')
-    paragraphs = [p for p in paragraphs if len(p) > 0]
-    corrections, split_text = [], []
-
-    for p_index, text in enumerate(paragraphs):
-        doc = spacyInstance.parse(text, Lang.EN)
-        p_list = []
-        for i, token in enumerate(doc):
-            p_list.append(token.text)
-            if token.is_punct == False and en_hunspell.spell(token.text) == False:
-                corrections.append({
-                   'mistake': "Spellchecking",
-                   'index': [ [p_index, i], [p_index, i + 1] ],
-                   "suggestions": en_hunspell.suggest(token.text)
-                })
-        split_text.append(p_list)
-
-    res = {'corrections': corrections, 'split_text': split_text}
-    return jsonify(res)
+# @app.route('/en_correct', methods=['POST'])
+# def en_correct():
+#
+#     import hunspell
+#     en_hunspell = hunspell.HunSpell('/usr/share/hunspell/en_US.dic', '/usr/share/hunspell/en_US.aff')
+#
+#     data = request.get_json()
+#     text = data['text']
+#     paragraphs = text.split('\n')
+#     paragraphs = [p for p in paragraphs if len(p) > 0]
+#     corrections, split_text = [], []
+#
+#     for p_index, text in enumerate(paragraphs):
+#         doc = spacyInstance.parse(text, Lang.EN)
+#         p_list = []
+#         for i, token in enumerate(doc):
+#             p_list.append(token.text)
+#             if token.is_punct == False and en_hunspell.spell(token.text) == False:
+#                 corrections.append({
+#                    'mistake': "Spellchecking",
+#                    'index': [ [p_index, i], [p_index, i + 1] ],
+#                    "suggestions": en_hunspell.suggest(token.text)
+#                 })
+#         split_text.append(p_list)
+#
+#     res = {'corrections': corrections, 'split_text': split_text}
+#     return jsonify(res)
 
 @app.route('/scoring', methods=['POST'])
 def scoring():
