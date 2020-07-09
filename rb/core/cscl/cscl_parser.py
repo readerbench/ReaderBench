@@ -177,7 +177,7 @@ def test_community_processing():
 
 	conv_thread = []
 	for i in range(1, 20):
-		conversation = CsvParser.get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
+		conversation = get_json_from_json_file("./jsons/conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)
@@ -233,7 +233,7 @@ def test_participant_evaluation():
 
 	conv_thread = []
 	for i in range(1, count_jsons + 1):
-		conversation = CsvParser.get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
+		conversation = get_json_from_json_file(JSONS_PATH + "conversation_" + str(i) + ".json")
 		conv_thread.append(conversation)
 
 	community = Community(lang=Lang.EN, container=None, community=conv_thread)

@@ -44,7 +44,7 @@ class CorporaEnum(Enum):
 class VectorModel:
 
     
-    def __init__(self, type: VectorModelType, corpus: str, lang: Lang, size: int = 300):
+    def __init__(self, type: VectorModelType, corpus: str, lang: Lang, size: int = 300, check_updates=True):
         self.lang = lang
         self.type = type
         self.corpus = corpus
@@ -53,7 +53,7 @@ class VectorModel:
         self.vectors: Dict[str, Vector] = {}
         self.base_vectors: List[Vector] = []
         self.word_clusters: Dict[int, List[str]] = {}
-        if check_version(lang, self.corpus):
+        if check_updates and check_version(lang, self.corpus):
             if not download_model(lang, self.corpus):
                 raise FileNotFoundError("Requested model ({}) not found for {}".format(self.corpus, lang.value))
         logger.info('Loading vectors.. ')

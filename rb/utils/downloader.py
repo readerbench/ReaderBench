@@ -320,12 +320,12 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
         return True
 
     if lang not in LINKS:
-        logger.info('{} not supported.'.format(lang))
+        logger.error('{} not supported.'.format(lang))
         return False
     root = LINKS[lang]
     for key in name:
         if key not in root:
-            logger.info('Remote path not found {} ({}).'.format(path, key))
+            logger.error('Remote path not found {} ({}).'.format(path, key))
             return False
         root = root[key]
     if isinstance(root, dict):
@@ -333,11 +333,11 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
         try:
             remote_version = read_version(filename)
         except FileNotFoundError:
-            logger.info('Error reading remote version for {} ({})'.format(path, lang))
+            logger.warning('Error reading remote version for {} ({})'.format(path, lang))
             return False
         return newer_version(remote_version, local_version)
     else:
-        logger.info('Could not find version link in links json')
+        logger.error('Could not find version link in links json')
         return True
 
 
