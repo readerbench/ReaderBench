@@ -11,6 +11,8 @@ import random
 from tensorflow.keras.callbacks import Callback
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
+from nltk.tokenize import sent_tokenize
+import os
 
 # read entire json file
 # if loading the original dataset ignore the reviews with score 0
@@ -136,7 +138,7 @@ def saveData(data, filename):
 # sample_count -> how many entries to sample from majority class
 # set seed -> random seed value
 # output -> list of dicts | one entry is a dict with features and labels
-def getFeatures(data, use_review_text=True, sample_majority=False, sample_count=0, seed=None):
+def getFeatures(data, use_review_text=True, sample_majority=False, sample_count=0, seed=None, majority_class=3):
     
     if sample_majority == False:
         train_list = []
@@ -153,7 +155,7 @@ def getFeatures(data, use_review_text=True, sample_majority=False, sample_count=
         majority_list = []
         for data_entry in data:
             majority_entry = {}
-            if data_entry['_source']['Review']['ReviewRating'] == 3:
+            if data_entry['_source']['Review']['ReviewRating'] == majority_class:
                 if use_review_text == True:
                     majority_entry['features:review_text'] = data_entry['_source']['Review']['ReviewBody']
                 majority_entry['label'] = data_entry['_source']['Review']['ReviewRating']
@@ -166,7 +168,7 @@ def getFeatures(data, use_review_text=True, sample_majority=False, sample_count=
         train_list = []
         for data_entry in data:
             train_entry = {}
-            if data_entry['_source']['Review']['ReviewRating'] != 3:
+            if data_entry['_source']['Review']['ReviewRating'] != majority_class:
                 if use_review_text == True:
                     train_entry['features:review_text'] = data_entry['_source']['Review']['ReviewBody']
                 train_entry['label'] = data_entry['_source']['Review']['ReviewRating']
@@ -189,7 +191,7 @@ def processFeatures(data, bert_proc):
     i = 0
     for entry in data:
         review_text = entry["features:review_text"]
-        input_ids, _, segment_ids = bert_proc.process_sentences(sentence1=review_text, sentence2=None)
+        input_ids, segment_ids = bert_proc.process_text(review_text)
         iids.append(input_ids)
         sids.append(segment_ids)
         labels.append(entry['label'])    
@@ -197,10 +199,7 @@ def processFeatures(data, bert_proc):
     features = [np.array(iids), np.array(sids)]
     class_weights = class_weight.compute_class_weight('balanced', np.unique(labels), labels)
     class_weights = class_weights.astype(np.float32)
-    labels = tf.keras.utils.to_categorical(labels)
-    class_weights_dict = {0: class_weights[0], 1:class_weights[1], 2:class_weights[2], 3:class_weights[3]}
-
-    return features, labels, class_weights_dict
+    return features, labels, class_weights
 
 # split data in train dev test split using stratified 
 # input -> data
@@ -246,7 +245,6 @@ def splitTrainDevTest(data):
     print(len(list(set(train_indexes) & set(dev_indexes) & set(test_indexes))))
 
     return train_data, dev_data, test_data
-
 
 # split the dataset in 4 classes -> 1 -> label 0
 #                                   2,3 -> label 1
@@ -325,6 +323,101 @@ def compute_parameters(model_folder_path):
     print(non_trainable_count)
 
     # return model, bert_model
+
+
+def build_reallife_corpus(model_folder_path):
+
+    new_model_folder_path = "/".join(model_folder_path.split("/")[:-2])
+    new_model_folder_path = os.path.join(new_model_folder_path, "reallife")
+    
+    train_data = readJson(model_folder_path+"train.json")
+    train_data = clean_dict(train_data)
+    new_train_data = add_last_sentence_to_data(train_data)
+    new_train_data_over = perform_oversampling(new_train_data)
+    print(len(train_data), len(new_train_data), len(new_train_data_over))
+    saveData(new_train_data_over, os.path.join(new_model_folder_path, "train.json"))
+
+
+    dev_data = readJson(model_folder_path+"dev.json")
+    dev_data = clean_dict(dev_data)
+    new_dev_data = add_last_sentence_to_data(dev_data)
+    new_dev_data_over = perform_oversampling(new_dev_data)
+    print(len(dev_data), len(new_dev_data), len(new_dev_data_over))
+    saveData(new_dev_data_over, os.path.join(new_model_folder_path, "dev.json"))
+
+    test_data = readJson(model_folder_path+"test.json")
+    test_data = clean_dict(test_data)
+    new_test_data = add_last_sentence_to_data(test_data)
+    new_test_data_over = perform_oversampling(new_test_data)
+    print(len(test_data), len(new_test_data), len(new_test_data_over))
+    saveData(new_test_data_over, os.path.join(new_model_folder_path, "test.json"))
+    
+
+def add_last_sentence_to_data(data):
+    new_data = copy.deepcopy(data)
+    new_entries = []
+    count = 0
+    for entry in new_data:
+        review_text = entry['_source']['Review']['ReviewBody']
+        sentences = sent_tokenize(review_text)
+        if len(sentences) > 1:
+            # add new entry to dataset
+            new_entry = copy.deepcopy(entry)
+            new_entry['_source']['Review']['ReviewBody'] = sentences[-1]
+            new_entry['_score'] = 2
+            new_entries.append(new_entry)
+            if entry == new_entry:
+                print(entry)
+                print(new_entry)
+                sys.exit()
+            count += 1
+    # print(new_entries)
+    new_data.extend(new_entries)
+    return new_data
+
+
+def perform_oversampling(data):
+    new_data = copy.deepcopy(data)
+    new_entries = []
+    counter = [0,0,0,0,0]
+    for entry in new_data:
+        label = entry['_source']['Review']['ReviewRating']
+        counter[label-1] += 1
+    
+    while True:
+
+        random_entry = random.choice(data)
+        random_label = random_entry['_source']['Review']['ReviewRating']
+
+        if counter[random_label-1] == counter[-1]:
+            continue
+        
+        else:
+            new_entries.append(random_entry)
+            counter[random_label-1] += 1
+            
+            if counter[0] == counter[1] and counter[1] == counter[2] and counter[2] == counter[3] and counter[3] == counter[4]:
+                break
+
+    print(counter)
+    new_data.extend(new_entries)
+    return new_data
+
+
+def clean_dict(data):
+    new_data = copy.deepcopy(data)
+    for entry in new_data:
+        del entry["_index"]
+        del entry["_type"]
+        del entry["_id"]
+        del entry["_score"]
+        del entry["_source"]["Review"]["ReviewTitle"]
+        del entry["_source"]["Review"]["ReviewDate"]
+        del entry["_source"]["Review"]["ReviewProductVerified"]
+        del entry["_source"]["Product"]
+    return new_data
+
+
 
 if __name__ == "__main__":
 
