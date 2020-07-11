@@ -91,15 +91,17 @@ class BertRegression(object):
 		
 		if self.restore_model != None:
 			model_restore_path = os.path.join(self.models_path, self.restore_model)
-			model = tf.keras.models.load_model(model_restore_path)
-			
+			loaded_model = tf.keras.models.load_model(model_restore_path, compile=False)
+			weights = [layer.get_weights() for layer in loaded_model.layers]
+			for layer, weight in zip(model.layers, weights):
+				layer.set_weights(weight)
+
 		else:
 			self.bert_wrapper.load_weights()
 
 		self.model = model
 		print("BERT model built: ")
 		self.model.summary()
-
 
 	def train(self, train_dataset, dev_dataset, epochs, model_name):
 
