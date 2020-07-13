@@ -6,7 +6,6 @@ from rb.core.text_element_type import TextElementType
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.core.cscl.participant import Participant
-from rb.cna.cna_graph import CnaGraph
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.similarity.vector_model import VectorModelType
 

@@ -3,12 +3,25 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call
 import sys
-
+from os import chdir, makedirs, rmdir
+from shutil import rmtree
 
 def do_post_install_tasks():
     # download spacy thing
-
-    check_call([sys.executable] + "-m pip install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
+    makedirs("temp", exist_ok=True)
+    chdir("temp")
+    check_call(["git", "clone", "https://github.com/explosion/spaCy.git"])
+    chdir("spaCy")
+    check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+    check_call([sys.executable, "-m", "pip", "install", "."])
+    chdir("..")
+    check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
+    chdir("neuralcoref")
+    check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+    check_call([sys.executable, "-m", "pip", "install", "."])
+    chdir("../..")
+    rmtree("temp", ignore_errors=True)
+    check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
     # download nltk stuff
     from os import getenv, path
 
@@ -46,7 +59,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.8.5',
+    version='0.9.3',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -58,7 +71,8 @@ setuptools.setup(
     dependency_links=['https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz'],
     install_requires=[
         'bert-for-tf2>=0.14',
-        'blis<0.3.0',
+        # 'blis<0.3.0',
+        'blis',
         'boto',
         'boto3',
         'botocore',
@@ -71,23 +85,23 @@ setuptools.setup(
         'docopt',
         'docutils',
         'Flask',
-        'gensim==3.8.1',
+        # 'gensim==3.8.1',
+        'gensim',
         'googletrans',
         'idna',
         'itsdangerous',
         'Jinja2',
         'jmespath',
         'joblib',
-        'jsonschema<3.0.0',
+        # 'jsonschema<3.0.0',
         'MarkupSafe',
         'murmurhash',
         'networkx',
-        'neuralcoref',
         'nltk==3.4.5',
-        'plac<1.0.0',
-        'preshed<2.1.0',
+        # 'plac<1.0.0',
+        # 'preshed<2.1.0',
         'pymorphy2',
-        'pymorphy2-dicts==2.4.393442.3710985',
+        # 'pymorphy2-dicts==2.4.393442.3710985',
         'Pyphen',
         'python-dateutil<2.8.1',
         'requests',
@@ -97,10 +111,9 @@ setuptools.setup(
         'six',
         'sklearn',
         'smart-open',
-        'spacy==2.1.3',
         'srsly',
+        'tensorflow>=2',
         'tensorflow-hub',
-        'thinc<7.1.0',
         'transformers',
         'tqdm',
         'urllib3',
@@ -112,10 +125,6 @@ setuptools.setup(
         'xlrd',
         'xmltodict',
       ],
-    extras_require={
-        "tf": ["tensorflow>=2"],
-        "tf_gpu": ["tensorflow-gpu>=2"],
-    },
     cmdclass={
         'develop': PostDevelopmentCommand,
         'install': PostInstallCommand,
