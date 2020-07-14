@@ -5,22 +5,26 @@ from subprocess import check_call
 import sys
 from os import chdir, makedirs, rmdir
 from shutil import rmtree
+from tempfile import TemporaryDirectory
 
 def do_post_install_tasks():
     # download spacy thing
     makedirs("temp", exist_ok=True)
-    chdir("temp")
-    check_call(["git", "clone", "https://github.com/explosion/spaCy.git"])
-    chdir("spaCy")
-    check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-    check_call([sys.executable, "-m", "pip", "install", "."])
-    chdir("..")
-    check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
-    chdir("neuralcoref")
-    check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-    check_call([sys.executable, "-m", "pip", "install", "."])
-    chdir("../..")
-    rmtree("temp", ignore_errors=True)
+    with TemporaryDirectory() as temp_folder:
+        chdir(temp_folder)
+        check_call(["git", "clone", "https://github.com/explosion/spaCy.git"])
+        chdir("spaCy")
+        check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+        check_call([sys.executable, "-m", "pip", "install", "."])
+        chdir("..")
+        check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
+        chdir("neuralcoref")
+        # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+        check_call([sys.executable, "-m", "pip", "install", "."])
+        chdir("../..")
+        # rmtree("temp", ignore_errors=True)
     check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
     # download nltk stuff
     from os import getenv, path
@@ -59,7 +63,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.9.3',
+    version='0.9.4',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',

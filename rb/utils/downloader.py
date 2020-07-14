@@ -130,8 +130,12 @@ LINKS = {
     Lang.FR: {
         'models': {
             'le_monde_small': {
-                'link': "https://nextcloud.readerbench.com/index.php/s/6MsKa9TtmnAxCc4/download",
+                'link': "https://nextcloud.readerbench.com/index.php/s/T8GfqaQfxinpZtS/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/2jLd8ZiCfmMo88X/download"
+            },
+            'le_monde': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/xSKTSqYQBc2nEgq/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
             },
         },
     },

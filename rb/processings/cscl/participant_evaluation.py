@@ -13,9 +13,9 @@ from rb.complexity.complexity_index import compute_indices
 from rb.utils.rblogger import Logger
 
 def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: Block, b: Block) -> float:
-	if not (a in block_importance):
+	if a not in block_importance:
 		return 0
-	if not (b in block_importance[a]):
+	if b not in block_importance[a]:
 		return 0
 
 	return block_importance[a][b]
@@ -38,9 +38,7 @@ def evaluate_interaction(conversation: Conversation):
 
 		conversation.update_score(p1, p1, importance[contribution1])
 
-		for j in range(0, i):
-			contribution2 = contributions[j]
-
+		for contribution2 in contributions[:i]:
 			if get_block_importance(block_importance, contribution1, contribution2) > 0:
 				p2 = contribution2.get_participant().get_id()
 
@@ -69,13 +67,8 @@ def evaluate_involvement(conversation: Conversation):
 		parent_contribution = contribution.get_parent()
 
 		if parent_contribution != None:
-			current_value += (get_block_importance(block_importance, contribution, parent_contribution) *
-								importance[contribution])
-
+			current_value += get_block_importance(block_importance, contribution, parent_contribution)
 			p.set_index(CsclIndices.SOCIAL_KB, current_value)
-
-		current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
-		p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
 
 def evaluate_textual_complexity(conversation: Conversation):
 	participants = conversation.get_participants()
