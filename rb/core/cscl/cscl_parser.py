@@ -9,7 +9,7 @@ from rb.cna.cna_graph import CnaGraph
 from rb.core.cscl.community import Community
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
-from rb.core.cscl.cscl_indices import CsclIndices
+from rb.core.cscl.cna_indices_enum import CNAIndices
 from rb.core.cscl.participant import Participant
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -133,9 +133,9 @@ def load_from_xml(lang: Lang, filename: str) -> Dict:
 def export_individual_statistics(participants: List[Participant], filename: str):
 	first = True
 
-	cscl_keys = [CsclIndices.SCORE, CsclIndices.SOCIAL_KB, CsclIndices.NO_CONTRIBUTION, CsclIndices.OUTDEGREE, CsclIndices.INDEGREE,
-				CsclIndices.NO_NEW_THREADS, CsclIndices.NEW_THREADS_OVERALL_SCORE, CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
-				CsclIndices.AVERAGE_LENGTH_NEW_THREADS]
+	cscl_keys = [CNAIndices.SCORE, CNAIndices.SOCIAL_KB, CNAIndices.NO_CONTRIBUTION, CNAIndices.OUTDEGREE, CNAIndices.INDEGREE,
+				CNAIndices.NO_NEW_THREADS, CNAIndices.NEW_THREADS_OVERALL_SCORE, CNAIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
+				CNAIndices.AVERAGE_LENGTH_NEW_THREADS]
 
 	evaluate_interaction(conv)
 	evaluate_involvement(conv)
@@ -144,7 +144,7 @@ def export_individual_statistics(participants: List[Participant], filename: str)
 	with open(filename, 'w') as f:
 		for p in participants:
 			indices = p.indices
-			keys = ['participant'] + [str(k.value) for k in CsclIndices]
+			keys = ['participant'] + [str(k.value) for k in CNAIndices]
 			values = [p.get_id()] + [str(p.get_index(k)) for k in cscl_keys]
 
 			if first:
@@ -202,15 +202,15 @@ def test_community_processing():
 	for p in participant_list:
 		print('Printing for participant ' + p.get_id())
 
-		print(p.get_index(CsclIndices.SCORE))
-		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
-		print(p.get_index(CsclIndices.SOCIAL_KB))
-		print(p.get_index(CsclIndices.INDEGREE))
-		print(p.get_index(CsclIndices.OUTDEGREE))
-		print(p.get_index(CsclIndices.NO_NEW_THREADS))
-		print(p.get_index(CsclIndices.NEW_THREADS_OVERALL_SCORE))
-		print(p.get_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
-		print(p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS))
+		print(p.get_index(CNAIndices.SCORE))
+		print(p.get_index(CNAIndices.NO_CONTRIBUTION))
+		print(p.get_index(CNAIndices.SOCIAL_KB))
+		print(p.get_index(CNAIndices.INDEGREE))
+		print(p.get_index(CNAIndices.OUTDEGREE))
+		print(p.get_index(CNAIndices.NO_NEW_THREADS))
+		print(p.get_index(CNAIndices.NEW_THREADS_OVERALL_SCORE))
+		print(p.get_index(CNAIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB))
+		print(p.get_index(CNAIndices.AVERAGE_LENGTH_NEW_THREADS))
 
 		# print('Printing textual complexity for participant ' + p.get_id())
 		# indices = p.textual_complexity_indices
@@ -262,11 +262,11 @@ def test_participant_evaluation():
 	for p in participant_list:
 		print('Printing for participant ' + p.get_id())
 
-		print(p.get_index(CsclIndices.SCORE))
-		print(p.get_index(CsclIndices.NO_CONTRIBUTION))
-		print(p.get_index(CsclIndices.SOCIAL_KB))
-		print(p.get_index(CsclIndices.INDEGREE))
-		print(p.get_index(CsclIndices.OUTDEGREE))
+		print(p.get_index(CNAIndices.SCORE))
+		print(p.get_index(CNAIndices.NO_CONTRIBUTION))
+		print(p.get_index(CNAIndices.SOCIAL_KB))
+		print(p.get_index(CNAIndices.INDEGREE))
+		print(p.get_index(CNAIndices.OUTDEGREE))
 
 		# print('Printing textual complexity for participant ' + p.get_id())
 		# indices = p.textual_complexity_indices

@@ -7,7 +7,7 @@ from rb.core.pos import POS
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.cna.cna_graph import CnaGraph
-from rb.core.cscl.cscl_indices import CsclIndices
+from rb.core.cscl.cna_indices_enum import CNAIndices
 from rb.complexity.complexity_index import compute_indices
 
 from rb.utils.rblogger import Logger
@@ -60,15 +60,15 @@ def evaluate_involvement(conversation: Conversation):
 	for contribution in conversation.get_contributions():
 		p = contribution.get_participant()
 
-		current_value = p.get_index(CsclIndices.SCORE)
-		p.set_index(CsclIndices.SCORE, current_value + importance[contribution])
+		current_value = p.get_index(CNAIndices.SCORE)
+		p.set_index(CNAIndices.SCORE, current_value + importance[contribution])
 
-		current_value = p.get_index(CsclIndices.SOCIAL_KB)
+		current_value = p.get_index(CNAIndices.SOCIAL_KB)
 		parent_contribution = contribution.get_parent()
 
 		if parent_contribution != None:
 			current_value += get_block_importance(block_importance, contribution, parent_contribution)
-			p.set_index(CsclIndices.SOCIAL_KB, current_value)
+			p.set_index(CNAIndices.SOCIAL_KB, current_value)
 
 def evaluate_textual_complexity(conversation: Conversation):
 	participants = conversation.get_participants()
@@ -95,16 +95,16 @@ def perform_sna(conversation: Conversation, needs_anonymization: bool):
 	for i, p1 in enumerate(participants):
 		for j, p2 in enumerate(participants):
 			if i != j:
-				current_value = p1.get_index(CsclIndices.OUTDEGREE)
-				p1.set_index(CsclIndices.OUTDEGREE, current_value +
+				current_value = p1.get_index(CNAIndices.OUTDEGREE)
+				p1.set_index(CNAIndices.OUTDEGREE, current_value +
 											conversation.get_score(p1.get_id(), p2.get_id()))
 
-				current_value = p2.get_index(CsclIndices.INDEGREE)
-				p2.set_index(CsclIndices.INDEGREE, current_value +
+				current_value = p2.get_index(CNAIndices.INDEGREE)
+				p2.set_index(CNAIndices.INDEGREE, current_value +
 											conversation.get_score(p1.get_id(), p2.get_id()))
 			else:
-				current_value = p1.get_index(CsclIndices.OUTDEGREE)
-				p1.set_index(CsclIndices.OUTDEGREE, current_value +
+				current_value = p1.get_index(CNAIndices.OUTDEGREE)
+				p1.set_index(CNAIndices.OUTDEGREE, current_value +
 											conversation.get_score(p1.get_id(), p1.get_id()))
 
 

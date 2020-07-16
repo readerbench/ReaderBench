@@ -12,7 +12,6 @@ from rb.core.sentence import Sentence
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
 from rb.core.cscl.participant import Participant
-from rb.core.cscl.cscl_indices import CsclIndices
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()

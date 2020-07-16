@@ -3,7 +3,6 @@ from typing import Dict, List
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.text_element_type import TextElementType
-from rb.core.cscl.cscl_indices import CsclIndices
 from rb.utils.rblogger import Logger
 import csv
 
