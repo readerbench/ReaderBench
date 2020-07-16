@@ -19,7 +19,7 @@ from rb.processings.cscl.community_processing import (
     determine_participation)
 from rb.processings.cscl.participant_evaluation import (evaluate_interaction,
                                                         evaluate_involvement,
-                                                        evaluate_used_concepts,
+                                                        evaluate_textual_complexity,
                                                         perform_sna)
 from rb.similarity.vector_model import VectorModelType
 from rb.similarity.vector_model_factory import create_vector_model
@@ -139,7 +139,7 @@ def export_individual_statistics(participants: List[Participant], filename: str)
 
 	evaluate_interaction(conv)
 	evaluate_involvement(conv)
-	evaluate_used_concepts(conv)
+	evaluate_textual_complexity(conv)
 	perform_sna(conv, False)
 	with open(filename, 'w') as f:
 		for p in participants:
