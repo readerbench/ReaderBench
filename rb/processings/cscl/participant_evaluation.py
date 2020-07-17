@@ -22,7 +22,7 @@ def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: B
 
 
 def evaluate_interaction(conversation: Conversation):
-	cna_graph = conversation.container.graph
+	cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
 	importance = cna_graph.importance
 	block_importance = cna_graph.block_importance
 
@@ -49,7 +49,7 @@ def evaluate_interaction(conversation: Conversation):
 
 
 def evaluate_involvement(conversation: Conversation):
-	cna_graph = conversation.container.graph
+	cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
 	importance = cna_graph.importance
 	block_importance = cna_graph.block_importance
 	participants = conversation.get_participants()
