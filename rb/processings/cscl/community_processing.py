@@ -5,7 +5,7 @@ from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
 from rb.core.cscl.community import Community
 from rb.cna.cna_graph import CnaGraph
-from rb.core.cscl.cscl_indices import CsclIndices
+from rb.core.cscl.cna_indices_enum import CNAIndices
 from rb.complexity.complexity_index import compute_indices
 
 from rb.utils.rblogger import Logger
@@ -32,8 +32,8 @@ def determine_participant_contributions(community: Community):
 
                     if c.is_significant():
                         p.add_significant_contribution(c)
-                current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
-                p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
+                current_value = p.get_index(CNAIndices.NO_CONTRIBUTION)
+                p.set_index(CNAIndices.NO_CONTRIBUTION, current_value + 1)
     
 # must be called after determine participant_contributions
 def determine_textual_complexity(community: Community):
@@ -66,18 +66,18 @@ def determine_participation(community: Community):
 
                 community.update_score(p1, p1, importance[contribution1])
 
-                current_value = participant.get_index(CsclIndices.SCORE)
+                current_value = participant.get_index(CNAIndices.SCORE)
                 participant.set_index(
-                    CsclIndices.SCORE, current_value + importance[contribution1])
+                    CNAIndices.SCORE, current_value + importance[contribution1])
 
-                current_value = participant.get_index(CsclIndices.SOCIAL_KB)
+                current_value = participant.get_index(CNAIndices.SOCIAL_KB)
                 parent_contribution = contribution1.get_parent()
 
                 if parent_contribution != None:
                     current_value += (get_block_importance(block_importance,
                                                            contribution1, parent_contribution) * importance[contribution1])
 
-                    participant.set_index(CsclIndices.SOCIAL_KB, current_value)
+                    participant.set_index(CNAIndices.SOCIAL_KB, current_value)
 
                 for j in range(0, i):
                     contribution2 = contributions[j]
@@ -95,15 +95,15 @@ def perform_sna(community: Community, needs_anonymization: bool):
     for i, p1 in enumerate(participants):
         for j, p2 in enumerate(participants):
             if i != j:
-                current_value = p1.get_index(CsclIndices.OUTDEGREE)
-                p1.set_index(CsclIndices.OUTDEGREE, current_value +
+                current_value = p1.get_index(CNAIndices.OUTDEGREE)
+                p1.set_index(CNAIndices.OUTDEGREE, current_value +
                              community.get_score(p1.get_id(), p2.get_id()))
-                current_value = p2.get_index(CsclIndices.INDEGREE)
-                p2.set_index(CsclIndices.INDEGREE, current_value +
+                current_value = p2.get_index(CNAIndices.INDEGREE)
+                p2.set_index(CNAIndices.INDEGREE, current_value +
                              community.get_score(p1.get_id(), p2.get_id()))
             else:
-                current_value = p1.get_index(CsclIndices.OUTDEGREE)
-                p1.set_index(CsclIndices.OUTDEGREE, current_value +
+                current_value = p1.get_index(CNAIndices.OUTDEGREE)
+                p1.set_index(CNAIndices.OUTDEGREE, current_value +
                              community.get_score(p1.get_id(), p1.get_id()))
 
 
@@ -117,28 +117,28 @@ def compute_sna_metrics(community: Community):
             participant = contribution.get_participant()
             p = community.get_participant(participant.get_id())
 
-            current_value = p.get_index(CsclIndices.NO_NEW_THREADS)
-            p.set_index(CsclIndices.NO_NEW_THREADS, current_value + 1)
+            current_value = p.get_index(CNAIndices.NO_NEW_THREADS)
+            p.set_index(CNAIndices.NO_NEW_THREADS, current_value + 1)
 
-            current_value = p.get_index(CsclIndices.NEW_THREADS_OVERALL_SCORE)
-            p.set_index(CsclIndices.NEW_THREADS_OVERALL_SCORE,
+            current_value = p.get_index(CNAIndices.NEW_THREADS_OVERALL_SCORE)
+            p.set_index(CNAIndices.NEW_THREADS_OVERALL_SCORE,
                         current_value + importance[conversation])
 
             current_value = p.get_index(
-                CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB)
+                CNAIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB)
             total_kb = conversation.get_cumulative_social_kb()
-            p.set_index(CsclIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
+            p.set_index(CNAIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
                         current_value + total_kb)
 
             # todo add voice pmi evolution
-            current_value = p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS)
-            p.set_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS,
+            current_value = p.get_index(CNAIndices.AVERAGE_LENGTH_NEW_THREADS)
+            p.set_index(CNAIndices.AVERAGE_LENGTH_NEW_THREADS,
                         current_value + len(contribution.text))
             break
     for p in community.get_participants():
-        new_threads = p.get_index(CsclIndices.NO_NEW_THREADS)
-        total_length = p.get_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS)
+        new_threads = p.get_index(CNAIndices.NO_NEW_THREADS)
+        total_length = p.get_index(CNAIndices.AVERAGE_LENGTH_NEW_THREADS)
 
         if new_threads > 0:
             average_length = total_length / new_threads
-            p.set_index(CsclIndices.AVERAGE_LENGTH_NEW_THREADS, average_length)
+            p.set_index(CNAIndices.AVERAGE_LENGTH_NEW_THREADS, average_length)
