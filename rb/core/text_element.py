@@ -79,7 +79,7 @@ class TextElement:
 
     def __eq__(self, other):
         if isinstance(other, TextElement):
-            return self.depth == self.depth and self.text == other.text
+            return self.depth == other.depth and self.text == other.text
         return NotImplemented
 
     def __hash__(self):

@@ -1,31 +1,25 @@
-from typing import List, Dict
+from typing import Dict, List
 
-from rb.core.lang import Lang
-from rb.core.text_element import TextElement
+import networkx as nx
+from rb.cna.cna_graph import CnaGraph
+from rb.complexity.complexity_index import compute_indices
 from rb.core.block import Block
-from rb.core.pos import POS
+from rb.core.cscl.cna_indices_enum import CNAIndices
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
-from rb.cna.cna_graph import CnaGraph
-from rb.core.cscl.cna_indices_enum import CNAIndices
-from rb.complexity.complexity_index import compute_indices
-
+from rb.core.lang import Lang
+from rb.core.pos import POS
+from rb.core.text_element import TextElement
 from rb.utils.rblogger import Logger
 
-def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: Block, b: Block) -> float:
-	if a not in block_importance:
-		return 0
-	if b not in block_importance[a]:
-		return 0
 
-	return block_importance[a][b]
+def get_block_importance(graph: nx.DiGraph, a: Block, b: Block) -> float:
+	return graph.edges[a, b]["weight"] if (a, b) in graph.edges else 0.
 
 
 def evaluate_interaction(conversation: Conversation):
 	cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
-	importance = cna_graph.importance
-	block_importance = cna_graph.block_importance
-
+	
 	participants = conversation.get_participants()
 	contributions = conversation.get_contributions()
 	conversation.init_scores()
@@ -37,16 +31,14 @@ def evaluate_interaction(conversation: Conversation):
 		p1 = contribution1.get_participant().get_id()
 
 		for contribution2 in contributions[:i]:
-			if get_block_importance(block_importance, contribution1, contribution2) > 0:
+			weight = get_block_importance(cna_graph.filtered_graph, contribution1, contribution2)
+			if weight > 0:
 				p2 = contribution2.get_participant().get_id()
-				added_kb = get_block_importance(block_importance, contribution1, contribution2)
-				conversation.update_score(p1, p2, added_kb)
+				conversation.update_score(p1, p2, weight)
 
 
 def evaluate_involvement(conversation: Conversation):
 	cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
-	importance = cna_graph.importance
-	block_importance = cna_graph.block_importance
 	participants = conversation.get_participants()
 
 	if (len(participants) == 0):
@@ -56,13 +48,13 @@ def evaluate_involvement(conversation: Conversation):
 		p = contribution.get_participant()
 
 		current_value = p.get_index(CNAIndices.SCORE)
-		p.set_index(CNAIndices.SCORE, current_value + importance[contribution])
+		p.set_index(CNAIndices.SCORE, current_value + cna_graph.importance[contribution])
 
 		current_value = p.get_index(CNAIndices.SOCIAL_KB)
 		parent_contribution = contribution.get_parent()
 
 		if parent_contribution != None:
-			current_value += get_block_importance(block_importance, contribution, parent_contribution)
+			current_value += get_block_importance(cna_graph.filtered_graph, contribution, parent_contribution)
 			p.set_index(CNAIndices.SOCIAL_KB, current_value)
 
 def evaluate_textual_complexity(conversation: Conversation):
@@ -101,5 +93,3 @@ def perform_sna(conversation: Conversation, needs_anonymization: bool):
 				current_value = p1.get_index(CNAIndices.OUTDEGREE)
 				p1.set_index(CNAIndices.OUTDEGREE, current_value +
 											conversation.get_score(p1.get_id(), p1.get_id()))
-
-

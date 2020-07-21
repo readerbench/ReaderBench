@@ -26,14 +26,6 @@ USER_KEY = 'user'
 TIMEFRAME = 30
 DISTANCE = 20
 
-def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: Block, b: Block) -> float:
-	if not (a in block_importance):
-		return 0
-	if not (b in block_importance[a]):
-		return 0
-
-	return block_importance[a][b]
-
 class Conversation(TextElement):
 
 	'''
@@ -213,24 +205,6 @@ class Conversation(TextElement):
 
 	def get_contributions(self) -> List[Contribution]:
 		return self.components
-
-	def get_cumulative_social_kb(self) -> float:
-		cna_graph = self.container.graph
-		importance = cna_graph.importance
-		block_importance = cna_graph.block_importance
-
-		total_kb = 0
-
-		for contribution in self.components:
-			parent_contribution = contribution.get_parent()
-
-			if parent_contribution != None:
-				added_kb = (get_block_importance(block_importance, contribution, parent_contribution) *
-										importance[contribution])
-
-				total_kb += added_kb
-
-		return total_kb
 
 	def init_scores(self):
 		for a in self.participants:
