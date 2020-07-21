@@ -1,15 +1,17 @@
+import sys
+from os import chdir, getcwd, makedirs, rmdir
+from shutil import rmtree
+from subprocess import check_call
+from tempfile import TemporaryDirectory
+
 import setuptools
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-from subprocess import check_call
-import sys
-from os import chdir, makedirs, rmdir
-from shutil import rmtree
-from tempfile import TemporaryDirectory
+
 
 def do_post_install_tasks():
     # download spacy thing
-    makedirs("temp", exist_ok=True)
+    cwd = getcwd()
     with TemporaryDirectory() as temp_folder:
         chdir(temp_folder)
         check_call(["git", "clone", "https://github.com/explosion/spaCy.git"])
@@ -23,7 +25,7 @@ def do_post_install_tasks():
         # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
         check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
         check_call([sys.executable, "-m", "pip", "install", "."])
-        chdir("../..")
+        chdir(cwd)
         # rmtree("temp", ignore_errors=True)
     check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
     # download nltk stuff
@@ -63,7 +65,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.9.4',
+    version='0.9.5',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',

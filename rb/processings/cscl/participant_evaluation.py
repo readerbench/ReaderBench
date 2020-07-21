@@ -23,7 +23,6 @@ def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: B
 
 def evaluate_interaction(conversation: Conversation):
 	cna_graph = conversation.container.graph
-	importance = cna_graph.importance
 	block_importance = cna_graph.block_importance
 
 	participants = conversation.get_participants()
@@ -36,15 +35,10 @@ def evaluate_interaction(conversation: Conversation):
 	for i, contribution1 in enumerate(contributions):
 		p1 = contribution1.get_participant().get_id()
 
-		conversation.update_score(p1, p1, importance[contribution1])
-
 		for contribution2 in contributions[:i]:
 			if get_block_importance(block_importance, contribution1, contribution2) > 0:
 				p2 = contribution2.get_participant().get_id()
-
-				added_kb = importance[contribution1] * get_block_importance(block_importance,
-																				contribution1, contribution2)
-
+				added_kb = get_block_importance(block_importance, contribution1, contribution2)
 				conversation.update_score(p1, p2, added_kb)
 
 
