@@ -85,7 +85,7 @@ def perform_sna(conversation: Conversation, needs_anonymization: bool):
     for u, v, weight in cna_graph.filtered_graph.edges(data="weight"):
         if isinstance(u, Contribution) and isinstance(v, Contribution) and u.get_participant() != v.get_participant():
             if participants_graph.has_edge(u.get_participant(), v.get_participant()):
-                participants_graph[u.get_participant(), v.get_participant()]["weight"] += weight
+                participants_graph[u.get_participant()][v.get_participant()]["weight"] += weight
             else:
                 participants_graph.add_edge(u.get_participant(), v.get_participant(), weight=weight)
     betweeness = betweenness_centrality(participants_graph)
