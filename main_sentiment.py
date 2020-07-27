@@ -102,8 +102,6 @@ def main(argv):
 	# dev_dataset = tf.data.Dataset.from_tensor_slices(((d1, d2), dev_labels))
 	# dev_dataset = dev_dataset.batch(FLAGS.batch_size)
 	
-	
-	
 	model = BertRegression(bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, bert_pooling_type=FLAGS.bert_pooling_type,
 					learning_rate=FLAGS.learning_rate, fc_hidden_size=FLAGS.fc_hidden_size, restore_model=FLAGS.restore_model,
 					optimizer=FLAGS.optimizer, loss=FLAGS.loss, dropout_rate=FLAGS.dropout_rate, models_path=FLAGS.models_path)
