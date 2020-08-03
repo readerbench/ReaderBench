@@ -156,7 +156,7 @@ class CnaGraph:
 		
 	def compute_importance(self) -> Dict[TextElement, float]:
 		return {
-            node: value * len(self.filted_graph)
+            node: value * len(self.filtered_graph)
             for node, value in pagerank(self.filtered_graph).items()
         }
 
