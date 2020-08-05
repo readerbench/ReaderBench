@@ -77,7 +77,7 @@ def evaluate_textual_complexity(conversation: Conversation):
 			p.set_textual_index(repr(key), value)
 
 
-def perform_sna(conversation: Conversation, needs_anonymization: bool):
+def perform_sna(conversation: Conversation, needs_anonymization: bool) -> nx.DiGraph:
     participants = conversation.get_participants()
     cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
     participants_graph = nx.DiGraph()
@@ -97,3 +97,5 @@ def perform_sna(conversation: Conversation, needs_anonymization: bool):
         p.set_index(CNAIndices.BETWEENNESS, betweeness[p])
         p.set_index(CNAIndices.CLOSENESS, closeness[p])
         p.set_index(CNAIndices.EIGENVECTOR, eigen[p])
+        p.set_index(CNAIndices.INTERACTION_SCORE, sum([participants_graph[p][n]["weight"] for n in participants_graph.neighbors(p)]))
+    return participants_graph
