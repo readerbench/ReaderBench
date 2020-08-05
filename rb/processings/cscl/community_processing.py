@@ -53,9 +53,9 @@ def determine_participation(community: Community):
 
                 community.update_score(p1, p1, cna_graph.importance[contribution1])
 
-                current_value = participant.get_index(CsclIndices.SCORE)
+                current_value = participant.get_index(CsclIndices.CONTRIBUTIONS_SCORE)
                 participant.set_index(
-                    CsclIndices.SCORE, current_value + cna_graph.importance[contribution1])
+                    CsclIndices.CONTRIBUTIONS_SCORE, current_value + cna_graph.importance[contribution1])
 
                 current_value = participant.get_index(CsclIndices.SOCIAL_KB)
                 parent_contribution = contribution1.get_parent()

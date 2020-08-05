@@ -6,7 +6,7 @@ class CsclIndicesDescriptions(Enum):
     SOCIAL_KB = 'Cumulated social KB scores'
     INDEGREE = 'In-degree centrality'
     NO_CONTRIBUTION = 'Contributions'
-    SCORE = 'Cumulated contribution scores'
+    CONTRIBUTIONS_SCORE = 'Cumulated contribution scores'
     RHYTHMIC_COEFFICIENT = 'Personal rhythmic coefficient'
     NO_VERBS = 'Verbs'
     FREQ_MAX_RHYTMIC_INDEX = 'Frequency of maximal rhythmic index'

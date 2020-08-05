@@ -2,7 +2,8 @@ from enum import Enum, unique
 
 @unique
 class CNAIndices(Enum):
-    SCORE = 'score'
+    INTERACTION_SCORE = 'interaction_score'
+    CONTRIBUTIONS_SCORE = 'contributions_score'
     SOCIAL_KB = 'social_kb'
     OUTDEGREE = 'outdegree'
     INDEGREE = 'indegree'

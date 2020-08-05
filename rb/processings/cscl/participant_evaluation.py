@@ -48,8 +48,8 @@ def evaluate_involvement(conversation: Conversation):
 	for i, contribution in enumerate(conversation.get_contributions()):
 		p = contribution.get_participant()
 
-		current_value = p.get_index(CNAIndices.SCORE)
-		p.set_index(CNAIndices.SCORE, current_value + cna_graph.importance[contribution])
+		current_value = p.get_index(CNAIndices.CONTRIBUTIONS_SCORE)
+		p.set_index(CNAIndices.CONTRIBUTIONS_SCORE, current_value + cna_graph.importance[contribution])
 
 		added_value = sum([
             get_block_importance(cna_graph.filtered_graph, contribution, prev)

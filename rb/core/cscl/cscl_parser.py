@@ -133,7 +133,7 @@ def load_from_xml(lang: Lang, filename: str) -> Dict:
 def export_individual_statistics(participants: List[Participant], filename: str):
 	first = True
 
-	cscl_keys = [CNAIndices.SCORE, CNAIndices.SOCIAL_KB, CNAIndices.NO_CONTRIBUTION, CNAIndices.OUTDEGREE, CNAIndices.INDEGREE,
+	cscl_keys = [CNAIndices.CONTRIBUTIONS_SCORE, CNAIndices.SOCIAL_KB, CNAIndices.NO_CONTRIBUTION, CNAIndices.OUTDEGREE, CNAIndices.INDEGREE,
 				CNAIndices.NO_NEW_THREADS, CNAIndices.NEW_THREADS_OVERALL_SCORE, CNAIndices.NEW_THREADS_CUMULATIVE_SOCIAL_KB,
 				CNAIndices.AVERAGE_LENGTH_NEW_THREADS]
 
@@ -202,7 +202,7 @@ def test_community_processing():
 	for p in participant_list:
 		print('Printing for participant ' + p.get_id())
 
-		print(p.get_index(CNAIndices.SCORE))
+		print(p.get_index(CNAIndices.CONTRIBUTIONS_SCORE))
 		print(p.get_index(CNAIndices.NO_CONTRIBUTION))
 		print(p.get_index(CNAIndices.SOCIAL_KB))
 		print(p.get_index(CNAIndices.INDEGREE))
@@ -262,7 +262,7 @@ def test_participant_evaluation():
 	for p in participant_list:
 		print('Printing for participant ' + p.get_id())
 
-		print(p.get_index(CNAIndices.SCORE))
+		print(p.get_index(CNAIndices.CONTRIBUTIONS_SCORE))
 		print(p.get_index(CNAIndices.NO_CONTRIBUTION))
 		print(p.get_index(CNAIndices.SOCIAL_KB))
 		print(p.get_index(CNAIndices.INDEGREE))
