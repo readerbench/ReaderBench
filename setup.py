@@ -73,7 +73,6 @@ setuptools.setup(
     url='https://git.readerbench.com/ReaderBench/Readerbench-python',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    dependency_links=['https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz'],
     install_requires=[
         'bert-for-tf2>=0.14',
         'blis',
