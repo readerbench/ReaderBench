@@ -80,7 +80,7 @@ def get_default_model(lang: Lang) -> VectorModel:
     return create_vector_model(lang, model, corpus=corpus.value)
 
     
-def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: int = 300) -> VectorModel:
+def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: int = 300, check_updates=True) -> VectorModel:
     global logger
     model_abbr = f'{lang.value}-{model.name}-{corpus}-{dim}'
     logger.info(f'Getting model {model_abbr}...')
@@ -90,21 +90,21 @@ def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: in
     else:
         try:
             if model == VectorModelType.LSA:
-                vector_model = LSA(corpus, lang, dim)
+                vector_model = LSA(corpus, lang, dim, check_updates=check_updates)
                 save_model(vector_model=vector_model, lang=lang, 
                         model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             elif model == VectorModelType.LDA:
-                vector_model = LDA(corpus, lang, dim)
+                vector_model = LDA(corpus, lang, dim, check_updates=check_updates)
                 save_model(vector_model=vector_model, lang=lang, 
                         model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             elif model == VectorModelType.WORD2VEC:
-                vector_model = Word2Vec(corpus, lang, dim)
+                vector_model = Word2Vec(corpus, lang, dim, check_updates=check_updates)
                 save_model(vector_model=vector_model, lang=lang, 
                         model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             else:
-                logger.warning(f'Model {model_abbr} could not be instantiate.')
+                logger.error(f'Model {model_abbr} could not be instantiate.')
                 return None
             return vector_model
         except:
-            logger.warning(f'Model {model_abbr} could not be instantiate.')
+            logger.error(f'Model {model_abbr} could not be instantiate.')
         return None

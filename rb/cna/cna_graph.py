@@ -2,6 +2,7 @@ from typing import Callable, Dict, List, Tuple, Union
 
 import networkx as nx
 import numpy as np
+from networkx.algorithms.link_analysis.pagerank_alg import pagerank
 from rb.cna.edge_type import EdgeType
 from rb.cna.overlap_type import OverlapType
 from rb.core.block import Block
@@ -28,6 +29,9 @@ class CnaGraph:
 				self.graph.add_node(doc)
 				for conv in doc.components:
 					nodes = self.add_element(conv)
+					for model in self.models:
+						sim = model.similarity(conv, doc)
+						self.graph.add_edge(conv, doc, type=EdgeType.SEMANTIC, model=model, value=sim)
 					self.graph.add_edge(conv, doc, type=EdgeType.PART_OF)
 					self.add_links(nodes)
 		else:
@@ -35,11 +39,10 @@ class CnaGraph:
 				self.add_element(doc)
 			self.add_links(self.graph.nodes)
 		
-		self.importance = self.compute_importance()
-
 		self.add_coref_links()
 		self.add_explicit_links()
-		self.block_importance = self.compute_block_importance()
+		self.filtered_graph = self.create_filtered_graph()
+		self.importance = self.compute_importance()
 
 	def add_links(self, nodes):
 		levels = dict()
@@ -61,7 +64,11 @@ class CnaGraph:
 		if not element.is_sentence():
 			for child in element.components:
 				result += self.add_element(child)
+				for model in self.models:
+					sim = model.similarity(child, element)
+					self.graph.add_edge(child, element, type=EdgeType.SEMANTIC, model=model, value=sim)
 				self.graph.add_edge(child, element, type=EdgeType.PART_OF)
+
 			self.graph.add_edges_from(zip(element.components[:-1], element.components[1:]), type=EdgeType.ADJACENT)
 		return result
 
@@ -122,52 +129,51 @@ class CnaGraph:
 
 		return False
 
-	def compute_block_importance(self) -> Dict[Block, Dict[Block, float]]:
-		block_links = [
-        	(a, b, edge["value"])
-        	for a, nbrsdict in self.graph.adjacency()
-			if isinstance(a, Block)
-			for b, edges in nbrsdict.items()
-			if isinstance(b, Block)
-			for edge in edges.values()
-			if edge["type"] == EdgeType.SEMANTIC
-		]
-
-		mean = np.mean([value for _, _, value in block_links])
-		stdev = np.std([value for _, _, value in block_links])
-
-		block_importance = dict()
-
-		for a, b, value in block_links:
-			if not (a in block_importance):
-				block_importance[a] = dict()
-
-			if self.is_coref_edge(a, b) or self.is_coref_edge(b, a):
-				block_importance[a][b] = value
-			elif self.is_explicit_edge(a, b) or self.is_explicit_edge(b, a):
-				block_importance[a][b] = value
-			elif value > mean + stdev:
-				block_importance[a][b] = value
-			else:
-				block_importance[a][b] = 0
-
-		return block_importance
-
-	def compute_importance(self) -> Dict[TextElement, float]:
+	def create_filtered_graph(self) -> nx.DiGraph:
 		similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
 		mean = np.mean(similarities)
 		stdev = np.std(similarities)
-		importance = {}
+		filtered_graph = nx.DiGraph()
 		for node in self.graph.nodes:
-			importance[node] = sum([value for _, _, value in self.edges(node, edge_type=EdgeType.SEMANTIC) if value > mean + stdev])
-		return importance
+			filtered_graph.add_node(node)
+		for a in filtered_graph.nodes():
+			for b in filtered_graph.nodes():
+				if a != b:
+					values = []
+					special = False
+					edges = self.graph.get_edge_data(a, b)
+					for data in edges.values() if edges else []:
+						if data["type"] is EdgeType.SEMANTIC:
+							values.append(data["value"])
+						elif data["type"] in [EdgeType.COREF, EdgeType.PART_OF, EdgeType.EXPLICIT]:
+							special = True
+					if len(values) == 0:
+						continue
+					value = np.mean(values)
+					if special or value > mean + stdev:
+						filtered_graph.add_edge(a, b, weight=value)
+		return filtered_graph
+		
+	def compute_importance(self) -> Dict[TextElement, float]:
+		return {
+            node: value * len(self.filtered_graph)
+            for node, value in pagerank(self.filtered_graph).items()
+        }
 
 	def edges(self, 
 			node: Union[TextElement, Tuple[TextElement, TextElement]], 
 			edge_type: EdgeType = None, 
 			vector_model: Union[VectorModel, OverlapType] = None) -> List[Tuple[TextElement, TextElement, float]]:
+		
+		if isinstance(node, tuple):
+			edges = self.graph.get_edge_data(node[0], node[1])
+			if not edges:
+				return []
+			edges = ((node[0], node[1], data) for data in edges.values())
+		else:
+			edges = self.graph.edges(node, data=True)
 		return [(a, b, data["value"] if "value" in data else 0)
-			for a, b, data in self.graph.edges(node, data=True) 
+			for a, b, data in edges
 			if (edge_type is None or data["type"] is edge_type) and 
 			   (vector_model is None or data["model"] is vector_model)
 		]

@@ -13,8 +13,8 @@ logger = Logger.get_logger()
 
 class Word2Vec(VectorModel):
 
-    def __init__(self, name: str, lang: Lang, dim: int = 300):
-        VectorModel.__init__(self, VectorModelType.WORD2VEC, name, lang, dim)  
+    def __init__(self, name: str, lang: Lang, dim: int = 300, check_updates=True):
+        VectorModel.__init__(self, VectorModelType.WORD2VEC, name, lang, dim, check_updates=check_updates)  
         
 
     def load_vectors(self):

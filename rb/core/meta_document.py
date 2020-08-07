@@ -15,7 +15,7 @@ class MetaDocument(TextElement):
     
 
     def __init__(self, lang: Lang, text: Union[str, List[str]],
-                 depth: int = TextElementType.CONV.value,
+                 depth: int = TextElementType.COMM.value,
                  container: TextElement = None):
         if isinstance(text, str):
             sections = text.split("\n\n")

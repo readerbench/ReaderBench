@@ -17,16 +17,16 @@ class SentimentAnalysis(object):
 	Wrapper for Sentiment Analysis
     """
 
-	def __init__(self, lang: Lang, model_type="base", max_seq_len=128):
+	def __init__(self, lang: Lang, model_type="base", max_seq_len=512, check_updates = True):
 		# load model
 		self.lang = lang
 		self.max_seq_len = max_seq_len
-		self._load_model(model_type)
+		self._load_model(model_type, check_updates)
 
 	# loads best sentiment model
-	def _load_model(self, model_type):
-		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type)
-		if check_version(Lang.RO, ["models", "sentiment", model_type]):
+	def _load_model(self, model_type, check_updates = True):
+		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type, check_updates=check_updates)
+		if check_updates and check_version(Lang.RO, ["models", "sentiment", model_type]):
 			download_model(Lang.RO, ["models", "sentiment", model_type])
 		model_path = f"resources/{self.lang.value}/models/sentiment/{model_type}"
 		self.model = tf.keras.models.load_model(model_path)

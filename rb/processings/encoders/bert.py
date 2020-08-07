@@ -15,7 +15,7 @@ import json
 
 class BertWrapper:
 
-    def __init__(self, lang: Lang, model_name: str = None, max_seq_len: int = 256):
+    def __init__(self, lang: Lang, model_name: str = None, max_seq_len: int = 256, check_updates = True):
         self.lang = lang
         if lang is Lang.EN:
             if model_name is None:
@@ -27,7 +27,7 @@ class BertWrapper:
         elif lang is Lang.RO:
             if model_name is None:
                 model_name = "base"
-            if check_version(Lang.RO, ["bert", model_name]):
+            if check_updates and check_version(Lang.RO, ["bert", model_name]):
                 download_model(Lang.RO, ["bert", model_name])
             self.model_dir = os.path.join("resources/ro/bert/", model_name)
             json_config_file = os.path.join(self.model_dir, "bert_config.json")
