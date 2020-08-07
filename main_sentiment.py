@@ -26,9 +26,9 @@ FLAGS = absl.flags.FLAGS
 # model
 absl.flags.DEFINE_integer('bert_max_seq_len', 128, 'Maximum sequence length')
 absl.flags.DEFINE_string('bert_model_type', "base", "BERT model type: small, base, large or multi_cased_base")
-absl.flags.DEFINE_string('bert_pooling_type', "cls", "BERT pooling type: cls or pool")
+absl.flags.DEFINE_string('bert_pooling_type', "cls", "BERT pooling type: cls, pool or cnn")
 absl.flags.DEFINE_boolean('bert_trainable', True, 'Whether BERT part of model is trainable or not')
-absl.flags.DEFINE_list("fc_hidden_size", "256", "List of sizes of fc hidden layer (between features and prediction; e.g. 256, 128, 32")
+absl.flags.DEFINE_list('hidden_size', "256", "List of sizes of fc hidden layer or cnn width (e.g. 256, 128, 32)")
 absl.flags.DEFINE_float('dropout_rate', 0.1, 'Dropout rate')
 # training details
 absl.flags.DEFINE_string('optimizer', 'adam', 'Optimizer used for training')
@@ -70,42 +70,9 @@ def main(argv):
 	# sys.exit()
 
 	bert_wrapper = BertWrapper(Lang.RO, max_seq_len=FLAGS.bert_max_seq_len, model_name=FLAGS.bert_model_type)
-
-	# train_data = utils.readJson(FLAGS.dataset_folder_path+"train.json")
-	# dev_data = utils.readJson(FLAGS.dataset_folder_path+"dev.json")
-	# # test_data = utils.readJson(FLAGS.dataset_folder_path+"test.json")
-
-	# train_features = utils.getFeatures(train_data, sample_majority=True, sample_count=2000, seed=12345, majority_class=5)
-	# # train_features = utils.getFeatures(train_data, sample_majority=False, sample_count=2000, seed=12345, majority_class=5)
-	# train_features, train_labels, train_weights_dict = utils.processFeatures(train_features, bert_wrapper)
-	# print(len(train_features[0]), len(train_labels), train_weights_dict)
-
-	# dev_features = utils.getFeatures(dev_data)
-	# dev_features, dev_labels, _ = utils.processFeatures(dev_features, bert_wrapper)
-	# print(len(dev_features[0]), len(dev_labels))
-
-	# t1 = []
-	# t2 = []
-	# for i in range(len(train_features[0])):
-	# 	t1.append(train_features[0][i])
-	# 	t2.append(train_features[1][i])
-	# train_dataset = tf.data.Dataset.from_tensor_slices(((t1, t2), train_labels))
-	# train_dataset = train_dataset.shuffle(700000, reshuffle_each_iteration=True)
-	# train_dataset = train_dataset.batch(FLAGS.batch_size)
-	# # train_dataset = train_dataset.repeat(-1).batch(FLAGS.batch_size)
-
-	# d1 = []
-	# d2 = []
-	# for i in range(len(dev_features[0])):
-	# 	d1.append(dev_features[0][i])
-	# 	d2.append(dev_features[1][i])
-	# dev_dataset = tf.data.Dataset.from_tensor_slices(((d1, d2), dev_labels))
-	# dev_dataset = dev_dataset.batch(FLAGS.batch_size)
-	
 	model = BertRegression(bert_wrapper=bert_wrapper, bert_trainable=FLAGS.bert_trainable, bert_pooling_type=FLAGS.bert_pooling_type,
-					learning_rate=FLAGS.learning_rate, fc_hidden_size=FLAGS.fc_hidden_size, restore_model=FLAGS.restore_model,
+					learning_rate=FLAGS.learning_rate, hidden_size=FLAGS.hidden_size, restore_model=FLAGS.restore_model,
 					optimizer=FLAGS.optimizer, loss=FLAGS.loss, dropout_rate=FLAGS.dropout_rate, models_path=FLAGS.models_path)
-
 
 	if FLAGS.run_type == "train":
 		train_dataset = getDataset("train", FLAGS.batch_size, bert_wrapper)

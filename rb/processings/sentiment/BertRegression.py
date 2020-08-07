@@ -16,7 +16,7 @@ class BertRegression(object):
 	"""
 	Class to implement simple Bert + Regression for sentiment analysis
     """
-	def __init__(self, fc_hidden_size, bert_trainable, bert_wrapper, bert_pooling_type,
+	def __init__(self, hidden_size, bert_trainable, bert_wrapper, bert_pooling_type,
 				 dropout_rate, learning_rate, restore_model, optimizer, loss, models_path=None):
 		"""
         Initialization for whole model
@@ -28,7 +28,7 @@ class BertRegression(object):
 			
 			
 			After BERT
-			fc_hidden_size ([int]): Sizes of hidden layer after BERT
+			hidden_size ([int]): Sizes of hidden layer/cnn width after BERT
 			dropout_rate (float): dropout between FC layers
 			
 
@@ -44,7 +44,7 @@ class BertRegression(object):
 		
 		self.learning_rate = learning_rate
 		# process list
-		self.fc_hidden_size = list(map(lambda x: int(x), fc_hidden_size))
+		self.hidden_size = list(map(lambda x: int(x), hidden_size))
 		self.dropout_rate = dropout_rate
 
 		self.bert_wrapper = bert_wrapper
@@ -73,14 +73,28 @@ class BertRegression(object):
 
 		###########################  Bert  ####################################
 		inputs, bert_output = self.bert_wrapper.create_inputs_and_model()
-		bert_output = self.bert_wrapper.get_output(bert_output, self.bert_pooling_type)
+		convolution_output = []
+		if self.bert_pooling_type == "cnn":
+			num_filters = 256//len(self.hidden_size)
+			for filter_width in self.hidden_size:
+				conv = Conv1D(filters=num_filters, kernel_size=filter_width, activation='tanh',
+								name='Conv1D_{}_{}'.format(num_filters, filter_width))(bert_output)
+				pool = GlobalMaxPooling1D(name='MaxPoolingOverTime_{}_{}'.format(num_filters, filter_width))(conv)
+				convolution_output.append(pool)
+			bert_output = Concatenate()(convolution_output)
+		else:
+			bert_output = self.bert_wrapper.get_output(bert_output, self.bert_pooling_type)
+
 		bert_output = Dropout(rate=self.dropout_rate)(bert_output)
 
 
-		######################  FC layers  ####################################
+		#####################  FC layers  #################################
 		hidden = bert_output
-		for layer_size in self.fc_hidden_size:
-			hidden = Dense(layer_size, activation='relu')(hidden)
+		if self.bert_pooling_type == "cnn":
+			hidden = Dense(128, activation='relu')(hidden)
+		else:
+			for layer_size in self.hidden_size:
+				hidden = Dense(layer_size, activation='relu')(hidden)
 
 
 		######################  Final prediction  ############################
