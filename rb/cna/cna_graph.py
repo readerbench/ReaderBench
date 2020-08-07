@@ -130,7 +130,10 @@ class CnaGraph:
 		return False
 
 	def create_filtered_graph(self) -> nx.DiGraph:
-		similarities = [value for _, _, value in self.edges(None, edge_type=EdgeType.SEMANTIC)]
+		similarities = [
+            value 
+            for a, b, value in self.edges(None, edge_type=EdgeType.SEMANTIC)
+            if a.depth == b.depth]
 		mean = np.mean(similarities)
 		stdev = np.std(similarities)
 		filtered_graph = nx.DiGraph()
