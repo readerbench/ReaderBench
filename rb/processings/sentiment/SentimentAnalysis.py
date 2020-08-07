@@ -17,7 +17,7 @@ class SentimentAnalysis(object):
 	Wrapper for Sentiment Analysis
     """
 
-	def __init__(self, lang: Lang, model_type="base", max_seq_len=512, check_updates = True):
+	def __init__(self, lang: Lang, model_type="base", max_seq_len=128, check_updates = True):
 		# load model
 		self.lang = lang
 		self.max_seq_len = max_seq_len
@@ -39,4 +39,5 @@ class SentimentAnalysis(object):
 
 		features = utils.processFeaturesRawText(text, self.bert_wrapper)
 		predictions = self.model.predict(features)
+		predictions = list(map(lambda x: x[0], predictions))
 		return predictions
