@@ -1,6 +1,6 @@
 import json
 import sys
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import copy
 import numpy as np
 import tensorflow as tf
@@ -200,6 +200,23 @@ def processFeatures(data, bert_proc):
     class_weights = class_weight.compute_class_weight('balanced', np.unique(labels), labels)
     class_weights = class_weights.astype(np.float32)
     return features, labels, class_weights
+
+# get processed features and labels from texst
+# input -> features
+# output -> list of processed features, list of labels, dict of class_weights
+def processFeaturesRawText(data, bert_proc):
+    features = []
+    iids = []
+    sids = []
+    i = 0
+    for entry in data:
+        review_text = entry
+        input_ids, segment_ids = bert_proc.process_text(review_text)
+        iids.append(input_ids)
+        sids.append(segment_ids)
+    
+    features = [np.array(iids), np.array(sids)]
+    return features
 
 # split data in train dev test split using stratified 
 # input -> data
