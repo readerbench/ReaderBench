@@ -39,4 +39,5 @@ class SentimentAnalysis(object):
 
 		features = utils.processFeaturesRawText(text, self.bert_wrapper)
 		predictions = self.model.predict(features)
+		predictions = list(map(lambda x: x[0], predictions))
 		return predictions
