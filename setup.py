@@ -64,7 +64,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.9.16',
+    version='0.9.17',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -99,6 +99,7 @@ setuptools.setup(
         'murmurhash',
         'networkx',
         'nltk==3.4.5',
+        'numpy',
         'pymorphy2',
         'Pyphen',
         'python-dateutil<2.8.1',
