@@ -19,7 +19,7 @@ def summarize(doc: Union[str, TextElement], lang: Lang = None, no_sentences=3) -
         for i, sentence in enumerate(doc.get_sentences())], 
         key=itemgetter(2),
         reverse=True)
-    print(sentences)
+    # print(sentences)
     if len(sentences) > no_sentences:
         sentences = sentences[:no_sentences]
     return " ".join([sent.text for i, sent, score in sentences])
