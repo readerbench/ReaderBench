@@ -1,12 +1,14 @@
-from rb.similarity.vector_model import VectorModel, VectorModelType
-from rb.similarity.vector_model_factory import create_vector_model
+import bisect
+import math
+from collections import Counter
+from typing import Dict, List, Set, Tuple
+
 from rb.core.document import Document
 from rb.core.lang import Lang
-from rb.core.word import Word
 from rb.core.text_element_type import TextElementType
-from collections import Counter
-from typing import List, Tuple, Dict, Set
-import math
+from rb.core.word import Word
+from rb.similarity.vector_model import VectorModel, VectorModelType
+from rb.similarity.vector_model_factory import create_vector_model
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -40,7 +42,7 @@ class KeywordExtractor():
             vector_model = None
         return vector_model
 
-    def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40, vector_model: VectorModel = None) -> List[Tuple[float, Word]]:
+    def extract_keywords(self, text: str, lang: Lang = Lang.RO, max_keywords: int = 40, vector_model: VectorModel = None, threshold: float = 0.3) -> List[Tuple[float, Word]]:
 
         if vector_model is None:
             vector_model = self.get_vector_model(lang=lang)
@@ -67,7 +69,11 @@ class KeywordExtractor():
                 scores.append((sim * freq, ww))
 
         scores = sorted(scores, reverse=True, key=lambda x: x[0])
-        return scores[:max_keywords]
+        scores.reverse()
+        idx = bisect.bisect(scores, (threshold, ))
+        scores.reverse()
+        return scores[:len(scores)-idx]
+        # return scores[:max_keywords]
 
     def keywords_heatmap(self, text: str, lang: Lang = Lang.RO, granularity: TextElementType = TextElementType.SENT,
                          max_keywords: int = 40) -> Dict:
