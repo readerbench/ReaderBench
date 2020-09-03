@@ -114,16 +114,23 @@ def parse_large_csv(filename: str) -> Dict:
 
 def load_from_xml(lang: Lang, filename: str) -> Dict:
 	with open(filename, "rt") as f:
-		my_dict=xmltodict.parse(f.read())
+		try:
+			my_dict=xmltodict.parse(f.read())
+		except:
+			print(filename)
+			raise
+		turns = my_dict["Dialog"]["Body"]["Turn"]
+		if not isinstance(turns, List):
+			turns = [turns]
 		contributions = [
 			{
 				ID_KEY: int(utterance["@genid"]) - 1,
 				PARENT_ID_KEY: int(utterance["@ref"]) - 1,
-				TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%H.%M.%S').replace(year=2020)),
+				TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%Y-%m-%d %H:%M:%S.%f')),
 				USER_KEY: turn["@nickname"],
 				TEXT_KEY: utterance["#text"],
 			}
-			for turn in my_dict["corpus"]["Dialog"]["Body"]["Turn"]
+			for turn in turns
 			for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
 		]
 

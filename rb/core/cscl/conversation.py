@@ -138,7 +138,7 @@ class Conversation(TextElement):
 			# parent index will be -1 in JSON for the first post
 			parent_index = int(contribution[PARENT_ID_KEY])
 
-			timestamp = int(contribution[TIMESTAMP_KEY])
+			timestamp = contribution[TIMESTAMP_KEY]
 			text = contribution[TEXT_KEY].strip()
 			if text[-1] not in {'.', '!', '?'}:
 				text += "."
@@ -185,8 +185,6 @@ class Conversation(TextElement):
 		i = 0
 		for contribution in self.components:
 			left = len(contribution.text)
-			if "\n" in sentences[i].text[:-1]:
-				print("aici")
 			while i < len(sentences) and len(sentences[i].text) <= left:
 				contribution.add_sentence(sentences[i])
 				left -= len(sentences[i].text)

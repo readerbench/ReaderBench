@@ -30,6 +30,7 @@ wheels/
 *.csv#
 *.p
 .vscode/
+rbpy-rb*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -147,6 +148,7 @@ rb/core/csvl/jsons
 *.csv
 *.zip
 *.docx
+*.xml
 
 # System Files
 .DS_Store
