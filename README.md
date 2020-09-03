@@ -91,3 +91,13 @@ logger.error()
 3. run `EXPORT PYTHONPATH=/add/path/to/repo/readerbenchpy/`
 4. add json resources in a `jsons` directory in `readerbenchpy/rb/core/cscl/`
 5. run `cd rb/core/cscl/ && python3 csv_parser.py`
+
+## Supported Date Formats
+ReaderBench is able to perform conversation analysis from chats and communities. Each utterance must have the time expressed in one of the following formats:
+- %Y-%m-%d %H:%M:%S.%f %Z
+- %Y-%m-%d %H:%M:%S %Z
+- %Y-%m-%d %H:%M %Z
+- %Y-%m-%d %H:%M:%S.%f
+- %Y-%m-%d %H:%M:%S
+- %Y-%m-%d %H:%M
+where codifications are extracted from [Python date format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
