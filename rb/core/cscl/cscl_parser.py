@@ -36,6 +36,15 @@ USER_KEY = 'user'
 
 JSONS_PATH = './jsons/'
 
+FORMATS = [
+    "%Y-%m-%d %H:%M:%S.%f %Z", 
+    "%Y-%m-%d %H:%M:%S %Z", 
+    "%Y-%m-%d %H:%M %Z",
+    "%Y-%m-%d %H:%M:%S.%f", 
+    "%Y-%m-%d %H:%M:%S", 
+    "%Y-%m-%d %H:%M"
+]
+
 def get_json_from_json_file(filename: str) -> Dict:
     conversation_thread = dict()
     contribution_list = []
@@ -112,13 +121,19 @@ def parse_large_csv(filename: str) -> Dict:
 
     return conversation_thread
 
+def read_date(date) -> datetime.datetime:
+    for date_format in FORMATS:
+        try:
+            return datetime.strptime(date, date_format)
+        except:
+            pass
+    
+
 def load_from_xml(lang: Lang, filename: str) -> Dict:
 	with open(filename, "rt") as f:
-		try:
-			my_dict=xmltodict.parse(f.read())
-		except:
-			print(filename)
-			raise
+		my_dict=xmltodict.parse(f.read())
+		if "corpus" in my_dict:
+			my_dict = my_dict["corpus"]
 		turns = my_dict["Dialog"]["Body"]["Turn"]
 		if not isinstance(turns, List):
 			turns = [turns]
@@ -126,7 +141,7 @@ def load_from_xml(lang: Lang, filename: str) -> Dict:
 			{
 				ID_KEY: int(utterance["@genid"]) - 1,
 				PARENT_ID_KEY: int(utterance["@ref"]) - 1,
-				TIMESTAMP_KEY: datetime.timestamp(datetime.strptime(utterance["@time"],'%Y-%m-%d %H:%M:%S.%f')),
+				TIMESTAMP_KEY: read_date(utterance["@time"]),
 				USER_KEY: turn["@nickname"],
 				TEXT_KEY: utterance["#text"],
 			}

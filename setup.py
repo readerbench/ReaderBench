@@ -12,20 +12,28 @@ from setuptools.command.install import install
 def do_post_install_tasks():
     # download spacy thing
     cwd = getcwd()
-    with TemporaryDirectory() as temp_folder:
-        chdir(temp_folder)
-        check_call(["git", "clone", "--depth", "1", "--branch", "v2.3.2", "https://github.com/explosion/spaCy.git"])
-        chdir("spaCy")
-        check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-        check_call([sys.executable, "-m", "pip", "install", "-U", "."])
-        chdir("..")
-        check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
-        chdir("neuralcoref")
-        # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-        check_call([sys.executable, "-m", "pip", "install", "-U", "."])
-        chdir(cwd)
+    install_spacy = False
+    try:
+        import spacy
+        if spacy.__version__ != "2.3.2":
+            install_spacy = True
+    except:
+        install_spacy = True
+    if install_spacy:
+        with TemporaryDirectory() as temp_folder:
+            chdir(temp_folder)
+            check_call(["git", "clone", "--depth", "1", "--branch", "v2.3.2", "https://github.com/explosion/spaCy.git"])
+            chdir("spaCy")
+            check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+            check_call([sys.executable, "-m", "pip", "install", "-U", "."])
+            chdir("..")
+            check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
+            chdir("neuralcoref")
+            # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+            check_call([sys.executable, "-m", "pip", "install", "-U", "."])
+            chdir(cwd)
     check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
     # download nltk stuff
     from os import getenv, path
@@ -64,7 +72,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.9.22',
+    version='0.9.26',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
