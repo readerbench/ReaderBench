@@ -121,7 +121,7 @@ def parse_large_csv(filename: str) -> Dict:
 
     return conversation_thread
 
-def read_date(date) -> datetime.datetime:
+def read_date(date) -> datetime:
     for date_format in FORMATS:
         try:
             return datetime.strptime(date, date_format)
