@@ -17,6 +17,8 @@ from rb.core.text_element_type import TextElementType
 from rb.similarity.vector_model import VectorModelType
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.utils.rblogger import Logger
+from rb.processings.diacritics.DiacriticsRestoration import DiacriticsRestoration
+
 
 logger = Logger.get_logger()
 
@@ -123,8 +125,8 @@ def read_date(date) -> datetime:
             pass
     
 
-def load_from_xml(filename: str) -> Dict:
-	with open(filename, "rt") as f:
+def load_from_xml(filename: str, diacritics_model: DiacriticsRestoration = None) -> Dict:
+	with open(filename, "rt", encoding="utf-8") as f:
 		my_dict=xmltodict.parse(f.read())
 		if "corpus" in my_dict:
 			my_dict = my_dict["corpus"]
@@ -137,7 +139,7 @@ def load_from_xml(filename: str) -> Dict:
 				PARENT_ID_KEY: int(utterance["@ref"]) - 1,
 				TIMESTAMP_KEY: read_date(utterance["@time"]),
 				USER_KEY: turn["@nickname"],
-				TEXT_KEY: utterance["#text"],
+				TEXT_KEY: diacritics_model.process_string(utterance["#text"], mode="replace_missing") if diacritics_model else utterance["#text"],
 			}
 			for turn in turns
 			for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])

@@ -22,10 +22,15 @@ class Participant:
     def get_id(self) -> str:
         return self.participant_id
 
-    def get_index(self, index: str):
+    def get_index(self, index: str) -> float:
         if index in self.indices:
             return self.indices[index]
 
+        return 0
+        
+    def get_textual_index(self, index: str) -> float:
+        if index in self.textual_complexity_indices:
+            return self.textual_complexity_indices[index]
         return 0
 
     def __eq__(self, other):
