@@ -98,7 +98,7 @@ def perform_sna(conversation: Conversation, needs_anonymization: bool) -> nx.DiG
                 participants_graph.add_edge(u.get_participant(), v.get_participant(), weight=weight)
     betweeness = betweenness_centrality(participants_graph)
     closeness = closeness_centrality(participants_graph)
-    eigen = eigenvector_centrality(participants_graph)
+    eigen = eigenvector_centrality(participants_graph, max_iter=1000, tol=1.0e-05)
     for p in participants:
         p.set_index(CNAIndices.OUTDEGREE, participants_graph.out_degree(p, weight="weight"))
         p.set_index(CNAIndices.INDEGREE, participants_graph.in_degree(p, weight="weight"))
