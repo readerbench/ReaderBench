@@ -15,7 +15,7 @@ from rb.core.text_element import TextElement
 logger = Logger.get_logger()
 
 
-def extract_keywords(self, text: Union[str, TextElement], lang: Lang = Lang.RO, max_keywords: int = 40, vector_model: VectorModel = None, threshold: float = 0.3) -> List[Tuple[float, str]]:
+def extract_keywords(text: Union[str, TextElement], lang: Lang = Lang.RO, max_keywords: int = 40, vector_model: VectorModel = None, threshold: float = 0.3) -> List[Tuple[float, str]]:
 
     if vector_model is None:
         vector_model = get_default_model(lang)
