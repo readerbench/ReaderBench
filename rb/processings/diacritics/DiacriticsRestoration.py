@@ -32,17 +32,17 @@ class DiacriticsRestoration(object):
     Wrapper for Diacritics restoration
     """
 
-    def __init__(self):
+    def __init__(self, model_name = "base"):
         # load model
-        self._load_model()
+        self._load_model(model_name)
 
     # loads best diacritics model, i.e CharCNN + RoBERT-base FN
-    def _load_model(self):
-        self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name="base")
-        if check_version(Lang.RO, ["models", "diacritice", "RoBERT_base+CNN"]):
-            download_model(Lang.RO, ["models", "diacritice", "RoBERT_base+CNN"])
-        self.char_to_id_dict = pickle.load(open("resources/ro/models/diacritice/RoBERT_base+CNN/char_dict", "rb"))
-        model_path = "resources/ro/models/diacritice/RoBERT_base+CNN/model_11_bert1_tr.h5"
+    def _load_model(self, model_name):
+        self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name=model_name)
+        if check_version(Lang.RO, ["models", "diacritice", model_name]):
+            download_model(Lang.RO, ["models", "diacritice", model_name])
+        self.char_to_id_dict = pickle.load(open(f"resources/ro/models/diacritice/{model_name}/char_dict", "rb"))
+        model_path = f"resources/ro/models/diacritice/{model_name}/model.h5"
         self.model = load_model(model_path, custom_objects={'BertModelLayer': self.bert_wrapper.bert_layer, 'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
                                'categorical_acc': categorical_acc})
 

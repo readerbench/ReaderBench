@@ -33,7 +33,6 @@ class DepEnum(Enum):
     OBL = auto()
     ORPHAN = auto()
     PARATAXIS = auto()
-    PUNCT = auto()
     REPARANDUM = auto()
     ROOT = auto()
     VOCATIVE = auto()
