@@ -4,12 +4,11 @@ from typing import List, Tuple, Iterable, Union
 import bert
 import numpy as np
 import tensorflow as tf
-import tensorflow_hub as hub
 from bert.tokenization.bert_tokenization import FullTokenizer
 from rb.core.lang import Lang
 from rb.utils.downloader import check_version, download_model
 from tensorflow import keras
-from transformers import FlaubertTokenizer, TFFlaubertModel
+from transformers import FlaubertTokenizer, TFFlaubertModel, AutoTokenizer, TFAutoModelWithLMHead
 import json
 
 
@@ -19,11 +18,9 @@ class BertWrapper:
         self.lang = lang
         if lang is Lang.EN:
             if model_name is None:
-                model_name = "https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/1"
-            self.bert_layer = hub.KerasLayer(model_name, trainable=True)
-            vocab_file = self.bert_layer.resolved_object.vocab_file.asset_path.numpy()
-            do_lower_case = self.bert_layer.resolved_object.do_lower_case.numpy()
-            self.tokenizer = FullTokenizer(vocab_file, do_lower_case)
+                model_name = "bert-base-uncased"
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.bert_layer = TFAutoModelWithLMHead.from_pretrained(model_name)
         elif lang is Lang.RO:
             if model_name is None:
                 model_name = "base"
@@ -72,7 +69,7 @@ class BertWrapper:
 
     def get_output(self, bert_tensor: tf.Tensor, mode: str = "cls") -> tf.Tensor:
         if self.lang is Lang.EN:
-            sequence_output = bert_tensor[1]
+            sequence_output = bert_tensor[0]
         elif self.lang is Lang.RO:
             sequence_output = bert_tensor
         elif self.lang is Lang.FR:

@@ -21,7 +21,7 @@ def do_post_install_tasks():
     #     install_spacy = True
     # if install_spacy:
     with TemporaryDirectory() as temp_folder:
-        # chdir(temp_folder)
+        chdir(temp_folder)
         # check_call(["git", "clone", "--depth", "1", "--branch", "v2.3.2", "https://github.com/explosion/spaCy.git"])
         # chdir("spaCy")
         # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
@@ -72,7 +72,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.3',
+    version='0.10.7',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -91,6 +91,7 @@ setuptools.setup(
         'chardet',
         'Click',
         'cymem',
+        'Cython',
         'DAWG-Python',
         'decorator',
         'docopt',
@@ -118,11 +119,10 @@ setuptools.setup(
         'six',
         'sklearn',
         'smart-open',
-        'spacy==2.3.2'
+        'spacy==2.3.2',
         'srsly',
         'tensorflow>=2',
-        'tensorflow-hub',
-        'transformers<3',
+        'transformers',
         'tqdm',
         'urllib3',
         'wasabi',
