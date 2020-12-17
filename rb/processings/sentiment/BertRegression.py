@@ -114,8 +114,8 @@ class BertRegression(object):
 			self.bert_wrapper.load_weights()
 
 		self.model = model
-		print("BERT model built: ")
-		self.model.summary()
+		# print("BERT model built: ")
+		# self.model.summary()
 
 	def train(self, train_dataset, dev_dataset, epochs, model_name):
 
