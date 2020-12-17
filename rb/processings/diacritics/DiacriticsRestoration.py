@@ -32,9 +32,10 @@ class DiacriticsRestoration(object):
     Wrapper for Diacritics restoration
     """
 
-    def __init__(self, model_name = "base"):
+    def __init__(self, model_name = "base", max_sentence_length=256):
         # load model
         self._load_model(model_name)
+        self.max_sentence_length = min(max_sentence_length, 256)
 
     # loads best diacritics model, i.e CharCNN + RoBERT-base FN
     def _load_model(self, model_name):
@@ -51,10 +52,10 @@ class DiacriticsRestoration(object):
     def process_string(self, string, mode="replace_all"):
         full_diacritics = set("aăâiîsștț")
         explicit_diacritics = set("ăâîșțĂÂÎȘȚ")
-        if len(string) > 128:
+        if len(string) > self.max_sentence_length:
             result = ""
-            for i in range(0, len(string), 64):
-                substring = string[i:min(len(string), i+128)]
+            for i in range(0, len(string), self.max_sentence_length):
+                substring = string[i:min(len(string), i+self.max_sentence_length)]
                 result += self.process_string(substring, mode)
             return result
         working_string = string.lower()
