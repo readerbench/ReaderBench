@@ -1,7 +1,4 @@
-#pylint: disable=import-error
 import os
-#     except RuntimeError as e:
-#         print(e)
 import pickle
 import sys
 
@@ -17,22 +14,13 @@ from rb.processings.encoders.bert import BertWrapper
 from rb.utils.downloader import check_version, download_model
 from tensorflow.keras.models import load_model
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     try:
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu, True)
-
-
-
-
 
 class DiacriticsRestoration(object):
     """
     Wrapper for Diacritics restoration
     """
 
-    def __init__(self, model_name = "base", max_sentence_length=256):
+    def __init__(self, model_name = "base", max_sentence_length=128):
         # load model
         self._load_model(model_name)
         self.max_sentence_length = min(max_sentence_length, 256)
