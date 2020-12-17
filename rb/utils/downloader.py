@@ -26,7 +26,7 @@ LINKS = {
         },
         'spacy': {},
         'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download',
-        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/9zzptWpYT9BbxYS/download"
+        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/9zzptWpYT9BbxYS/download",
         'wordlists': {
             'link': 'https://nextcloud.readerbench.com/index.php/s/XyeiJCSripBWpx7/download',
             'version': 'https://nextcloud.readerbench.com/index.php/s/xyyGMqeLwTkBRms/download'
@@ -80,7 +80,7 @@ LINKS = {
             }
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
-        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/opifiTCqXNzRsxF/download"
+        'syllabified_dict': "https://nextcloud.readerbench.com/index.php/s/opifiTCqXNzRsxF/download",
         'bert':{
             'small': {
                 'link': 'https://nextcloud.readerbench.com/index.php/s/WbtmEn9XebfbBFy/download',
