@@ -27,13 +27,17 @@ class DiacriticsRestoration(object):
 
     # loads best diacritics model, i.e CharCNN + RoBERT-base FN
     def _load_model(self, model_name):
-        self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name=model_name)
+        self.bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128, model_name=model_name, custom_model=True)
         if check_version(Lang.RO, ["models", "diacritice", model_name]):
             download_model(Lang.RO, ["models", "diacritice", model_name])
         self.char_to_id_dict = pickle.load(open(f"resources/ro/models/diacritice/{model_name}/char_dict", "rb"))
         model_path = f"resources/ro/models/diacritice/{model_name}/model.h5"
-        self.model = load_model(model_path, custom_objects={'BertModelLayer': self.bert_wrapper.bert_layer, 'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
-                               'categorical_acc': categorical_acc})
+        self.model = load_model(model_path, 
+                                custom_objects={
+                                    'BertModelLayer': self.bert_wrapper.bert_layer, 
+                                    'loss':weighted_categorical_crossentropy(np.ones(5), 5).loss, 
+                                    'categorical_acc': categorical_acc})
+        del self.bert_wrapper.bert_layer
 
     # replace_all: replaces all diacritics(if existing) with model predictions
     # replace_missing: replaces only characters that accept and don't have diacritics with model predictions; keeps existing diacritics

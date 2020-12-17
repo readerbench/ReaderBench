@@ -25,11 +25,13 @@ class SentimentAnalysis(object):
 
 	# loads best sentiment model
 	def _load_model(self, model_type, check_updates = True):
-		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type, check_updates=check_updates)
+		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type, check_updates=check_updates, custom_model=True)
 		if check_updates and check_version(Lang.RO, ["models", "sentiment", model_type]):
 			download_model(Lang.RO, ["models", "sentiment", model_type])
-		model_path = f"resources/{self.lang.value}/models/sentiment/{model_type}"
-		self.model = tf.keras.models.load_model(model_path)
+		model_path = f"resources/{self.lang.value}/models/sentiment/{model_type}/model.h5"
+		self.model = tf.keras.models.load_model(model_path, custom_objects={
+                                    	'BertModelLayer': self.bert_wrapper.bert_layer, 
+									})
 		
 
 	def process_text(self, text):
