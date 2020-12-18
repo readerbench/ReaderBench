@@ -35,14 +35,21 @@ VECTOR_MODELS = {
         CorporaEnum.RNC_WIKIPEDIA: {
             VectorModelType.WORD2VEC: Word2Vec
         }
-    }
+    },
+    Lang.FR: {
+        CorporaEnum.LE_MONDE: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
+    },
+    
 }
 
 DEFAULT_MODELS = {
     Lang.RO: (VectorModelType.WORD2VEC, CorporaEnum.README),
     Lang.EN: (VectorModelType.WORD2VEC, CorporaEnum.COCA),
     Lang.ES: (VectorModelType.WORD2VEC, CorporaEnum.JOSE_ANTONIO),
-    Lang.RU: (VectorModelType.WORD2VEC, CorporaEnum.RNC_WIKIPEDIA),    
+    Lang.RU: (VectorModelType.WORD2VEC, CorporaEnum.RNC_WIKIPEDIA),
+    Lang.FR: (VectorModelType.WORD2VEC, CorporaEnum.LE_MONDE)    
 }
 
 EXISTING_MODELS = {}

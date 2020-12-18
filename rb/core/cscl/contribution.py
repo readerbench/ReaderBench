@@ -18,13 +18,14 @@ SIGNIFICANT_LIMIT = 5
 class Contribution(TextElement):
 
     def __init__(self, lang: Lang, text: str, participant: Participant,
-                 parent_contribution: "Contribution", contribution_raw: Dict,
+                 parent_contribution: "Contribution", contribution_raw: Dict, index: int,
                  timestamp: int, depth: int = TextElementType.BLOCK.value,
                  container: TextElement = None):
         super().__init__(lang=lang, text=text, depth=depth, container=container)
         self.parent_contribution = parent_contribution
         self.participant = participant
         self.timestamp = timestamp
+        self.index = index
 
         # used for creating per-participant conversations, based on original contributions
         self.contribution_raw = contribution_raw
@@ -47,3 +48,12 @@ class Contribution(TextElement):
 
     def get_raw_contribution(self) -> "Contribution":
         return self.contribution_raw
+    
+    def __eq__(self, other):
+        if not isinstance(other, Contribution):
+            return False
+        return self.timestamp == other.timestamp and TextElement.__eq__(self, other)
+    
+    def __hash__(self):
+        return hash((self.timestamp, TextElement.__hash__(self)))
+    

@@ -21,7 +21,7 @@ class SentimentAnalysis(object):
 	def __init__(self, lang: Lang, model_type="base", max_seq_len=128, check_updates = True):
 		# load model
 		self.lang = lang
-		self.max_seq_len = max_seq_len
+		self.max_seq_len = 128
 		self._load_model(model_type, check_updates)
 
 	# loads best sentiment model
