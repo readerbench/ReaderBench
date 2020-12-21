@@ -1,112 +1,116 @@
-from typing import List, Dict
+from typing import Dict, List, Union
 
-from rb.core.lang import Lang
-from rb.core.text_element import TextElement
+import networkx as nx
+from networkx.algorithms.centrality import betweenness_centrality, closeness_centrality, eigenvector_centrality
+from rb.cna.cna_graph import CnaGraph
+from rb.complexity.complexity_index import compute_indices
 from rb.core.block import Block
-from rb.core.pos import POS
+from rb.core.cscl.cna_indices_enum import CNAIndices
 from rb.core.cscl.contribution import Contribution
 from rb.core.cscl.conversation import Conversation
-from rb.cna.cna_graph import CnaGraph
-from rb.core.cscl.cscl_indices import CsclIndices
-
+from rb.core.cscl.community import Community
+from rb.core.lang import Lang
+from rb.core.pos import POS
+from rb.core.text_element import TextElement
 from rb.utils.rblogger import Logger
 
-def get_block_importance(block_importance: Dict[Block, Dict[Block, float]], a: Block, b: Block) -> float:
-	if not (a in block_importance):
-		return 0
-	if not (b in block_importance[a]):
-		return 0
 
-	return block_importance[a][b]
+def get_block_importance(graph: nx.DiGraph, a: Block, b: Block) -> float:
+    return graph.edges[a, b]["weight"] if (a, b) in graph.edges else 0.
 
 
-def evaluate_interaction(conversation: Conversation):
-	cna_graph = conversation.container.graph
-	importance = cna_graph.importance
-	block_importance = cna_graph.block_importance
+def evaluate_interaction(conversation: Union[Conversation, Community]):
+    cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
+    
+    participants = conversation.get_participants()
+    if isinstance(conversation, Community):
+        contributions = [contribution for conv in conversation.components for contribution in conv.get_contributions()]
+    else:
+        contributions = conversation.get_contributions()
+    conversation.init_scores()
 
-	participants = conversation.get_participants()
-	contributions = conversation.get_contributions()
-	conversation.init_scores()
+    if (len(participants) == 0):
+        return
 
-	if (len(participants) == 0):
-		return
+    for i, contribution1 in enumerate(contributions):
+        p1 = contribution1.get_participant().get_id()
 
-	for i, contribution1 in enumerate(contributions):
-		p1 = contribution1.get_participant().get_id()
-
-		conversation.update_score(p1, p1, importance[contribution1])
-
-		for j in range(0, i):
-			contribution2 = contributions[j]
-
-			if get_block_importance(block_importance, contribution1, contribution2) > 0:
-				p2 = contribution2.get_participant().get_id()
-
-				added_kb = importance[contribution1] * get_block_importance(block_importance,
-																				contribution1, contribution2)
-
-				conversation.update_score(p1, p2, added_kb)
+        for contribution2 in contributions[:i]:
+            weight = get_block_importance(cna_graph.filtered_graph, contribution1, contribution2)
+            if weight > 0:
+                p2 = contribution2.get_participant().get_id()
+                conversation.update_score(p1, p2, weight)
 
 
-def evaluate_involvement(conversation: Conversation):
-	cna_graph = conversation.container.graph
-	importance = cna_graph.importance
-	block_importance = cna_graph.block_importance
-	participants = conversation.get_participants()
+def evaluate_involvement(conversation: Union[Conversation, Community]):
+    cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
+    participants = conversation.get_participants()
 
-	if (len(participants) == 0):
-		return
+    if (len(participants) == 0):
+        return
+    if isinstance(conversation, Community):
+        conversations = conversation.components
+    else:
+        conversations = [conversation]
+    for conv in conversations:
+        for i, contribution in enumerate(conv.get_contributions()):
+            p = conversation.participant_map[contribution.get_participant().get_id()]
 
-	for contribution in conversation.get_contributions():
-		p = contribution.get_participant()
+            current_value = p.get_index(CNAIndices.CONTRIBUTIONS_SCORE)
+            p.set_index(CNAIndices.CONTRIBUTIONS_SCORE, current_value + cna_graph.importance[contribution])
+            original_conv = conversation.container.get_conversation(conv.conv_id) if conversation.container else conv
+            added_value = 0
+            for prev in original_conv.get_contributions():
+                if contribution.index == prev.index:
+                    break
+                if p != prev.get_participant():
+                    added_value += get_block_importance(cna_graph.filtered_graph, contribution, prev)
+            p.set_index(CNAIndices.SOCIAL_KB, p.get_index(CNAIndices.SOCIAL_KB) + added_value)
 
-		current_value = p.get_index(CsclIndices.SCORE)
-		p.set_index(CsclIndices.SCORE, current_value + importance[contribution])
+def evaluate_textual_complexity(conversation: Conversation):
+    participants = conversation.get_participants()
+    
+    for p in participants:
+        contributions = conversation.get_participant_contributions(p.get_id())
+        p.set_eligible_contributions(contributions)
 
-		current_value = p.get_index(CsclIndices.SOCIAL_KB)
-		parent_contribution = contribution.get_parent()
+        Conversation.create_participant_conversation(conversation.lang, p)
 
-		if parent_contribution != None:
-			current_value += (get_block_importance(block_importance, contribution, parent_contribution) *
-								importance[contribution])
+        own_conversation = p.own_conversation
 
-			p.set_index(CsclIndices.SOCIAL_KB, current_value)
+        print('Begin computing textual complexity')
+        compute_indices(doc=own_conversation)
+        print('Finished computing textual complexity')
 
-		current_value = p.get_index(CsclIndices.NO_CONTRIBUTION)
-		p.set_index(CsclIndices.NO_CONTRIBUTION, current_value + 1)
-
-	
-def evaluate_used_concepts(conversation: Conversation):
-	participants = conversation.get_participants()
-	
-	for p in participants:
-		for contribution in conversation.get_participant_contributions(p.get_id()):
-			for word in contribution.get_words():
-				if word.pos.to_wordnet() == 'n':
-					current_value = p.get_index(CsclIndices.NO_NOUNS)
-					p.set_index(CsclIndices.NO_NOUNS, current_value + 1)
-				if word.pos.to_wordnet() == 'v':
-					current_value = p.get_index(CsclIndices.NO_VERBS)
-					p.set_index(CsclIndices.NO_VERBS, current_value + 1)
-
-
-def perform_sna(conversation: Conversation, needs_anonymization: bool):
-	participants = conversation.get_participants()
-
-	for i, p1 in enumerate(participants):
-		for j, p2 in enumerate(participants):
-			if i != j:
-				current_value = p1.get_index(CsclIndices.OUTDEGREE)
-				p1.set_index(CsclIndices.OUTDEGREE, current_value +
-											conversation.get_score(p1.get_id(), p2.get_id()))
-
-				current_value = p2.get_index(CsclIndices.INDEGREE)
-				p2.set_index(CsclIndices.INDEGREE, current_value +
-											conversation.get_score(p1.get_id(), p2.get_id()))
-			else:
-				current_value = p1.get_index(CsclIndices.OUTDEGREE)
-				p1.set_index(CsclIndices.OUTDEGREE, current_value +
-											conversation.get_score(p1.get_id(), p1.get_id()))
+        for key, value in own_conversation.indices.items():
+            p.set_textual_index(repr(key), value)
 
 
+def perform_sna(conversation: Union[Conversation, Community], needs_anonymization = False) -> nx.DiGraph:
+    participants = conversation.get_participants()
+    cna_graph = conversation.graph
+    participants_graph = nx.DiGraph()
+    participants_graph.add_nodes_from(participants)
+    conversations = conversation.get_conversations() if isinstance(conversation, Community) else [conversation]
+    for conv in conversations:
+        for i, u in enumerate(conv.get_contributions()):
+            for v in conv.get_contributions()[(i+1):]:
+                if u.get_participant() != v.get_participant() and u.timestamp < v.timestamp:
+                    edge = cna_graph.filtered_graph.get_edge_data(u, v)
+                    if edge is None:
+                        continue
+                    weight = edge["weight"]
+                    if participants_graph.has_edge(u.get_participant(), v.get_participant()):
+                        participants_graph[u.get_participant()][v.get_participant()]["weight"] += weight
+                    else:
+                        participants_graph.add_edge(u.get_participant(), v.get_participant(), weight=weight)
+    betweeness = betweenness_centrality(participants_graph)
+    closeness = closeness_centrality(participants_graph)
+    eigen = eigenvector_centrality(participants_graph, max_iter=1000, tol=1.0e-5)
+    for p in participants:
+        p.set_index(CNAIndices.OUTDEGREE, participants_graph.out_degree(p, weight="weight"))
+        p.set_index(CNAIndices.INDEGREE, participants_graph.in_degree(p, weight="weight"))
+        p.set_index(CNAIndices.BETWEENNESS, betweeness[p])
+        p.set_index(CNAIndices.CLOSENESS, closeness[p])
+        p.set_index(CNAIndices.EIGENVECTOR, eigen[p])
+    return participants_graph

@@ -9,7 +9,6 @@ from gensim.models import Word2Vec
 from nltk.tokenize import WordPunctTokenizer, sent_tokenize
 from rb.core.lang import Lang
 from rb.similarity.vector_model_factory import VectorModelType
-from spacy.lang.ro.lemmatizer import LOOKUP
 
 #from spacy.lang.ro.lex_attrs import words
 

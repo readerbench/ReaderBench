@@ -1,14 +1,40 @@
+import sys
+from os import chdir, getcwd, makedirs, rmdir
+from shutil import rmtree
+from subprocess import check_call
+from tempfile import TemporaryDirectory
+
 import setuptools
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-from subprocess import check_call
-import sys
 
 
 def do_post_install_tasks():
     # download spacy thing
-
-    check_call([sys.executable] + "-m pip install https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.1.0/xx_ent_wiki_sm-2.1.0.tar.gz".split())
+    cwd = getcwd()
+    # install_spacy = False
+    # try:
+    #     import spacy
+    #     if spacy.__version__ != "2.3.2":
+    #         install_spacy = True
+    # except:
+    #     install_spacy = True
+    # if install_spacy:
+    with TemporaryDirectory() as temp_folder:
+        chdir(temp_folder)
+        # check_call(["git", "clone", "--depth", "1", "--branch", "v2.3.2", "https://github.com/explosion/spaCy.git"])
+        # chdir("spaCy")
+        # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        # check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+        # check_call([sys.executable, "-m", "pip", "install", "-U", "."])
+        # chdir("..")
+        check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
+        chdir("neuralcoref")
+        # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+        check_call([sys.executable, "-m", "pip", "install", "-U", "."])
+        chdir(cwd)
+    check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
     # download nltk stuff
     from os import getenv, path
 
@@ -46,7 +72,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.8.5',
+    version='0.10.8',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -55,10 +81,9 @@ setuptools.setup(
     url='https://git.readerbench.com/ReaderBench/Readerbench-python',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    dependency_links=['https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz'],
     install_requires=[
         'bert-for-tf2>=0.14',
-        'blis<0.3.0',
+        'blis',
         'boto',
         'boto3',
         'botocore',
@@ -66,28 +91,25 @@ setuptools.setup(
         'chardet',
         'Click',
         'cymem',
+        'Cython',
         'DAWG-Python',
         'decorator',
         'docopt',
         'docutils',
         'Flask',
-        'gensim==3.8.1',
+        'gensim',
         'googletrans',
         'idna',
         'itsdangerous',
         'Jinja2',
         'jmespath',
         'joblib',
-        'jsonschema<3.0.0',
         'MarkupSafe',
         'murmurhash',
         'networkx',
-        'neuralcoref',
         'nltk==3.4.5',
-        'plac<1.0.0',
-        'preshed<2.1.0',
+        'numpy',
         'pymorphy2',
-        'pymorphy2-dicts==2.4.393442.3710985',
         'Pyphen',
         'python-dateutil<2.8.1',
         'requests',
@@ -97,10 +119,9 @@ setuptools.setup(
         'six',
         'sklearn',
         'smart-open',
-        'spacy==2.1.3',
+        'spacy==2.3.2',
         'srsly',
-        'tensorflow-hub',
-        'thinc<7.1.0',
+        'tensorflow>=2',
         'transformers',
         'tqdm',
         'urllib3',
@@ -112,10 +133,6 @@ setuptools.setup(
         'xlrd',
         'xmltodict',
       ],
-    extras_require={
-        "tf": ["tensorflow>=2"],
-        "tf_gpu": ["tensorflow-gpu>=2"],
-    },
     cmdclass={
         'develop': PostDevelopmentCommand,
         'install': PostInstallCommand,

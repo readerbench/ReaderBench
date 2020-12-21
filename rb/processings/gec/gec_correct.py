@@ -33,7 +33,7 @@ class Beam(namedtuple("Beam", ["log_prob", "ids", "sentence", "length"])):
 class GecCorrector():
 
     def __init__(self, d_model: str=64, beam: int=8,
-                lm_path: str=None, normalize: bool=False, weight_lm: float=1.):
+                lm_path: str=None, normalize: bool=False, weight_lm: float=1., check_updates = True):
         self.d_model = d_model 
         self.beam = beam 
         self.lm_path = lm_path
@@ -41,16 +41,14 @@ class GecCorrector():
         self.weight_lm = weight_lm
         
         if d_model == 768:
-            self.checkpoint_path = os.path.join('resources', 'ro', 'models', 'gec', 'transformer_768')
-            self.vocabulary_path = os.path.join(self.checkpoint_path, 'tokenizer_ro')
-            if check_version(Lang.RO, ['models', 'gec', 'transformer_768']):
-                download_model(Lang.RO, ['models', 'gec', 'transformer_768'])
+            name = 'transformer_768'
         elif d_model == 64:
-            self.checkpoint_path = os.path.join('resources', 'ro', 'models', 'gec', 'transformer_64')
-            self.vocabulary_path = os.path.join(self.checkpoint_path, 'tokenizer_ro')
-            if check_version(Lang.RO, ['models', 'gec', 'transformer_64']):
-                download_model(Lang.RO, ['models', 'gec', 'transformer_64'])
-
+            name = 'transformer_64'
+        
+        self.checkpoint_path = os.path.join('resources', 'ro', 'models', 'gec', name)
+        self.vocabulary_path = os.path.join(self.checkpoint_path, 'tokenizer_ro')
+        if check_updates and check_version(Lang.RO, ['models', 'gec', name]):
+            download_model(Lang.RO, ['models', 'gec', name])
         self.transformer, self.optimizer = self.__load_model()
         self.lm_model = self.__load_lm()
         self.tokenizer_ro = self.__load_tokenizer()

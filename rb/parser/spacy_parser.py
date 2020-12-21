@@ -25,19 +25,19 @@ logger = Logger.get_logger()
 
 models = {
     Lang.EN: 'en_core_web_lg',
-    Lang.NL: 'nl',
-    Lang.FR: 'fr_core_news_md',
-    Lang.ES: 'es',
-    Lang.DE: 'de',
-    Lang.IT: 'it',
-    Lang.RO: 'ro_ud_ft_ner',
+    Lang.NL: 'nl_core_news_lg',
+    Lang.FR: 'fr_core_news_lg',
+    Lang.ES: 'es_core_news_lg',
+    Lang.DE: 'de_core_news_lg',
+    Lang.IT: 'it_core_news_lg',
+    Lang.RO: 'ro_core_news_lg',
     Lang.RU: 'ru_ud_ft',
 }
 
-custom_models = {Lang.RO, Lang.RU}
+custom_models = {Lang.RU}
 
 splitters = {
-    Lang.RO: SentenceSplitter('ro'),
+    # Lang.RO: SentenceSplitter('ro'),
     Lang.RU: SentenceSplitter('ru'),
 }
 

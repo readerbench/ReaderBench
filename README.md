@@ -22,6 +22,7 @@ Optional: prei-install model for en (otherwise most of the English processings w
     and ask to run this command):
 9. `sudo python3 -m spacy download en_core_web_lg`
 
+
 If you want to install spellchecking (hunspell) also you need this non-python libraries:
 1. `sudo apt-get install libhunspell-1.6-0 libhunspell-dev hunspell-ro`
 2. `pip3 install hunspell`
@@ -51,8 +52,8 @@ from rb.processings.encoders.bert import BertWrapper
 from tensorflow import keras
 
 bert_wrapper = BertWrapper(Lang.RO, max_seq_len=128)
-inputs, bert_output = bert_wrapper.create_inputs_and_model()
-cls_output = self.bert.get_output(bert_output, "cls") # or "pool"
+inputs, bert_layer = bert_wrapper.create_inputs_and_model()
+cls_output = bert_wrapper.get_output(bert_layer, "cls") # or "pool"
 
 # Add decision layer and compile model
 # eg. 
@@ -83,3 +84,20 @@ logger.error()
 2. `pip3 install twine wheel`
 3. `./upload_to_pypi.sh`
 
+
+## How to run rb/core/cscl/csv_parser.py
+1. Do the installing steps from contribution
+2. run `pip3 install xmltodict`
+3. run `EXPORT PYTHONPATH=/add/path/to/repo/readerbenchpy/`
+4. add json resources in a `jsons` directory in `readerbenchpy/rb/core/cscl/`
+5. run `cd rb/core/cscl/ && python3 csv_parser.py`
+
+## Supported Date Formats
+ReaderBench is able to perform conversation analysis from chats and communities. Each utterance must have the time expressed in one of the following formats:
+- %Y-%m-%d %H:%M:%S.%f %Z
+- %Y-%m-%d %H:%M:%S %Z
+- %Y-%m-%d %H:%M %Z
+- %Y-%m-%d %H:%M:%S.%f
+- %Y-%m-%d %H:%M:%S
+- %Y-%m-%d %H:%M
+where codifications are extracted from [Python date format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).

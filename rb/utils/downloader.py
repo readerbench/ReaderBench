@@ -35,8 +35,12 @@ LINKS = {
     Lang.RO: {
         'models': {
             'diacritice': {
-                'RoBERT_base+CNN': {
-                    "link": "https://nextcloud.readerbench.com/index.php/s/ZG6qSKwELj87pTF/download",
+                'small': {
+                    "link": "https://nextcloud.readerbench.com/index.php/s/HbNRckT5LHa4cc4/download",
+                    "version": "https://nextcloud.readerbench.com/index.php/s/wtcqmsb6CmpnwdN/download"
+                },
+                'base': {
+                    "link": "https://nextcloud.readerbench.com/index.php/s/Y56BLDLtYZ6WRRa/download",
                     "version": "https://nextcloud.readerbench.com/index.php/s/GRsJP7yFreeicaR/download"
                 }
             },
@@ -46,8 +50,8 @@ LINKS = {
                     "version": "https://nextcloud.readerbench.com/index.php/s/CF5TmPeEKFNib4H/download"
                 },
                 'base': {
-                    "link": "https://nextcloud.readerbench.com/index.php/s/kC98HTJbPmsXxBj/download",
-                    "version": "https://nextcloud.readerbench.com/index.php/s/ix5FRQHEbaP8CFw/download"
+                    "link": "https://nextcloud.readerbench.com/index.php/s/FwWy9TWNHymJ5Hy/download",
+                    "version": "https://nextcloud.readerbench.com/index.php/s/RCp9bgRPF6X3QDq/download"
                 },
                 'large': {
                     "link": "https://nextcloud.readerbench.com/index.php/s/pHXqLQ8HXar44WT/download",
@@ -130,8 +134,12 @@ LINKS = {
     Lang.FR: {
         'models': {
             'le_monde_small': {
-                'link': "https://nextcloud.readerbench.com/index.php/s/6MsKa9TtmnAxCc4/download",
+                'link': "https://nextcloud.readerbench.com/index.php/s/T8GfqaQfxinpZtS/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/2jLd8ZiCfmMo88X/download"
+            },
+            'le_monde': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/xSKTSqYQBc2nEgq/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
             },
         },
     },
@@ -320,12 +328,12 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
         return True
 
     if lang not in LINKS:
-        logger.info('{} not supported.'.format(lang))
+        logger.error('{} not supported.'.format(lang))
         return False
     root = LINKS[lang]
     for key in name:
         if key not in root:
-            logger.info('Remote path not found {} ({}).'.format(path, key))
+            logger.error('Remote path not found {} ({}).'.format(path, key))
             return False
         root = root[key]
     if isinstance(root, dict):
@@ -333,11 +341,11 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
         try:
             remote_version = read_version(filename)
         except FileNotFoundError:
-            logger.info('Error reading remote version for {} ({})'.format(path, lang))
+            logger.warning('Error reading remote version for {} ({})'.format(path, lang))
             return False
         return newer_version(remote_version, local_version)
     else:
-        logger.info('Could not find version link in links json')
+        logger.error('Could not find version link in links json')
         return True
 
 

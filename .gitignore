@@ -30,6 +30,7 @@ wheels/
 *.csv#
 *.p
 .vscode/
+rbpy-rb*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -141,10 +142,13 @@ testem.log
 /models 
 /resources
 /summaries
+jsons
+rb/core/csvl/jsons
 *.txt
 *.csv
 *.zip
 *.docx
+*.xml
 
 # System Files
 .DS_Store
@@ -172,5 +176,6 @@ debug.log.1
 *.txt
 rb/processings/diacritics/rotransformers/bert_models/*
 rb/processings/diacritics/rotransformers/uncased-v1/*
-
+rb/processings/sentiment/corpus/*
+rb/processings/sentiment/models/*
 rbenv/
