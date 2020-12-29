@@ -54,7 +54,7 @@ class Word(TextElement):
 
     def __eq__(self, other):
         if isinstance(other, Word):
-            return self.lemma == other.lemma and self.pos == other.pos
+            return self.index_in_doc == other.index_in_doc and self.lemma == other.lemma and self.pos == other.pos
         return NotImplemented
 
     def __str__(self):
@@ -64,4 +64,4 @@ class Word(TextElement):
         return self.__str__()
 
     def __hash__(self):
-        return hash((self.lemma, self.pos))
+        return hash((self.lemma, self.pos, self.index_in_doc))
