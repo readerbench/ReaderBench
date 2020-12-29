@@ -4,46 +4,53 @@ from typing import List, Tuple, Iterable, Union
 import bert
 import numpy as np
 import tensorflow as tf
-import tensorflow_hub as hub
 from bert.tokenization.bert_tokenization import FullTokenizer
 from rb.core.lang import Lang
 from rb.utils.downloader import check_version, download_model
 from tensorflow import keras
-from transformers import FlaubertTokenizer, TFFlaubertModel
+from transformers import FlaubertTokenizer, TFFlaubertModel, AutoTokenizer, TFAutoModelWithLMHead
 import json
 
 
 class BertWrapper:
 
-    def __init__(self, lang: Lang, model_name: str = None, max_seq_len: int = 256, check_updates = True):
+    def __init__(self, lang: Lang, model_name: str = None, max_seq_len: int = 256, check_updates = True, custom_model = False, load_model=True):
         self.lang = lang
+        self.custom_model = custom_model
         if lang is Lang.EN:
             if model_name is None:
-                model_name = "https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/1"
-            self.bert_layer = hub.KerasLayer(model_name, trainable=True)
-            vocab_file = self.bert_layer.resolved_object.vocab_file.asset_path.numpy()
-            do_lower_case = self.bert_layer.resolved_object.do_lower_case.numpy()
-            self.tokenizer = FullTokenizer(vocab_file, do_lower_case)
+                model_name = "bert-base-uncased"
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            if load_model:
+                self.bert_layer = TFAutoModelWithLMHead.from_pretrained(model_name)
         elif lang is Lang.RO:
             if model_name is None:
                 model_name = "base"
-            if check_updates and check_version(Lang.RO, ["bert", model_name]):
-                download_model(Lang.RO, ["bert", model_name])
-            self.model_dir = os.path.join("resources/ro/bert/", model_name)
-            json_config_file = os.path.join(self.model_dir, "bert_config.json")
-            config = json.load(open(json_config_file, 'r'))
-            do_lower_case = bool(config.get('do_lower_case', 0))
-            do_remove_accents = bool(config.get('do_remove_accents', 1))
-            self.hidden_size = config.get('hidden_size')
-            self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"), do_lower_case=do_lower_case)
-            if do_remove_accents == False:
-                self.tokenizer.basic_tokenizer._run_strip_accents = lambda x:x
-            bert_params = bert.params_from_pretrained_ckpt(self.model_dir)
-            self.bert_layer = bert.BertModelLayer.from_params(bert_params, name="bert_layer")
+            if self.custom_model:
+                if check_updates and check_version(Lang.RO, ["bert", model_name]):
+                    download_model(Lang.RO, ["bert", model_name])
+                self.model_dir = os.path.join("resources/ro/bert/", model_name)
+                json_config_file = os.path.join(self.model_dir, "bert_config.json")
+                config = json.load(open(json_config_file, 'r'))
+                do_lower_case = bool(config.get('do_lower_case', 0))
+                do_remove_accents = bool(config.get('do_remove_accents', 1))
+                self.hidden_size = config.get('hidden_size')
+                self.tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, "vocab.vocab"), do_lower_case=do_lower_case)
+                if do_remove_accents == False:
+                    self.tokenizer.basic_tokenizer._run_strip_accents = lambda x:x
+                bert_params = bert.params_from_pretrained_ckpt(self.model_dir)
+                if load_model:
+                    self.bert_layer = bert.BertModelLayer.from_params(bert_params, name="bert_layer")
+            else:
+                model_name = f"readerbench/RoBERT-{model_name}"
+                self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+                if load_model:
+                    self.bert_layer = TFAutoModelWithLMHead.from_pretrained(model_name)
         elif lang is Lang.FR:
             self.tokenizer = FlaubertTokenizer.from_pretrained("jplu/tf-flaubert-base-cased")
-            self.bert_layer = TFFlaubertModel.from_pretrained("jplu/tf-flaubert-base-cased")
-            self.bert_layer.call = tf.function(self.bert_layer.call)
+            if load_model:
+                self.bert_layer = TFFlaubertModel.from_pretrained("jplu/tf-flaubert-base-cased")
+                self.bert_layer.call = tf.function(self.bert_layer.call)
 
         
         self.max_seq_len = max_seq_len
@@ -56,7 +63,7 @@ class BertWrapper:
     def create_inputs(self) -> List[keras.layers.Layer]:
         input_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="input_ids")
         segment_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="segment_ids")
-        if self.lang is Lang.RO:
+        if self.custom_model:
             return [input_ids, segment_ids]
         mask_ids = tf.keras.layers.Input(shape=(self.max_seq_len,), dtype=tf.int32, name="mask_ids")
         return [input_ids, mask_ids, segment_ids]
@@ -71,12 +78,11 @@ class BertWrapper:
         return inputs, output
 
     def get_output(self, bert_tensor: tf.Tensor, mode: str = "cls") -> tf.Tensor:
-        if self.lang is Lang.EN:
-            sequence_output = bert_tensor[1]
-        elif self.lang is Lang.RO:
+        if self.custom_model:
             sequence_output = bert_tensor
-        elif self.lang is Lang.FR:
+        else:
             sequence_output = bert_tensor[0]
+        
         if mode == "cls":
             return tf.keras.layers.Lambda(lambda x: x[:,0,:])(sequence_output)
         elif mode == "pool":

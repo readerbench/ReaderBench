@@ -42,20 +42,13 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(NoCommas(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
 
     indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
+    
     indices.append(WdEntropy(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(WdEntropy(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-
+    
     indices.append(WdEntropy(lang, TextElementType.DOC.value, MeasureFunction.AVG))
-    indices.append(WdEntropy(lang, TextElementType.DOC.value, MeasureFunction.STDEV))
-
-    indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(ChEntropy(lang, TextElementType.WORD.value, MeasureFunction.STDEV))
-
+    
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.STDEV))
-
+    
     # if lang is Lang.RO:
     #     #indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))
     #     indices.append(NoCommonErrors(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))

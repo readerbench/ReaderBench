@@ -192,15 +192,15 @@ class BertCNN(object):
 
 		weights = np.ones(self.num_of_classes)
 		model.compile(optimizer=self.optimizer, loss=[weighted_categorical_crossentropy(weights, self.num_of_classes).loss, None], metrics=[categorical_acc])
-		# model.compile(optimizer=self.optimizer, loss=[self.loss, None], metrics=[tf.keras.metrics.categorical_accuracy])
 
-		self.bert_wrapper.load_weights()
 		if self.init_model != None:
-			# TODO: make this automatic from main
-			model.load_weights("rb/processings/diacritics/models/bert_models/" + self.init_model)
+			model.load_weights(self.init_model)
+		else:
+			self.bert_wrapper.load_weights()
+
 		self.model = model
-		print("Bert+CharCNN model built: ")
-		self.model.summary()
+		# print("Bert+CharCNN model built: ")
+		# self.model.summary()
 		
 
 	def train(self, train_dataset, train_batch_size, train_size, dev_dataset, dev_batch_size, dev_size, epochs, file_evalname, char_to_id_dict, model_filename):

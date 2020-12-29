@@ -11,6 +11,6 @@ if __name__ == "__main__":
     rev4 = "foarte mulțumit. recomand"
     rev5 = "ok"
     rev6 = "Costul este exagerat pentru asemenea performante slabe. Nu recomand. asemenea performante slabe. Nu recomand. asemenea performante slabe."
-
+ 
     scores = sa.process_text([rev0, rev1, rev2, rev3, rev4, rev5, rev6])
     print(scores)
