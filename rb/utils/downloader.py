@@ -23,6 +23,16 @@ LINKS = {
                 'link': "https://nextcloud.readerbench.com/index.php/s/fd8Ss5NtL6yDoYj/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/5zJxGKxsLSN4YRd/download"
             },
+            'chains': {
+                'mlp': {
+                    "link": "https://nextcloud.readerbench.com/index.php/s/pWmgazgq5bmkC4e/download",
+                    "version": "https://nextcloud.readerbench.com/index.php/s/Y3tE8587CbN94GJ/download"
+                },
+                'linear': {
+                    "link": "https://nextcloud.readerbench.com/index.php/s/FLCRBYFfSYLAgyT/download",
+                    "version": "https://nextcloud.readerbench.com/index.php/s/8zdybMG7ai5C6ot/download"
+                },
+            },
         },
         'spacy': {},
         'aoa': 'https://nextcloud.readerbench.com/index.php/s/estDka8fYiSNWzj/download',
