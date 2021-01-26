@@ -33,10 +33,11 @@ def compute_similarity(a: str, b: str, lang: Lang, sim: Callable[[Synset, Synset
     if lang not in lang_dict:
         return 0
     lang = lang_dict[lang]
-    return min([
-        sim(syn_a, syn_b)
+    return max([
+        sim(syn_a, syn_b) or 0
         for syn_a in get_synsets(a, lang=lang)
-        for syn_b in get_synsets(b, lang=lang)],
+        for syn_b in get_synsets(b, lang=lang)
+        if syn_a.pos() == syn_b.pos()],
         default=0)
 
 def path_similarity(a: str, b: str, lang: Lang) -> float:

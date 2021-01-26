@@ -23,6 +23,12 @@ class Document(TextElement):
         for block in text.split("\n"):
             self.components.append(Block(lang=lang, text=block.strip(),
                                          container=self))
+        count = 0
+        for block in self.components:
+            words = block.get_words()
+            for word in words:
+                word.index_in_doc += count
+            count += len(words)
 
     def get_words(self) -> List[Word]:
         return [word for block in self.components for sent in block.components for word in sent.components]
