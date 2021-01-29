@@ -31,11 +31,11 @@ class ChainsModel():
         if self.linear:
             output = tf.keras.layers.Dense(1, activation="sigmoid")(input)
         else:
-            hidden = tf.keras.layers.Dense(32, activation="tanh")(input)
-            # hidden = tf.keras.layers.Dense(64, activation="tanh")(hidden)
+            hidden = tf.keras.layers.Dense(128, activation="relu")(input)
+            hidden = tf.keras.layers.Dense(64, activation="relu")(hidden)
             output = tf.keras.layers.Dense(1, activation="sigmoid")(hidden)
         self.model = tf.keras.Model(inputs=[input], outputs=[output])
-            self.model.load_weights(f"resources/{self.lang.value}/models/chains/{self.model_type}/{self.model_type}")
+        self.model.load_weights(f"resources/{self.lang.value}/models/chains/{self.model_type}/{self.model_type}")
 
     @staticmethod
     def common_prefix(word1: str, word2: str) -> str:

@@ -50,6 +50,7 @@ def construct_documents(dataset: List[str], lang: Lang) -> List[Dict[ComplexityI
     docs = Parallel(n_jobs=1)( \
         delayed(construct_document)(lang, text) \
         for text in dataset)
+    get_default_model(lang)
     logger.info("Constructing graphs..")
     return Parallel(n_jobs=-1, prefer="processes")( \
         delayed(compute_features)(doc) \
