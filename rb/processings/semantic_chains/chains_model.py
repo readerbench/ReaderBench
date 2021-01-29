@@ -99,11 +99,11 @@ class ChainsModel():
                 if any(id for id in ids if start <= id < end)
             ]
             scores = np.concatenate(outputs[1], axis=0)[:, :, 1:-1, 1:-1]
-            for i in range(len(words_in_batch) - 1):
-                w1 = words_index[words_in_batch[i][0]]
-                for j in range(i + 1, len(words_in_batch)):
-                    score = sum(scores[:, :, id2, id1] for id1 in words_in_batch[i][1] for id2 in words_in_batch[j][1])
-                    w2 = words_index[words_in_batch[j][0]]
+            for wb1 in words_in_batch:
+                w1 = words_index[wb1[0]]
+                for wb2 in words_in_batch:
+                    score = sum(scores[:, :, id2, id1] for id1 in wb1[1] for id2 in wb2[1]) / len(wb2[1])
+                    w2 = words_index[wb2[0]]
                     for l in range(self.layers):
                         for h in range(self.heads):
                             word_scores[w1, w2, l, h] = max(word_scores[w1, w2, l, h], score[l, h])
@@ -113,6 +113,7 @@ class ChainsModel():
         for i in range(len(words) - 1):
             for j in range(i+1, min(i + self.max_seq_len // 2, len(words))):
                 features = [word_scores[i, j, l, h] for l in range(self.layers) for h in range(self.heads)]
+                features += [word_scores[j, i, l, h] for l in range(self.layers) for h in range(self.heads)]
                 if sum(features) != 0:
                     all_features.append(np.array(features))
                     all_pairs.append((i, j))
