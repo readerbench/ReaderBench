@@ -76,6 +76,41 @@ def are_synonyms(first: Union[str, Word], second: Union[str, Word], lang: Lang =
     second_synset = set(get_synsets(second, pos=pos, lang=lang_dict[lang]))
     return len(first_synset & second_synset) > 0
 
+def are_hypernyms(first: Union[str, Word], second: Union[str, Word], lang: Lang = None, pos: str = None) -> bool:
+    if isinstance(first, Word):
+        pos = first.pos.to_wordnet()
+        lang = first.lang
+        first = first.lemma
+    if isinstance(second, Word):
+        if second.pos.to_wordnet() !=  pos and pos:
+            return False 
+        second = second.lemma
+    if lang not in lang_dict:
+        return False
+    first_synset = set(get_synsets(first, pos=pos, lang=lang_dict[lang]))
+    second_synset = set(get_synsets(second, pos=pos, lang=lang_dict[lang]))
+    first_hypernyms = {hypernym for synset in first_synset for hypernym in get_synset_hypernyms(synset)}
+    second_hypernyms = {hypernym for synset in second_synset for hypernym in get_synset_hypernyms(synset)}
+    return len(first_synset & second_hypernyms) > 0 or len(second_synset & first_hypernyms) > 0
+
+def are_siblings(first: Union[str, Word], second: Union[str, Word], lang: Lang = None, pos: str = None) -> bool:
+    if isinstance(first, Word):
+        pos = first.pos.to_wordnet()
+        lang = first.lang
+        first = first.lemma
+    if isinstance(second, Word):
+        if second.pos.to_wordnet() !=  pos and pos:
+            return False 
+        second = second.lemma
+    if lang not in lang_dict:
+        return False
+    first_synset = set(get_synsets(first, pos=pos, lang=lang_dict[lang]))
+    second_synset = set(get_synsets(second, pos=pos, lang=lang_dict[lang]))
+    first_hypernyms = {hypernym for synset in first_synset for hypernym in get_synset_hypernyms(synset)}
+    second_hypernyms = {hypernym for synset in second_synset for hypernym in get_synset_hypernyms(synset)}
+    return len(first_hypernyms & second_hypernyms) > 0
+
+
 def get_hypernyms(word: Union[str, Word], lang: Lang = None, pos: str = None) -> List[str]:
     if isinstance(word, Word):
         pos = word.pos.to_wordnet()
