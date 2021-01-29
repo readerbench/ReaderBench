@@ -13,10 +13,11 @@ class ChainsModel():
         if lang is not Lang.EN:
             raise NotImplementedError(f"Lang {lang.value} not available")
         self.lang = lang
+        self.linear = linear
         self.model_type = "linear" if linear else "mlp"
         if check_updates and check_version(self.lang, ["models", "chains", self.model_type]):
             download_model(lang, ["models", "chains", self.model_type])
-        self.model = tf.keras.models.load_model(f"resources/{self.lang.value}/models/chains/{self.model_type}")
+        self.build_model()
         model_name = "bert-base-cased"
         self.layers = 12
         self.heads = 12
@@ -25,6 +26,17 @@ class ChainsModel():
         self.bert_model = TFAutoModelForMaskedLM.from_pretrained(model_name, config=conf)
         self.max_seq_len = 256
     
+    def build_model(self):
+        input = tf.keras.layers.Input(288, dtype=tf.float32)
+        if self.linear:
+            output = tf.keras.layers.Dense(1, activation="sigmoid")(input)
+        else:
+            hidden = tf.keras.layers.Dense(32, activation="tanh")(input)
+            # hidden = tf.keras.layers.Dense(64, activation="tanh")(hidden)
+            output = tf.keras.layers.Dense(1, activation="sigmoid")(hidden)
+        self.model = tf.keras.Model(inputs=[input], outputs=[output])
+        self.model.load_weights(f"resources/{self.lang.value}/models/chains/{self.model_type}/{self.model_type}")
+
     @staticmethod
     def common_prefix(word1: str, word2: str) -> str:
         i = 0
