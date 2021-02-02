@@ -11,6 +11,9 @@ from spacy.tokens import Token
 
 class Word(TextElement):
 
+    MODAL_VERBS = {
+        Lang.EN: {"can", "may", "must", "shall", "will", "could", "might", "should", "would"},
+    }
 
     def __init__(self, lang: Lang, token: Token,
                  depth: int = TextElementType.WORD.value,
@@ -48,7 +51,12 @@ class Word(TextElement):
 
     def is_content_word(self) -> bool:
         return self.is_dict_word() and self.pos in {POS.ADJ, POS.ADV, POS.NOUN, POS.VERB}
-        
+    
+    def is_modal_verb(self) -> bool:
+        if self.lang not in self.MODAL_VERBS:
+            return False
+        return self.pos is POS.VERB and self.lemma in self.MODAL_VERBS[self.lang]
+            
     def get_sentences(self) -> List["Sentence"]:
         return []
 

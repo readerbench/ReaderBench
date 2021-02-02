@@ -74,7 +74,7 @@ class ChainsModel():
                 current = word.text[len(current):]
                 if len(current) > 0:
                     tokens[i] = tokens[i][len(current):]
-            if word.pos in {POS.PRON, POS.NOUN, POS.VERB, POS.PROPN}:
+            if word.pos in {POS.PRON, POS.NOUN, POS.VERB, POS.PROPN} and not word.is_modal_verb():
                 result[word] = ids
         return result
     
