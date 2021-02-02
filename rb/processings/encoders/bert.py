@@ -8,7 +8,7 @@ from bert.tokenization.bert_tokenization import FullTokenizer
 from rb.core.lang import Lang
 from rb.utils.downloader import check_version, download_model
 from tensorflow import keras
-from transformers import FlaubertTokenizer, TFFlaubertModel, AutoTokenizer, TFAutoModelWithLMHead
+from transformers import FlaubertTokenizer, TFFlaubertModel, AutoTokenizer, TFAutoModelForMaskedLM
 import json
 
 
@@ -22,7 +22,7 @@ class BertWrapper:
                 model_name = "bert-base-uncased"
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
             if load_model:
-                self.bert_layer = TFAutoModelWithLMHead.from_pretrained(model_name)
+                self.bert_layer = TFAutoModelForMaskedLM.from_pretrained(model_name)
         elif lang is Lang.RO:
             if model_name is None:
                 model_name = "base"
@@ -45,7 +45,7 @@ class BertWrapper:
                 model_name = f"readerbench/RoBERT-{model_name}"
                 self.tokenizer = AutoTokenizer.from_pretrained(model_name)
                 if load_model:
-                    self.bert_layer = TFAutoModelWithLMHead.from_pretrained(model_name)
+                    self.bert_layer = TFAutoModelForMaskedLM.from_pretrained(model_name)
         elif lang is Lang.FR:
             self.tokenizer = FlaubertTokenizer.from_pretrained("jplu/tf-flaubert-base-cased")
             if load_model:

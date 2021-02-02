@@ -234,7 +234,7 @@ class SpacyParser:
 
     def is_dict_word(self, word: str, lang: Union[Lang, str]) -> bool:
         model = self.get_model(lang)
-        return word in model.vocab
+        return model.vocab.has_vector(word)
 
     def process(self, doc):
         lang = Lang(doc["lang"])
