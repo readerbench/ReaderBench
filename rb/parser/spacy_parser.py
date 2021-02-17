@@ -140,8 +140,6 @@ class SpacyParser:
     _INSTANCE = None
 
     def __init__(self):
-        self.ner = spacy.load('xx_ent_wiki_sm')
-        # self.romanian = Romanian()
         self.pipelines = {
             lang: spacy.util.get_lang_class(lang.value)()
             for lang in models
@@ -236,39 +234,6 @@ class SpacyParser:
         model = self.get_model(lang)
         return model.vocab.has_vector(word)
 
-    def process(self, doc):
-        lang = Lang(doc["lang"])
-        for block in doc["blocks"]:
-            sents = sent_tokenize(block["text"])
-            block["sentences"] = list()
-
-            for sent in sents:
-                ne = self.ner(sent)
-                tokens = self.parse(sent, lang)
-                # print(ne)
-                # print(pos)
-                res_sent = {}
-                res_sent["text"] = sent
-                res_sent["words"] = []
-                # get pos tags 
-                for w in tokens:
-                    wp = {"text" : w.text}
-                    wp["index"] = w.i
-                    wp["lemma"] = w.lemma_
-                    wp["pos"] = convertToPenn(w.tag_, lang)
-                    wp["dep"] = w.dep_
-                    wp["ner"] = w.ent_type_
-                    wp["head"] = w.head.i
-                    res_sent["words"].append(wp)
-                # get named entities 
-                for ent in [token for token in ne if token.ent_type != 0]:
-                    for w in res_sent["words"]:
-                        # or (' ' in ent[0] and w["word"] in ent[0])
-                        if w["index"] == ent.i:
-                            w["ner"] = ent.ent_type_
-                block["sentences"].append(res_sent)
-        return doc   
-
 if __name__ == "__main__":
     spacyInstance = SpacyParser()
 
@@ -281,7 +246,6 @@ if __name__ == "__main__":
     # sent = """
     #     După terminarea oficială a celui de-al doilea război mondial, în conformitate cu discursul lui Churchill, de la Fulton, s-a declanșat Războiul rece și a apărut conceptul de cortină de fier."""
 
-    # print(spacyInstance.get_ner(sent))
     # print(spacyInstance.get_tokens_lemmas(sent))
     # doc = spacyInstance.parse("My sister has a dog. She loves him.", 'en')
     doc = spacyInstance.parse("Pensée des enseignants, production d’écrits, ingénierie éducative, enseignement à distance, traitement automatique de la langue, outils cognitifs, feedback automatique", 'fr')

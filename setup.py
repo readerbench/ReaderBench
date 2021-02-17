@@ -15,12 +15,11 @@ def do_post_install_tasks():
         chdir(temp_folder)
         check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
         chdir("neuralcoref")
-        # check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
         check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
         check_call([sys.executable, "-m", "pip", "install", "-U", "."])
         chdir(cwd)
-    check_call([sys.executable, "-m", "spacy", "download", "xx_ent_wiki_sm"])
-    # download nltk stuff
+   # download nltk stuff
     from os import getenv, path
 
     import nltk
@@ -57,7 +56,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.16',
+    version='0.10.18',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',

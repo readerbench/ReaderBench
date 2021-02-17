@@ -19,15 +19,15 @@ class TargetType(Enum):
 
 class Task:
     def __init__(self, type: TargetType, values: List[str]):
-        if type is TargetType.FLOAT:
-            self.values = [float(val) for val in values]
-            self.min = min(self.values)
-            self.max = max(self.values)
-        elif type is TargetType.INT:
+        if type is TargetType.INT:
             self.values = [int(val) for val in values]
             unique = len(set(self.values))
             if max(self.values) - min(self.values) + 1 != unique:
                 type = TargetType.STR
+        elif type is TargetType.FLOAT:
+            self.values = [float(val) for val in values]
+            self.min = min(self.values)
+            self.max = max(self.values)
         if type is TargetType.STR:
             self.values = values
             self.classes = list({val for val in self.values})
