@@ -24,7 +24,7 @@ MarkupSafe
 murmurhash
 networkx
 nltk
-numpy
+numpy<1.20
 pymorphy2
 Pyphen
 python-dateutil<2.8.1
@@ -35,7 +35,7 @@ sentence-splitter
 six
 sklearn
 smart-open
-spacy>=2.3.0<3
+spacy>=2.3.0,<3
 srsly
 tensorflow>=2
 transformers

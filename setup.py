@@ -8,8 +8,11 @@ import setuptools
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 def do_post_install_tasks():
+    check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
     cwd = getcwd()
     with TemporaryDirectory() as temp_folder:
         chdir(temp_folder)
@@ -40,23 +43,22 @@ def do_post_install_tasks():
 class PostDevelopmentCommand(develop):
     """Post-instalation for development? mode."""
     def run(self):
-        do_post_install_tasks()
-        # run
         develop.run(self)
-
+        do_post_install_tasks()
 
 class PostInstallCommand(install):
     """Post-instalation for install mode."""
     def run(self):
-        do_post_install_tasks()
         install.run(self)
-
+        do_post_install_tasks()
+        
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.18',
+    version='0.10.22',
+    python_requires='>=3.6,<3.9',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
@@ -65,58 +67,7 @@ setuptools.setup(
     url='https://git.readerbench.com/ReaderBench/Readerbench-python',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=[
-        'bert-for-tf2>=0.14',
-        'blis',
-        'boto',
-        'boto3',
-        'botocore',
-        'certifi',
-        'chardet',
-        'Click',
-        'cymem',
-        'Cython',
-        'DAWG-Python',
-        'decorator',
-        'docopt',
-        'docutils',
-        'Flask',
-        'gensim',
-        'googletrans',
-        'idna',
-        'itsdangerous',
-        'Jinja2',
-        'jmespath',
-        'joblib',
-        'MarkupSafe',
-        'murmurhash',
-        'networkx',
-        'nltk',
-        'numpy',
-        'pymorphy2',
-        'Pyphen',
-        'python-dateutil<2.8.1',
-        'requests',
-        's3transfer',
-        'scipy',
-        'sentence-splitter',
-        'six',
-        'sklearn',
-        'smart-open',
-        'spacy>=2.3.0<3',
-        'srsly',
-        'tensorflow>=2',
-        'transformers',
-        'tqdm',
-        'urllib3',
-        'wasabi',
-        'Werkzeug',
-        'wget',
-        'pyLDAvis',
-        'unidecode',
-        'xlrd',
-        'xmltodict',
-      ],
+    install_requires=required,
     cmdclass={
         'develop': PostDevelopmentCommand,
         'install': PostInstallCommand,
