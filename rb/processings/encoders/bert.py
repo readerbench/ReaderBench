@@ -57,7 +57,7 @@ class BertWrapper:
         
         
     def load_weights(self):
-        if self.lang is Lang.RO:
+        if self.custom_model:
             bert.load_bert_weights(self.bert_layer, os.path.join(self.model_dir, "bert_model.ckpt"))
 
     def create_inputs(self) -> List[keras.layers.Layer]:
@@ -162,7 +162,7 @@ class BertWrapper:
                     input_masks = input_masks[:self.max_seq_len]
                     input_segments = input_segments[:self.max_seq_len]
 
-        if self.lang is Lang.RO:
+        if self.custom_model:
             return input_ids, input_segments
         else:
             return input_ids, input_masks, input_segments

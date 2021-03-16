@@ -2,6 +2,8 @@ from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
+from networkx import Graph
+from networkx.algorithms.components.connected import connected_components
 from rb import POS, Document, Lang, Word
 from rb.utils.downloader import check_version, download_model
 from transformers import AutoConfig, AutoTokenizer, TFAutoModelForMaskedLM
@@ -123,6 +125,20 @@ class ChainsModel():
             i, j = pair
             scores[i, j] = score[0]
         return words, scores
+    
+    def build_semantic_chains(self, doc: Union[str, Document], threshold=0.9) -> List[List[Word]]:
+        words, similarity = self.build_similarity_matrix(doc)
+        graph = Graph()
+        for i, word1 in enumerate(words):
+            for j in range(i+1, len(words)):
+                if similarity[i, j] > threshold:
+                    graph.add_edge(word1, words[j])
+        
+        return [
+            list(sorted(component, key=lambda w: w.index_in_doc)) 
+            for component in connected_components(graph)
+            ]
+
 
         
     

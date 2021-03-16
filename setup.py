@@ -57,7 +57,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.22',
+    version='0.10.25',
     python_requires='>=3.6,<3.9',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
@@ -68,6 +68,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=required,
+    data_files=[("",["requirements.txt"])],
     cmdclass={
         'develop': PostDevelopmentCommand,
         'install': PostInstallCommand,
