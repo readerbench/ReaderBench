@@ -66,7 +66,7 @@ class Conversation(TextElement):
         processed_contributions = [contributions[0]]
 
         for i, contribution in enumerate(contributions[1:]):
-            index = i + 1
+            index = contribution[ID_KEY]
             user = contribution[USER_KEY]
             timestamp = contribution[TIMESTAMP_KEY]
 
@@ -75,7 +75,6 @@ class Conversation(TextElement):
                 group[index] = processed_contributions[-1]
 
             else:
-                contribution[ID_KEY] = len(processed_contributions)
                 group[index] = contribution
 
                 processed_contributions.append(contribution)

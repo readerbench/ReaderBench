@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Dict, List
 
 import xmltodict
-from dateutil import parser
 from rb.cna.cna_graph import CnaGraph
 from rb.core.cscl.community import Community
 from rb.core.cscl.contribution import Contribution
@@ -38,7 +37,9 @@ FORMATS = [
     "%Y-%m-%d %H:%M %Z",
     "%Y-%m-%d %H:%M:%S.%f", 
     "%Y-%m-%d %H:%M:%S", 
-    "%Y-%m-%d %H:%M"
+    "%Y-%m-%d %H:%M",
+    "%H.%M.%S",
+    "%H:%M:%S",
 ]
 
 def get_json_from_json_file(filename: str) -> Dict:
@@ -109,7 +110,7 @@ def parse_large_csv(filename: str) -> Dict:
                 contribution[USER_KEY] = row[2]
                 contribution[TEXT_KEY] = row[6]
 
-                contribution[TIMESTAMP_KEY] = datetime.timestamp(parser.parse(row[3], ignoretz=True, fuzzy=True))
+                contribution[TIMESTAMP_KEY] = read_date(row[3])
 
                 contribution_list.append(contribution)
 
@@ -136,13 +137,14 @@ def load_from_xml(filename: str, diacritics_model: DiacriticsRestoration = None)
 		contributions = [
 			{
 				ID_KEY: int(utterance["@genid"]) - 1,
-				PARENT_ID_KEY: int(utterance["@ref"]) - 1,
+				PARENT_ID_KEY: int(utterance["@ref"]) - 1 if utterance["@ref"] else -1,
 				TIMESTAMP_KEY: read_date(utterance["@time"]),
 				USER_KEY: turn["@nickname"],
 				TEXT_KEY: diacritics_model.process_string(utterance["#text"], mode="replace_missing") if diacritics_model else utterance["#text"],
 			}
 			for turn in turns
 			for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
+            if "#text" in utterance
 		]
 
 		return {CONTRIBUTIONS_KEY: contributions, CONV_ID: my_dict["Dialog"]["@team"]}

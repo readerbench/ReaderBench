@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Dict
 
 from rb.core.block import Block
@@ -19,7 +20,7 @@ class Contribution(TextElement):
 
     def __init__(self, lang: Lang, text: str, participant: Participant,
                  parent_contribution: "Contribution", contribution_raw: Dict, index: int,
-                 timestamp: int, depth: int = TextElementType.BLOCK.value,
+                 timestamp: datetime, depth: int = TextElementType.BLOCK.value,
                  container: TextElement = None):
         super().__init__(lang=lang, text=text, depth=depth, container=container)
         self.parent_contribution = parent_contribution
