@@ -2,16 +2,19 @@
 import os
 import pickle
 import sys
+
 import absl
 import numpy as np
 import rb.processings.sentiment.utils_new as utils
 import tensorflow as tf
+import tensorflow.keras as keras
 from rb.core.lang import Lang
 from rb.processings.encoders.bert import BertWrapper
+from rb.processings.sentiment.BertRegression import BertRegression
 from rb.utils.downloader import check_version, download_model
 from tensorflow.keras.models import load_model
-import tensorflow.keras as keras
-from rb.processings.sentiment.BertRegression import BertRegression
+from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
+
 
 class SentimentAnalysis(object):
 	"""
@@ -22,8 +25,12 @@ class SentimentAnalysis(object):
 		# load model
 		self.lang = lang
 		self.max_seq_len = min(max_seq_len, 512)
-		self._load_model(model_type, check_updates)
-
+		if self.lang is Lang.RO:
+			self._load_model(model_type, check_updates)
+		else:
+			self.tokenizer = AutoTokenizer.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment", ) 
+			self.model = TFAutoModelForSequenceClassification.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment", from_pt=True)
+	
 	# loads best sentiment model
 	def _load_model(self, model_type, check_updates = True):
 		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type, check_updates=check_updates, custom_model=True)
@@ -39,7 +46,13 @@ class SentimentAnalysis(object):
 		if isinstance(text, str):
 			text = [text]
 
-		features = utils.processFeaturesRawText(text, self.bert_wrapper)
-		predictions = self.model.predict(features)
-		processed_predictions = list(map(lambda x: x[0] / 5.0, predictions))
-		return processed_predictions
+		if self.lang is Lang.RO:
+			features = utils.processFeaturesRawText(text, self.bert_wrapper)
+			predictions = self.model.predict(features)
+			return [x[0] / 5.0 for x in predictions]
+		else:
+			features = self.tokenizer(text)
+			features = {key: np.array(value) for key, value in features.items()}
+			predictions = tf.nn.softmax(self.model(features).logits)[0].numpy()
+			return sum(i / 5 * p for i, p in enumerate(predictions))
+		
