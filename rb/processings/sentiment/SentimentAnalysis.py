@@ -53,6 +53,6 @@ class SentimentAnalysis(object):
 		else:
 			features = self.tokenizer(text)
 			features = {key: np.array(value) for key, value in features.items()}
-			predictions = tf.nn.softmax(self.model(features).logits)[0].numpy()
-			return sum(i / 5 * p for i, p in enumerate(predictions))
+			predictions = tf.nn.softmax(self.model(features).logits).numpy()
+			return [sum(i / 5 * p for i, p in enumerate(pred)) for pred in predictions]
 		
