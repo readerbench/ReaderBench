@@ -38,7 +38,7 @@ spacy>=2.3.0,<3
 srsly
 tensorflow>=2
 torch
-transformers
+transformers>=3
 tqdm
 urllib3
 wasabi

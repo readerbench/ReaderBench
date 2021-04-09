@@ -28,7 +28,7 @@ class SentimentAnalysis(object):
 		if self.lang is Lang.RO:
 			self._load_model(model_type, check_updates)
 		else:
-			self.tokenizer = AutoTokenizer.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment", ) 
+			self.tokenizer = AutoTokenizer.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment") 
 			self.model = TFAutoModelForSequenceClassification.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment", from_pt=True)
 	
 	# loads best sentiment model
