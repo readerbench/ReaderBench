@@ -40,6 +40,7 @@ class CorporaEnum(Enum):
     JOSE_ANTONIO = 'jose_antonio'
     RNC_WIKIPEDIA = 'rnc_wikipedia'
     LE_MONDE = 'le_monde'
+    WIKI = 'wiki'
 
 
 class VectorModel:

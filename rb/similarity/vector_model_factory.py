@@ -41,7 +41,16 @@ VECTOR_MODELS = {
             VectorModelType.WORD2VEC: Word2Vec
         }
     },
-    
+    Lang.NL: {
+        CorporaEnum.WIKI: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
+    },
+    Lang.DE: {
+        CorporaEnum.WIKI: {
+            VectorModelType.WORD2VEC: Word2Vec
+        }
+    },
 }
 
 DEFAULT_MODELS = {
@@ -49,7 +58,9 @@ DEFAULT_MODELS = {
     Lang.EN: (VectorModelType.WORD2VEC, CorporaEnum.COCA),
     Lang.ES: (VectorModelType.WORD2VEC, CorporaEnum.JOSE_ANTONIO),
     Lang.RU: (VectorModelType.WORD2VEC, CorporaEnum.RNC_WIKIPEDIA),
-    Lang.FR: (VectorModelType.WORD2VEC, CorporaEnum.LE_MONDE)    
+    Lang.FR: (VectorModelType.WORD2VEC, CorporaEnum.LE_MONDE),
+    Lang.NL: (VectorModelType.WORD2VEC, CorporaEnum.WIKI),
+    Lang.DE: (VectorModelType.WORD2VEC, CorporaEnum.WIKI),
 }
 
 EXISTING_MODELS = {}

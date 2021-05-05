@@ -161,6 +161,22 @@ LINKS = {
             },
         },
     },
+    Lang.NL: {
+        'models': {
+            'wiki': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/7mDZ4s6YmzQCAQw/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/qtNAtLQEaAqEXSM/download"
+            },
+        },
+    },
+    Lang.DE: {
+        'models': {
+            'wiki': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/Cdg9cNcFaoFbbk7/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/f5ZtjyQsjSHCTJX/download"
+            },
+        },
+    },
 }
 
 logger = Logger.get_logger()
