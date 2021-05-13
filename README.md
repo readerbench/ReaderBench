@@ -46,6 +46,28 @@ For neural coref errors install it as follows: https://github.com/huggingface/ne
 ## Developer instructions
 
 ## How to use Bert
+
+Our models are also available in the HuggingFace platform: https://huggingface.co/readerbench 
+
+You can use them directly from HuggingFace:
+```
+# tensorflow
+from transformers import AutoModel, AutoTokenizer, TFAutoModel
+tokenizer = AutoTokenizer.from_pretrained("readerbench/RoBERT-base")
+model = TFAutoModel.from_pretrained("readerbench/RoBERT-base")
+inputs = tokenizer("exemplu de propoziție", return_tensors="tf")
+outputs = model(inputs)
+
+# pytorch
+from transformers import AutoModel, AutoTokenizer, AutoModel
+tokenizer = AutoTokenizer.from_pretrained("readerbench/RoBERT-base")
+model = AutoModel.from_pretrained("readerbench/RoBERT-base")
+inputs = tokenizer("exemplu de propoziție", return_tensors="pt")
+outputs = model(**inputs)
+```
+
+or from ReaderBench:
+
 ```
 from rb.core.lang import Lang
 from rb.processings.encoders.bert import BertWrapper
