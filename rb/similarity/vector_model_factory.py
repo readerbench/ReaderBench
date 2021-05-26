@@ -91,11 +91,11 @@ def get_existing_model(lang: Lang, model: VectorModelType,  corpus: str, dim: in
         return EXISTING_MODELS[lang][model][corpus][dim]
     return None
 
-def get_default_model(lang: Lang) -> VectorModel:
+def get_default_model(lang: Lang, check_updates=True) -> VectorModel:
     if lang not in DEFAULT_MODELS:
         return None
     model, corpus = DEFAULT_MODELS[lang]
-    return create_vector_model(lang, model, corpus=corpus.value)
+    return create_vector_model(lang, model, corpus=corpus.value, check_updates=check_updates)
 
     
 def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: int = 300, check_updates=True) -> VectorModel:
