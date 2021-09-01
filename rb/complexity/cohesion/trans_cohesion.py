@@ -44,7 +44,8 @@ class TransCohesion(ComplexityIndex):
                 next_sent = next_block_sents[0]
                 sim_edge = self.cna_graph.edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
                                                 vector_model=None)
-                v = sim_edge[0][2]
-                sim_values.append(v)
+                if sim_edge:
+                    v = sim_edge[0][2]
+                    sim_values.append(v)
             element.indices[self] = sum(sim_values) / len(sim_values) if len(sim_values) > 1 else ComplexityIndex.IDENTITY
             return element.indices[self]
