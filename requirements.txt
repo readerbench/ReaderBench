@@ -23,7 +23,7 @@ MarkupSafe
 murmurhash
 networkx
 nltk
-numpy<1.20
+numpy
 pymorphy2
 Pyphen
 requests
@@ -33,7 +33,7 @@ sentence-splitter
 six
 sklearn
 smart-open
-spacy>=2.3.0,<3
+spacy
 srsly
 tensorflow>=2
 torch

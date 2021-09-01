@@ -13,15 +13,15 @@ with open('requirements.txt') as f:
 
 def do_post_install_tasks():
     check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-    cwd = getcwd()
-    with TemporaryDirectory() as temp_folder:
-        chdir(temp_folder)
-        check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
-        chdir("neuralcoref")
-        check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-        check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-        check_call([sys.executable, "-m", "pip", "install", "-U", "."])
-        chdir(cwd)
+    # cwd = getcwd()
+    # with TemporaryDirectory() as temp_folder:
+    #     chdir(temp_folder)
+    #     check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
+    #     chdir("neuralcoref")
+    #     check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    #     check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
+    #     check_call([sys.executable, "-m", "pip", "install", "-U", "."])
+    #     chdir(cwd)
    # download nltk stuff
     from os import getenv, path
 

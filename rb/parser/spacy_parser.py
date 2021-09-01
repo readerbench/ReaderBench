@@ -1,8 +1,6 @@
-import logging
 import re
 from typing import Dict, Iterable, List, Union
 
-import neuralcoref
 import spacy
 from nltk.tokenize import sent_tokenize
 from rb.core.lang import Lang
@@ -31,14 +29,7 @@ models = {
     Lang.DE: 'de_core_news_lg',
     Lang.IT: 'it_core_news_lg',
     Lang.RO: 'ro_core_news_lg',
-    Lang.RU: 'ru_ud_ft',
-}
-
-custom_models = {Lang.RU}
-
-splitters = {
-    # Lang.RO: SentenceSplitter('ro'),
-    Lang.RU: SentenceSplitter('ru'),
+    Lang.RU: 'ru_core_news_lg',
 }
 
 normalization = {
@@ -181,16 +172,14 @@ class SpacyParser:
 
     def parse_block(self, block: str, lang: Lang) -> List[Span]:
         block = re.sub(re_missing_space, r"\1. \2", block)
-        if lang in custom_models:
-            return [self.parse(sent, lang) for sent in splitters[lang].split(block)]
-        else:
-            doc = self.parse(block, lang)
-            return [sent for sent in doc.sents]
+        doc = self.parse(block, lang)
+        return [sent for sent in doc.sents]
 
     def tokenize_sentences(self, block: str) -> List[str]:
         return sent_tokenize(block)
     
     @staticmethod
+    @Language.component('line_splitter')
     def line_splitter(doc):
         for token in doc:
             if "\n" in token.text_with_ws and token.i < len(doc) - 1:
@@ -202,22 +191,12 @@ class SpacyParser:
         if isinstance(lang, str):
             lang = Lang(lang)
         if lang not in self.loaded_models:
-            if lang not in custom_models:
-                try:
-                    self.loaded_models[lang] = spacy.load(models[lang])
-                    self.loaded_models[lang].add_pipe(SpacyParser.line_splitter, name='sentence_segmenter', before='parser')
-                    if lang is Lang.EN:
-                        neuralcoref.add_to_pipe(self.loaded_models[lang])
-                except:
-                    logger.error("spaCy model not found. You can download it by running the following commmand:\nsudo python3 -m spacy download {}".format(models[lang]))
-                    return None
-            else:
-                folder = "resources/{}/spacy/{}".format(lang.value, models[lang])
-                if check_spacy_version(lang, models[lang]):
-                    if not download_spacy_model(lang, models[lang]):
-                        logger.error("Could not download model for lang {}".format(lang.value))
-                        return None
-                self.loaded_models[lang] = spacy.load(folder)
+            try:
+                self.loaded_models[lang] = spacy.load(models[lang])
+                self.loaded_models[lang].add_pipe("line_splitter", name='sentence_segmenter', before='parser')
+            except:
+                logger.error("spaCy model not found. You can download it by running the following commmand:\nsudo python3 -m spacy download {}".format(models[lang]))
+                return None
         return self.loaded_models[lang]
 
     def parse(self, sentence: str, lang: Lang) -> Doc:

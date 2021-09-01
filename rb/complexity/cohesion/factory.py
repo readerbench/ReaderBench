@@ -40,10 +40,6 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
         indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
                                         reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
                                         cna_graph=cna_graph))
-        indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.SENT,
-                                            cna_graph=cna_graph))
-        indices.append(AdjExternalCohesion(lang=lang, element_type=TextElementType.BLOCK,
-                                            cna_graph=cna_graph))
         indices.append(StartEndCohesion(lang=lang,
                                         reduce_depth=None, reduce_function=None,
                                         cna_graph=cna_graph))
