@@ -13,7 +13,7 @@ decorator
 docopt
 docutils
 Flask
-gensim
+gensim<4
 idna
 itsdangerous
 Jinja2

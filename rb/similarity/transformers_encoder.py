@@ -38,6 +38,8 @@ class TransformersEncoder(VectorModel):
         self.tokenizer = AutoTokenizer.from_pretrained(self.name)
         self.bert = TFAutoModel.from_pretrained(self.name, config=config, from_pt=from_pt)
         self.max_seq_len = max_seq_len
+        self.bos = self.tokenizer.bos_token_id if self.tokenizer.bos_token_id is not None else self.tokenizer.cls_token_id
+        self.eos = self.tokenizer.eos_token_id if self.tokenizer.eos_token_id is not None else self.tokenizer.sep_token_id
 
     @staticmethod
     def common_prefix(word1: str, word2: str) -> str:
@@ -54,24 +56,27 @@ class TransformersEncoder(VectorModel):
         tokens = [token.replace(self.SOW, "") for token in tokenized]
         current = ""
         for word in block.get_words():
+            text = word.text
+            if getattr(self.tokenizer, "do_lower_case", False):
+                text = text.lower()
             while not tokens[i]:
                 i += 1
-            current = self.common_prefix(word.text, tokens[i])
+            current = self.common_prefix(text, tokens[i])
             if not current:
                 continue 
             ids = [i]
-            if word.text == current:
-                if len(word.text) < len(tokens[i]):
+            if text == current:
+                if len(text) < len(tokens[i]):
                     tokens[i] = tokens[i][len(current):]
                 else:
                     i += 1
             else: 
                 i += 1
-                while i < len(tokens) and word.text.startswith(current + tokens[i]):
+                while i < len(tokens) and text.startswith(current + tokens[i]):
                     ids.append(i)
                     current += tokens[i]
                     i += 1
-                current = word.text[len(current):]
+                current = text[len(current):]
                 if len(current) > 0:
                     tokens[i] = tokens[i][len(current):]
             result[word] = ids
@@ -86,7 +91,7 @@ class TransformersEncoder(VectorModel):
         embeddings = []
         while start < n:
             end = min(n, start + self.max_seq_len - 2)
-            input_ids = np.array([[self.tokenizer.bos_token_id] + token_ids[start:end] + [self.tokenizer.eos_token_id]])
+            input_ids = np.array([[self.bos] + token_ids[start:end] + [self.eos]])
             attention_mask = np.ones(input_ids.shape, dtype=np.int32)
             outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
             embeddings.append(outputs.hidden_states[-2][0, 1:-1, :].numpy())
