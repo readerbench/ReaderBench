@@ -1,7 +1,7 @@
 from rb.similarity.word2vec import Word2Vec
 from rb.similarity.lda import LDA
 from rb.similarity.lsa import LSA
-from rb.similarity.vector_model import VectorModel
+from rb.similarity.word_vector_model import WordVectorModel
 from rb.core.lang import Lang
 from rb.comprehension.comprehension_model import ComprehensionModel
 from rb.comprehension.utils.graph.cm_node_type import CmNodeType
@@ -57,7 +57,7 @@ def comprehension_example(test_string, w2v, lsa, lda):
     return cm.history_keeper.compute_statistics()
 
 
-def generate_closest_words(model: VectorModel, lang: Lang):
+def generate_closest_words(model: WordVectorModel, lang: Lang):
     similar_words = {}
     counter = 0
     for key in model.vectors.keys():

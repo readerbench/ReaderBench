@@ -7,7 +7,7 @@ from rb.core.word import Word
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.core.sentence import Sentence
-from rb.similarity.vector_model import VectorModel
+from rb.similarity.word_vector_model import WordVectorModel
 from rb.similarity.aoa import AgeOfAcquisition
 from copy import deepcopy
 from typing import List, Dict
@@ -16,7 +16,7 @@ import numpy as np
 
 Nodes = List[CmNodeDO]
 Edges = List[CmEdgeDO]
-Models = List[VectorModel]
+Models = List[WordVectorModel]
 
 import time
 
