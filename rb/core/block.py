@@ -23,7 +23,7 @@ class Block(TextElement):
         for sentence in sentences:
             self.components.append(Sentence(lang, sentence, container=self))
         
-        # self.has_coref = False
+        self.has_coref = False
         # if sentences:
         #     try:
         #         doc = sentences[0].doc
