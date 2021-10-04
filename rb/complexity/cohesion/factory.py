@@ -12,7 +12,7 @@ from rb.cna.cna_graph import CnaGraph
 # dependencies need to be putted in function because otherwise circular dependencies happens
 def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.cohesion.adj_cohesion import AdjCohesion
-    from rb.complexity.cohesion.adj_ext_cohesion import AdjExternalCohesion
+    # from rb.complexity.cohesion.adj_ext_cohesion import AdjExternalCohesion
     from rb.complexity.cohesion.intra_cohesion import IntraCohesion
     from rb.complexity.cohesion.start_end_cohesion import StartEndCohesion
     from rb.complexity.cohesion.start_mid_cohesion import StartMiddleCohesion
