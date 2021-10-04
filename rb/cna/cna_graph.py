@@ -19,7 +19,7 @@ from rb.similarity.vector_model import VectorModel
 
 
 class CnaGraph:
-    def __init__(self, docs: Union[TextElement, List[TextElement]], models: List[VectorModel]):
+    def __init__(self, docs: Union[TextElement, List[TextElement]], models: List[VectorModel], pairwise = True, compute_filtered_graph = True):
         if isinstance(docs, TextElement):
             docs = [docs]
         self.graph = nx.MultiDiGraph()
@@ -33,18 +33,19 @@ class CnaGraph:
                         sim = model.similarity(conv, doc)
                         self.graph.add_edge(conv, doc, type=EdgeType.SEMANTIC, model=model, value=sim)
                     self.graph.add_edge(conv, doc, type=EdgeType.PART_OF)
-                    self.add_links(nodes)
+                    self.add_links(nodes, pairwise)
         else:
             for doc in docs:
                 self.add_element(doc)
-            self.add_links(self.graph.nodes)
+            self.add_links(self.graph.nodes, pairwise)
         
         self.add_coref_links()
         self.add_explicit_links()
-        self.filtered_graph = self.create_filtered_graph()
-        self.importance = self.compute_importance()
+        if compute_filtered_graph:
+            self.filtered_graph = self.create_filtered_graph()
+            self.importance = self.compute_importance()
         
-    def add_links(self, nodes):
+    def add_links(self, nodes, pairwise: bool):
         levels = dict()
         for n in nodes:
             if not n.is_word():
@@ -53,10 +54,10 @@ class CnaGraph:
                 else:
                     levels[n.depth] = [n]
         for depth, elements in levels.items():
-            self.add_lexical_links(elements, lambda w: w.pos in [POS.ADJ, POS.ADV, POS.NOUN, POS.VERB], OverlapType.CONTENT_OVERLAP)
-            self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.VERB], OverlapType.TOPIC_OVERLAP)
-            self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.PRON], OverlapType.ARGUMENT_OVERLAP)
-            self.add_semantic_links(elements)
+            self.add_lexical_links(elements, lambda w: w.pos in [POS.ADJ, POS.ADV, POS.NOUN, POS.VERB], OverlapType.CONTENT_OVERLAP, pairwise)
+            self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.VERB], OverlapType.TOPIC_OVERLAP, pairwise)
+            self.add_lexical_links(elements, lambda w: w.pos in [POS.NOUN, POS.PRON], OverlapType.ARGUMENT_OVERLAP, pairwise)
+            self.add_semantic_links(elements, pairwise)
 
     def add_element(self, element: TextElement) -> List[TextElement]:
         self.graph.add_node(element)
@@ -72,23 +73,37 @@ class CnaGraph:
             self.graph.add_edges_from(zip(element.components[:-1], element.components[1:]), type=EdgeType.ADJACENT)
         return result
 
-    def add_semantic_links(self, elements: List[TextElement]):
+    def add_semantic_links(self, elements: List[TextElement], pairwise: bool):
         for i, a in enumerate(elements[:-1]):
-            for b in elements[i+1:]:
-                for model in self.models:
-                    sim = model.similarity(a, b)
-                    self.graph.add_edge(a, b, type=EdgeType.SEMANTIC, model=model, value=sim)
-                    self.graph.add_edge(b, a, type=EdgeType.SEMANTIC, model=model, value=sim)
+            if pairwise:
+                for b in elements[i+1:]:
+                    self.add_semantic_edge_between_two_words(a, b)
+            else:
+                b = elements[i+1]
+                self.add_semantic_edge_between_two_words(a, b)
+            
+    def add_semantic_edge_between_two_words(self, a, b):
+        for model in self.models:
+            sim = model.similarity(a, b)
+            self.graph.add_edge(a, b, type=EdgeType.SEMANTIC, model=model, value=sim)
+            self.graph.add_edge(b, a, type=EdgeType.SEMANTIC, model=model, value=sim)
         
-    def add_lexical_links(self, elements: List[TextElement], test: Callable[[Word], bool], link_type: OverlapType):
+    def add_lexical_links(self, elements: List[TextElement], test: Callable[[Word], bool], link_type: OverlapType, pairwise: bool):
         words = {element: {word.lemma for word in element.get_words() if test(word)} for element in elements}
         for i, a in enumerate(elements[:-1]):
-            for b in elements[i+1:]:
-                words_a = words[a]
-                words_b = words[b]
-                weight = len(words_a & words_b) / (1e-5 + len(words_a | words_b))
-                self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
-                self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
+            if pairwise:
+                for b in elements[i+1:]:
+                    self.add_lexical_overlap_edge_between_two_words(words, a, b, link_type)
+            else:
+                b = elements[i+1]
+                self.add_lexical_overlap_edge_between_two_words(words, a, b, link_type)
+
+    def add_lexical_overlap_edge_between_two_words(self, words, a, b, link_type):
+        words_a = words[a]
+        words_b = words[b]
+        weight = len(words_a & words_b) / (1e-5 + len(words_a | words_b))
+        self.graph.add_edge(a, b, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
+        self.graph.add_edge(b, a, type=EdgeType.LEXICAL_OVERLAP, model=link_type, value=weight)
                     
     def add_coref_links(self):
         for node in self.graph.nodes():
