@@ -26,7 +26,8 @@ class TextElement:
     """
 
     def __init__(self, lang: Lang, text: str,
-                 depth: int,
+                 index_in_container: int,
+                 depth: int, 
                  container: 'TextElement' = None):
         from rb.complexity.complexity_index import ComplexityIndex
 
@@ -34,6 +35,7 @@ class TextElement:
         if text != None:
             self.text = text.strip()
 
+        self.index_in_container = index_in_container
         self.lang = lang
         self.container = container
         self.vectors = {}
@@ -78,8 +80,10 @@ class TextElement:
         return [word for child in self.components for word in child.get_words()]
 
     def __eq__(self, other):
-        if isinstance(other, TextElement):
-            return self.depth == other.depth and self.text == other.text
+        if self is other:
+            return True
+        if isinstance(other, type(self)):
+            return self.index_in_container == other.index_in_container and self.container == other.container
         return NotImplemented
 
     def __hash__(self):

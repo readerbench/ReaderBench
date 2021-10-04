@@ -14,14 +14,15 @@ from rb.utils.downloader import download_tags
 class Document(TextElement):
     
 
-    def __init__(self, lang: Lang, text: str,
+    def __init__(self, lang: Lang, text: str, 
+                 index_in_container: int = -1,
                  depth: int = TextElementType.DOC.value,
                  container: TextElement = None):
-        TextElement.__init__(self, lang=lang, text=text,
+        TextElement.__init__(self, lang=lang, text=text, index_in_container=index_in_container,
                              depth=depth, container=container)
         text = text.replace("\n\n", "\n")
-        for block in text.split("\n"):
-            self.components.append(Block(lang=lang, text=block.strip(),
+        for i, block in enumerate(text.split("\n")):
+            self.components.append(Block(lang=lang, text=block.strip(), index_in_container=i,
                                          container=self))
         count = 0
         for block in self.components:
@@ -38,3 +39,10 @@ class Document(TextElement):
 
     def get_blocks(self) -> List[Block]:
         return self.components
+    
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if isinstance(other, Document):
+            return self.text == other.text
+        return NotImplemented

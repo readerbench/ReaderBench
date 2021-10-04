@@ -16,16 +16,16 @@ Dependencies = List[Dependency]
 class Sentence(TextElement):
 
 
-    def __init__(self, lang: Lang, text: Union[spacy.tokens.Span, str],
+    def __init__(self, lang: Lang, text: Union[spacy.tokens.Span, str], index_in_container: int,
                  depth: int = TextElementType.SENT.value,
                  container: TextElement = None):
 
         TextElement.__init__(self, lang=lang, text=text if isinstance(text, str) else text.text,
-                             depth=depth, container=container)
+                             index_in_container=index_in_container, depth=depth, container=container)
         if isinstance(text, str):
             text = SpacyParser.get_instance().parse(text, lang)
 
-        words = {token.i: Word(lang, token, container=self) for token in text}
+        words = {token.i: Word(lang, token, i, container=self) for i, token in enumerate(text)}
         for word, token in zip(words.values(), text):
             word.head = words[token.head.i]
             if word.head is not word:
@@ -48,3 +48,4 @@ class Sentence(TextElement):
     
     def get_words(self) -> List[Word]:
         return self.components
+

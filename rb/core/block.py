@@ -13,15 +13,15 @@ logger = Logger.get_logger()
 class Block(TextElement):
 
 
-    def __init__(self, lang: Lang, text: str,
+    def __init__(self, lang: Lang, text: str, index_in_container: int,
                  depth: int = TextElementType.BLOCK.value,
                  container: TextElement = None):
 
-        TextElement.__init__(self, lang=lang, text=text,
+        TextElement.__init__(self, lang=lang, text=text, index_in_container=index_in_container,
                              depth=depth, container=container)
         sentences = SpacyParser.get_instance().parse_block(text, lang)
-        for sentence in sentences:
-            self.components.append(Sentence(lang, sentence, container=self))
+        for i, sentence in enumerate(sentences):
+            self.components.append(Sentence(lang, sentence, i, container=self))
         
         self.has_coref = False
         # if sentences:

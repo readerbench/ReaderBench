@@ -15,11 +15,11 @@ class Word(TextElement):
         Lang.EN: {"can", "may", "must", "shall", "will", "could", "might", "should", "would"},
     }
 
-    def __init__(self, lang: Lang, token: Token,
+    def __init__(self, lang: Lang, token: Token, index_in_container: int,
                  depth: int = TextElementType.WORD.value,
                  container: TextElement = None):
 
-        TextElement.__init__(self, lang=lang, text=token.text,
+        TextElement.__init__(self, lang=lang, text=token.text, index_in_container=index_in_container,
                              depth=depth, container=container)
         self.lemma = token.lemma_
         self.pos = POS(token.pos_)
@@ -59,11 +59,6 @@ class Word(TextElement):
             
     def get_sentences(self) -> List["Sentence"]:
         return []
-
-    def __eq__(self, other):
-        if isinstance(other, Word):
-            return self.index_in_doc == other.index_in_doc and self.lemma == other.lemma and self.pos == other.pos
-        return NotImplemented
 
     def __str__(self):
         return self.text
