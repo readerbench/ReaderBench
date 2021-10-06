@@ -24,6 +24,8 @@ class CnaGraph:
             docs = [docs]
         self.graph = nx.MultiDiGraph()
         self.models = models
+        self.pairwise = pairwise
+        self.compute_filtered_graph = compute_filtered_graph
         if all(isinstance(doc, Community) or isinstance(doc, MetaDocument) for doc in docs):
             for doc in docs:
                 self.graph.add_node(doc)

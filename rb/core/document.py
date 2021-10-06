@@ -46,3 +46,6 @@ class Document(TextElement):
         if isinstance(other, Document):
             return self.text == other.text
         return NotImplemented
+
+    def __hash__(self):
+        return hash((self.depth, self.text))

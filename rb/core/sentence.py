@@ -30,7 +30,7 @@ class Sentence(TextElement):
             word.head = words[token.head.i]
             if word.head is not word:
                 word.head.children.append(word)
-        self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent])
+        self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent], index_in_container=ent.start)
                          for ent in text.ents]
         if isinstance(text, Doc):
             self.root = words[[sent for sent in text.sents][0].root.i]
