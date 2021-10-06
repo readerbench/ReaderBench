@@ -139,6 +139,10 @@ LINKS = {
                 'link': "https://nextcloud.readerbench.com/index.php/s/bWCztgwzdnXowc7/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/TsWjd6KoLjypJQC/download"
             }
+        },
+        'wordlists': {
+            'link': 'https://nextcloud.readerbench.com/index.php/s/erWmo9KQJ4sc2zs/download',
+            'version': 'https://nextcloud.readerbench.com/index.php/s/L64godyDAzZwznw/download'
         }
     },
     Lang.FR: {
