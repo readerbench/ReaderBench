@@ -12,5 +12,6 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.rhythm.syllab import Syllab
 
     indices = []
-    indices.append(Syllab(lang, TextElementType.WORD.value, MeasureFunction.AVG))
+    # commenting this index out because it is already used in word wdsyll
+    # indices.append(Syllab(lang, TextElementType.WORD.value, MeasureFunction.AVG))
     return indices

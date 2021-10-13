@@ -36,6 +36,8 @@ class Pronoun(ComplexityIndex):
             path_to_wordlist = 'resources/ro/wordlists/pronouns_ro.txt'
         elif lang is Lang.EN:
             path_to_wordlist = 'resources/en/wordlists/pronouns_en.txt'
+        elif lang is Lang.RU:
+            path_to_wordlist = 'resources/ru/wordlists/pronouns_ru.txt'
 
         with open(path_to_wordlist, 'rt', encoding='utf-8') as f:
             Pronoun.pronoun_dict = {}

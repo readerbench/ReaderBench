@@ -28,47 +28,33 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
 
     indices = []
 
-    indices.append(WdLen(lang, TextElementType.WORD.value, MeasureFunction.AVG))
-    indices.append(WdLen(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.SENT.value, reduce_function=MeasureFunction.AVG))
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.SENT.value, reduce_function=MeasureFunction.STDEV))
-
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG))
-    indices.append(WdSyllab(lang, reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.STDEV))
-
-    indices.append(WdDiffLemma(lang, reduce_depth=TextElementType.WORD.value, reduce_function=MeasureFunction.AVG))
+    text_elements = [TextElementType.WORD.value, TextElementType.SENT.value, TextElementType.BLOCK.value, TextElementType.DOC.value]
+    measure_functions = [MeasureFunction.AVG, MeasureFunction.STDEV, MeasureFunction.MAX]
+    indices_classes = [WdLen, WdSyllab, WdDiffLemma, NoRepetitions, WdMaxDpthHypTree, WdAvgDpthHypTree, NoWdPathsHypTree, Polysemy]
     
-    indices.append(NoRepetitions(lang, window_size=8, reduce_depth=TextElementType.SENT.value, 
-                                    reduce_function=MeasureFunction.AVG))
-    indices.append(WdMaxDpthHypTree(lang, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
-    indices.append(WdAvgDpthHypTree(lang, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
-    indices.append(NoWdPathsHypTree(lang, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
-    indices.append(Polysemy(lang, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
+    for index_class in indices_classes:
+        for text_element in text_elements:
+            for measure_function in measure_functions:
+                indices.append(index_class(lang, text_element, measure_function))
 
     if lang is Lang.EN:
         for at in AoaTypeEnum:
-            indices.append(Aoa(lang, at, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
-            indices.append(Aoa(lang, at, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.STDEV))
+            for text_element in text_elements:
+                for measure_function in measure_functions:
+                    indices.append(Aoa(lang, at, text_element, measure_function))
         for at in AoeTypeEnum:
-            indices.append(Aoe(lang, at, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.AVG))
-            indices.append(Aoe(lang, at, reduce_depth=TextElementType.WORD.value, 
-                                    reduce_function=MeasureFunction.STDEV))
+            for text_element in text_elements:
+                for measure_function in measure_functions:
+                    indices.append(Aoe(lang, at, text_element, measure_function))
         for vt in ValenceTypeEnum:
-            indices.append(Valence(lang, vt, reduce_depth=TextElementType.SENT.value, 
-                                    reduce_function=MeasureFunction.AVG))
-            indices.append(Valence(lang, vt, reduce_depth=TextElementType.BLOCK.value, 
-                                    reduce_function=MeasureFunction.AVG))
+            for text_element in text_elements:
+                for measure_function in measure_functions:
+                    indices.append(Valence(lang, vt, text_element, measure_function))
 
     for named_ent_type in NamedEntityONEnum:
-        indices.append(NoNamedEntity(lang, named_ent_type=named_ent_type, reduce_depth=TextElementType.WORD.value, 
-                                        reduce_function=MeasureFunction.AVG))
+        for text_element in text_elements:
+                for measure_function in measure_functions:
+                    indices.append(NoNamedEntity(lang, named_ent_type=named_ent_type, reduce_depth=text_element, 
+                                        reduce_function=measure_function))
     
     return indices

@@ -19,4 +19,12 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
         for ct in ConnTypeEnum:
             indices.append(Connector(lang, ct, TextElementType.SENT.value, MeasureFunction.AVG))
             indices.append(Connector(lang, ct, TextElementType.BLOCK.value, MeasureFunction.AVG))
+            indices.append(Connector(lang, ct, TextElementType.DOC.value, MeasureFunction.AVG))
+            indices.append(Connector(lang, ct, TextElementType.SENT.value, MeasureFunction.STDEV))
+            indices.append(Connector(lang, ct, TextElementType.BLOCK.value, MeasureFunction.STDEV))
+            indices.append(Connector(lang, ct, TextElementType.DOC.value, MeasureFunction.STDEV))
+            indices.append(Connector(lang, ct, TextElementType.SENT.value, MeasureFunction.MAX))
+            indices.append(Connector(lang, ct, TextElementType.BLOCK.value, MeasureFunction.MAX))
+            indices.append(Connector(lang, ct, TextElementType.DOC.value, MeasureFunction.MAX))
+            
     return indices

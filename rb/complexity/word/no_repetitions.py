@@ -14,8 +14,8 @@ logger = Logger.get_logger()
 class NoRepetitions(ComplexityIndex):
 
     
-    def __init__(self, lang: Lang, window_size: int, 
-        reduce_depth: int, reduce_function: MeasureFunction):
+    def __init__(self, lang: Lang, reduce_depth: int, 
+                 reduce_function: MeasureFunction, window_size: int = 8):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
                                  abbr="Repetitions", reduce_depth=reduce_depth,

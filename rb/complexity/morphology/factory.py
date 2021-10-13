@@ -18,35 +18,21 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     from rb.complexity.morphology.pron import Pronoun
     
     indices = []
-
-    indices.append(PosMain(lang, PosEum.NOUN, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.VERB, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADJ, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADV, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.PRON, TextElementType.SENT.value, MeasureFunction.AVG))
-
-    indices.append(UnqPosMain(lang, PosEum.NOUN, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.VERB, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.SENT.value, MeasureFunction.AVG))
-
-
-    indices.append(PosMain(lang, PosEum.NOUN, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.VERB, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADJ, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.ADV, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(PosMain(lang, PosEum.PRON, TextElementType.BLOCK.value, MeasureFunction.AVG))
-
-    indices.append(UnqPosMain(lang, PosEum.NOUN, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.VERB, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADJ, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.ADV, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(UnqPosMain(lang, PosEum.PRON, TextElementType.BLOCK.value, MeasureFunction.AVG))
     
-    if lang is Lang.RO or lang is Lang.EN:
+    text_element_types = [TextElementType.SENT.value, TextElementType.BLOCK.value, TextElementType.DOC.value]
+    measure_functions = [MeasureFunction.AVG, MeasureFunction.STDEV, MeasureFunction.MAX]
+    parts_of_speech = [PosEum.NOUN, PosEum.VERB, PosEum.ADJ, PosEum.ADV, PosEum.PRON]
+    
+    for text_element in text_element_types:
+        for pos in parts_of_speech:
+            for measure_function in measure_functions:
+                indices.append(PosMain(lang, pos, text_element, measure_function))
+                indices.append(UnqPosMain(lang, pos, text_element, measure_function))
+    
+    if lang is Lang.RO or lang is Lang.EN or lang is Lang.RU:
         for pt in PronounTypeEnum:
-            indices.append(Pronoun(lang, pt, TextElementType.SENT.value, MeasureFunction.AVG))
-            indices.append(Pronoun(lang, pt, TextElementType.BLOCK.value, MeasureFunction.AVG))
+            for text_element in text_element_types:
+                for measure_function in measure_functions:
+                    indices.append(Pronoun(lang, pt, text_element, measure_function))
 
     return indices
