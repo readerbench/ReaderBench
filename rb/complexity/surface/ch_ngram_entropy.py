@@ -74,4 +74,4 @@ class ChNgramEntropy(ComplexityIndex):
         return values
     
     def __repr__(self):
-        return self.abbr + "_" + str(self.ngram_size.value)
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.ngram_size.value} / {self.reduce_depth_abbr})"
