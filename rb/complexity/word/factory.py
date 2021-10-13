@@ -34,6 +34,8 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     
     for index_class in indices_classes:
         for text_element in text_elements:
+            if index_class is NoRepetitions and text_element == TextElementType.WORD.value:
+                continue
             for measure_function in measure_functions:
                 indices.append(index_class(lang, text_element, measure_function))
 

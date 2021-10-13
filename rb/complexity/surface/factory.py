@@ -23,7 +23,9 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     
     for index_class in classes:
         for text_element in text_elements:
-            for measure_function in measure_functions:
+            if index_class is NoSentences and text_element == TextElementType.SENT.value:
+                continue
+            for measure_function in measure_functions:                
                 indices.append(index_class(lang, text_element, measure_function))
     
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.AVG))
