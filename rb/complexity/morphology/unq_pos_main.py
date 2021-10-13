@@ -18,7 +18,7 @@ class UnqPosMain(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.MORPHOLOGY,
-                                 abbr="UnqPOSMain", reduce_depth=reduce_depth,
+                                 abbr="UnqPOS", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         self.pos_type = pos_type
 

@@ -18,7 +18,7 @@ class WdMaxDpthHypTree(ComplexityIndex):
             reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="MaxDepthHypernymTree", reduce_depth=reduce_depth,
+                                 abbr="MaxDepthHypTree", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

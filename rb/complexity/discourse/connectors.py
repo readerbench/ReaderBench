@@ -20,7 +20,7 @@ class Connector(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.DISCOURSE,
-                                 abbr="Conn", reduce_depth=reduce_depth,
+                                 abbr="Connector", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if Connector.conn_dict is None:
             Connector.parse_connector_list(lang)
