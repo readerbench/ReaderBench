@@ -4,7 +4,7 @@ from typing import Callable, Iterable, List, Tuple
 from rb.cna.cna_graph import CnaGraph
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import (MeasureFunction, average,
-                                            standard_deviation)
+                                            standard_deviation, maximum)
 from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -61,6 +61,8 @@ class ComplexityIndex():
             self.reduce_function_abbr = 'Avg'
         elif self.reduce_function is standard_deviation:
             self.reduce_function_abbr =  'StDev'
+        elif self.reduce_function is maximum:
+            self.reduce_function_abbr = 'Max'
         self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
                 self.element_type_from_depth(self.reduce_depth).name)
 
