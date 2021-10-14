@@ -23,6 +23,10 @@ LINKS = {
                 'link': "https://nextcloud.readerbench.com/index.php/s/fd8Ss5NtL6yDoYj/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/5zJxGKxsLSN4YRd/download"
             },
+            'muse': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/68gXrooiYq3CKcg/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/9SkpScAGA4YmM3q/download"
+            },
             'chains': {
                 'mlp': {
                     "link": "https://nextcloud.readerbench.com/index.php/s/pWmgazgq5bmkC4e/download",
@@ -132,7 +136,11 @@ LINKS = {
             'rnc_wikipedia': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/PJCmkb2focXiMfd/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/d9Jz7XcxRYpJQgq/download"
-            }
+            },
+            'muse': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/Q8nxYTfjsZ6YonY/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/2w7yLygTSTbzXAR/download"
+            },
         },
         'spacy': {
             'ru_ud_ft': {
@@ -153,6 +161,10 @@ LINKS = {
             },
             'le_monde': {
                 'link': "https://nextcloud.readerbench.com/index.php/s/xSKTSqYQBc2nEgq/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
+            },
+            'muse': {
+                'link': "https://nextcloud.readerbench.com/index.php/s/tmmkHmCnBYZncQj/download",
                 'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
             },
         },
