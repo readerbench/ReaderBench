@@ -75,7 +75,11 @@ class Aoa(ComplexityIndex):
                 values += self.compute_above(child)
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
-            values = [mean(self.compute_below(element))]
+            v = self.compute_below(element)
+            if v:
+                values = [mean(v)]
+            else:
+                values = []
             element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')

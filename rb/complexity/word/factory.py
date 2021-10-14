@@ -51,7 +51,7 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
             for text_element in text_elements:
                 for measure_function in measure_functions:
                     indices.append(Valence(lang, vt, text_element, measure_function))
-            indices.append(Valence(lang, at, TextElementType.DOC.value, MeasureFunction.IDENTITY))
+            indices.append(Valence(lang, vt, TextElementType.DOC.value, MeasureFunction.IDENTITY))
 
     for named_ent_type in NamedEntityONEnum:
         for text_element in text_elements[1:]:

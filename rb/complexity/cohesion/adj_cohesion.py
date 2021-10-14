@@ -1,3 +1,4 @@
+from statistics import mean
 from rb.complexity.complexity_index import ComplexityIndex
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -32,20 +33,15 @@ class AdjCohesion(ComplexityIndex):
         return self.reduce_function(values) if len(values) > 0 else ComplexityIndex.IDENTITY
 
     def compute_below(self, element: TextElement) -> List[float]:
-        if element.depth == self.element_type.value:
-            sim_values = []
-            for i, comp in enumerate(element.components): 
-                adj_edge = self.cna_graph.edges(node=comp, edge_type=EdgeType.ADJACENT, vector_model=None)
-                for a, b, _ in adj_edge:
-                    _, _, sim = self.cna_graph.edges(node=(a, b), edge_type=EdgeType.SEMANTIC, vector_model=None)[0]
-                    sim_values.append(sim)
-            return sim_values
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-
+        sim_values = []
+        sentences = element.get_sentences()
+        if len(sentences) < 2:
+            return []
+        for i, sent in enumerate(sentences[:-1]): 
+            _, _, sim = self.cna_graph.edges(node=(sent, sentences[i+1]), edge_type=EdgeType.SEMANTIC, vector_model=None)[0]
+            sim_values.append(sim)
+        return sim_values
+    
     def compute_above(self, element: TextElement) -> List[float]:
         if element.depth > self.reduce_depth:
             values = []
@@ -55,8 +51,8 @@ class AdjCohesion(ComplexityIndex):
         elif element.depth == self.reduce_depth:
             v = self.compute_below(element)
             if len(v) != 0:
-                values = [sum(v) / len(v)]
-                element.indices[self] = sum(v) / len(v)
+                values = [mean(v)]
+                element.indices[self] = self.reduce_function(values)
             else:
                 values = []
                 element.indices[self] = ComplexityIndex.IDENTITY
