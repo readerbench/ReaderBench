@@ -63,6 +63,8 @@ class ComplexityIndex():
             self.reduce_function_abbr =  'SD'
         elif self.reduce_function is maximum:
             self.reduce_function_abbr = 'Max'
+        else:
+            self.reduce_function_abbr = ''
         self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
                 self.element_type_from_depth(self.reduce_depth).name)
 

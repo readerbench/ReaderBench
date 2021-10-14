@@ -1,3 +1,4 @@
+from statistics import mean
 from typing import List, Callable, Dict
 import csv
 from rb.complexity.complexity_index import ComplexityIndex
@@ -74,7 +75,7 @@ class Aoa(ComplexityIndex):
                 values += self.compute_above(child)
             element.indices[self] = self.reduce_function(values)
         elif element.depth == self.reduce_depth:
-            values = self.compute_below(element)
+            values = [mean(self.compute_below(element))]
             element.indices[self] = self.reduce_function(values)
         else:
             logger.error('wrong reduce depth value.')
