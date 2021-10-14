@@ -15,7 +15,6 @@ logger = Logger.get_logger()
 
 class WdEntropy(ComplexityIndex):
     
-
     def __init__(self, lang: Lang, reduce_depth: int,
                  reduce_function: MeasureFunction):
 
@@ -23,36 +22,8 @@ class WdEntropy(ComplexityIndex):
                                  abbr="WdEntr", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-    
-    def compute_below(self, element: TextElement) -> List[float]:
-        if element.is_sentence() == True:
-            lemmas = [word.lemma for word in element.components]
-            nr_total_words = len(lemmas)
-            counter = Counter(lemmas)
-            res = 0
-            for _, v in counter.items():
-                v = v / nr_total_words
-                res += -v * math.log(v)
-            return [res]
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-        else:
-            logger.error('wrong reduce depth value.')
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = self.compute_below(element)
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+    def _compute_value(self, element: TextElement) -> float:
+        lemmas = [word.lemma for word in element.get_words()]
+        n = len(lemmas)
+        counter = Counter(lemmas)
+        return sum(- v / n * math.log(v / n) for v in counter.values())

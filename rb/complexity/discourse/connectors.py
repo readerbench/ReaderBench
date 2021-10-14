@@ -133,34 +133,8 @@ class Connector(ComplexityIndex):
                     elif conn_type is not None:
                         Connector.conn_dict[conn_type].append(line.strip())
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-
-    def compute_below(self, element: TextElement) -> List[str]:
-        if element.is_word() == True:
-            res = []
-            if element.text.lower() in Connector.conn_dict[self.conn_type]:
-                res.append(element.text)
-            return res
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            element.indices[self] = len(self.compute_below(element))
-            values = [len(self.compute_below(element))]
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
-
+    def _compute_value(self, element: TextElement) -> int:
+        return sum(1 for word in element.get_words() if element.text.lower() in Connector.conn_dict[self.conn_type])
+    
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.conn_type.name.lower()} / {self.reduce_depth_abbr})"

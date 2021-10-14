@@ -29,49 +29,19 @@ class ChNgramEntropy(ComplexityIndex):
                                  reduce_function=reduce_function)
         self.ngram_size = ngram_size
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-    
-    def get_ngrams(self, chars: List[str]) -> List[str]:
+    def get_ngrams(self, chars: str) -> List[str]:
         ngrams = []
         for i in range(len(chars) - (self.ngram_size.value - 1)):
-            values = []
-            for j in range(0, self.ngram_size.value):
-               values.append(chars[i + j])
-            ngrams.append("".join(values))
+            ngrams.append(chars[i:(i + self.ngram_size.value)])
         return ngrams
 
-    def compute_below(self, element: TextElement) -> List[float]:
+    def _compute_value(self, element: TextElement) -> float:
         if element.is_word() == True:
-            chars = list(element.text)
+            chars = element.text
             ngrams = self.get_ngrams(chars)
             counter = Counter(ngrams)
-            nr_total_ngrams = len(ngrams)
-            res = 0
-            for _, v in counter.items():
-                v = v / nr_total_ngrams
-                res += -v * math.log(v)
-            return [res]
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-        else:
-            logger.error('wrong reduce depth value.')
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = self.compute_below(element)
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+            n = len(ngrams)
+            return sum(- v / n * math.log(v / n) for v in counter.values())
     
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.ngram_size.value} / {self.reduce_depth_abbr})"

@@ -21,27 +21,5 @@ class NoUniqueWordsIndex(ComplexityIndex):
                                  abbr="UnqWd", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-        
-    def compute_below(self, element: TextElement) -> Set[str]:
-        if element.is_word() == True:
-            return set([element.text])
-        elif element.depth <= self.reduce_depth:
-            res = set()
-            for child in element.components:
-                res.update(self.compute_below(child))
-            return res
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = [len(self.compute_below(element))]
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+    def _compute_value(self, element: TextElement) -> int:
+        return len({word.text for word in element.get_words()})

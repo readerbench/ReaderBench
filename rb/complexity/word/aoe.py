@@ -53,37 +53,9 @@ class Aoe(ComplexityIndex):
                 if len(str(row[5])) > 0:
                     Aoe.aoe_dict[AoeTypeEnum.INFL_POINT_POLY][row[0]] = float(row[5])
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-
-    def compute_below(self, element: TextElement) -> List[float]:
-        if element.is_word() == True:
-            if element.text in Aoe.aoe_dict[self.aoe_type]:
-                return [Aoe.aoe_dict[self.aoe_type][element.text]]
-            else:
-                return []
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            v = self.compute_below(element)
-            if v:
-                values = [mean(v)]
-            else:
-                values = []
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+    def _compute_value(self, element: TextElement) -> float:
+        values = [Aoe.aoe_dict[self.aoe_type][word.text] for word in element.get_words() if word.text in Aoe.aoe_dict[self.aoe_type]]
+        return mean(values) if values else 0
     
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.aoe_type.name.lower()} / {self.reduce_depth_abbr})"

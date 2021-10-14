@@ -13,7 +13,6 @@ logger = Logger.get_logger()
 
 
 class WdSyllab(ComplexityIndex):
-
     
     def __init__(self, lang: Lang,
             reduce_depth: int, reduce_function: MeasureFunction):
@@ -38,31 +37,8 @@ class WdSyllab(ComplexityIndex):
         elif lang is lang.RU:
              self.pyphen = pyphen.Pyphen(lang='ru')
     
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-
-    def compute_below(self, element: TextElement) -> float:
-        if element.is_word() == True:
-            return len(self.pyphen.inserted(element.text).split('-'))
-        elif element.depth <= self.reduce_depth:
-            res = 0
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = [self.compute_below(element)]
-            element.indices[self] = self.reduce_function(values)
-
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+    def _compute_value(self, element: TextElement) -> int:
+        return len(self.pyphen.inserted(element.text).split('-'))
     
     def __getstate__(self):
         return {
