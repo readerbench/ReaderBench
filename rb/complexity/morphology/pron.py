@@ -36,6 +36,8 @@ class Pronoun(ComplexityIndex):
             path_to_wordlist = 'resources/ro/wordlists/pronouns_ro.txt'
         elif lang is Lang.EN:
             path_to_wordlist = 'resources/en/wordlists/pronouns_en.txt'
+        elif lang is Lang.RU:
+            path_to_wordlist = 'resources/ru/wordlists/pronouns_ru.txt'
 
         with open(path_to_wordlist, 'rt', encoding='utf-8') as f:
             Pronoun.pronoun_dict = {}
@@ -89,4 +91,4 @@ class Pronoun(ComplexityIndex):
         return values
 
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.pron_type.name.lower()
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.pron_type.name.lower()} / {self.reduce_depth_abbr})"

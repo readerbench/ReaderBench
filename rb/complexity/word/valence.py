@@ -21,7 +21,7 @@ class Valence(ComplexityIndex):
                  reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="WdList", reduce_depth=reduce_depth,
+                                 abbr="Valence", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if Valence.valence_dict is None:
             Valence.parse_valence_csv(lang)
@@ -75,4 +75,4 @@ class Valence(ComplexityIndex):
         return values
     
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.valence_type.name.lower()
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.valence_type.name.lower()} / {self.reduce_depth_abbr})"

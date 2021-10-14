@@ -25,7 +25,7 @@ class ChNgramEntropy(ComplexityIndex):
         reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="ChNgramEntropy", reduce_depth=reduce_depth,
+                                 abbr="NgramEntr", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         self.ngram_size = ngram_size
 
@@ -74,4 +74,4 @@ class ChNgramEntropy(ComplexityIndex):
         return values
     
     def __repr__(self):
-        return self.abbr + "_" + str(self.ngram_size.value)
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.ngram_size.value} / {self.reduce_depth_abbr})"

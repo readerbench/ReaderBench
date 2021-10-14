@@ -19,7 +19,7 @@ class WdSyllab(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.WORD,
-                                 abbr="WdSyll", reduce_depth=reduce_depth,
+                                 abbr="Syllab", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if lang is lang.RO:
             self.pyphen = pyphen.Pyphen(lang='ro')

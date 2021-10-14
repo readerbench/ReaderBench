@@ -18,7 +18,7 @@ class ParseDepTree(ComplexityIndex):
             reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SYNTAX,
-                                 abbr="ParseTreeDpth", reduce_depth=reduce_depth,
+                                 abbr="ParseDepth", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

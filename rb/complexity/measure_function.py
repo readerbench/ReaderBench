@@ -15,6 +15,13 @@ def standard_deviation(elements: List[float]) -> float:
         return 0
     return stdev(elements)
 
+def maximum(elements: List[float]) -> float:
+    if len(elements) == 0:
+        return 0
+    return max(elements)
+
+
 class MeasureFunction(Enum):
     AVG = average
     STDEV = standard_deviation
+    MAX = maximum

@@ -20,7 +20,7 @@ class WdEntropy(ComplexityIndex):
                  reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.SURFACE,
-                                 abbr="WdEntropy", reduce_depth=reduce_depth,
+                                 abbr="WdEntr", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
 
     def process(self, element: TextElement) -> float:

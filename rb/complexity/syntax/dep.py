@@ -49,5 +49,5 @@ class DepIndex(ComplexityIndex):
         return values
 
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.dep_type.name.lower()
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.dep_type.name.lower()} / {self.reduce_depth_abbr})"
 

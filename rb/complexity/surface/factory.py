@@ -17,37 +17,20 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
 
     indices = []
 
-    indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoWord(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
-    indices.append(NoWord(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(NoWord(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-
-    indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoUniqueWordsIndex(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
-    indices.append(NoSentences(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(NoSentences(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-
-    indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoPunctuations(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
-    indices.append(NoPunctuations(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(NoPunctuations(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-
-    indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.AVG))
-    indices.append(NoCommas(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
-
-    indices.append(NoCommas(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(NoCommas(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-
-    indices.append(WdEntropy(lang, TextElementType.SENT.value, MeasureFunction.AVG))
+    text_elements = [TextElementType.SENT.value, TextElementType.BLOCK.value, TextElementType.DOC.value]
+    measure_functions = [MeasureFunction.AVG, MeasureFunction.STDEV, MeasureFunction.MAX]
+    classes = [NoWord, NoUniqueWordsIndex, NoSentences, NoPunctuations, NoCommas, WdEntropy]
     
-    indices.append(WdEntropy(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    
-    indices.append(WdEntropy(lang, TextElementType.DOC.value, MeasureFunction.AVG))
+    for index_class in classes:
+        for text_element in text_elements:
+            if index_class is NoSentences and text_element == TextElementType.SENT.value:
+                continue
+            for measure_function in measure_functions:                
+                indices.append(index_class(lang, text_element, measure_function))
     
     indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.AVG))
+    indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.STDEV))
+    indices.append(ChNgramEntropy(lang, ChNgramEntropyEnum.TWO, TextElementType.WORD.value, MeasureFunction.MAX))
     
     # if lang is Lang.RO:
     #     #indices.append(NoCacophonies(Lang.RO, TextElementType.SENT.value, MeasureFunction.AVG))

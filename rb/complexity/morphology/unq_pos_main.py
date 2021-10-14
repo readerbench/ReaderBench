@@ -18,7 +18,7 @@ class UnqPosMain(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.MORPHOLOGY,
-                                 abbr="UnqPOSMain", reduce_depth=reduce_depth,
+                                 abbr="UnqPOS", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         self.pos_type = pos_type
 
@@ -52,4 +52,4 @@ class UnqPosMain(ComplexityIndex):
         return values
 
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.pos_type.name.lower()
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.pos_type.name.lower()} / {self.reduce_depth_abbr})"

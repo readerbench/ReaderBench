@@ -20,7 +20,7 @@ class Connector(ComplexityIndex):
             reduce_depth: int, reduce_function: MeasureFunction):
 
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.DISCOURSE,
-                                 abbr="Conn", reduce_depth=reduce_depth,
+                                 abbr="Connector", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
         if Connector.conn_dict is None:
             Connector.parse_connector_list(lang)
@@ -163,4 +163,4 @@ class Connector(ComplexityIndex):
         return values
 
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr + "_" + self.conn_type.name.lower()
+        return f"{self.reduce_function_abbr}({self.abbr}_{self.conn_type.name.lower()} / {self.reduce_depth_abbr})"

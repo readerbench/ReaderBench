@@ -4,7 +4,7 @@ from typing import Callable, Iterable, List, Tuple
 from rb.cna.cna_graph import CnaGraph
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import (MeasureFunction, average,
-                                            standard_deviation)
+                                            standard_deviation, maximum)
 from rb.core.document import Document
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -58,9 +58,11 @@ class ComplexityIndex():
         if self.reduce_function is None:
             self.reduce_function_abbr =  '' 
         elif self.reduce_function is average:
-            self.reduce_function_abbr = 'Avg'
+            self.reduce_function_abbr = 'M'
         elif self.reduce_function is standard_deviation:
-            self.reduce_function_abbr =  'StDev'
+            self.reduce_function_abbr =  'SD'
+        elif self.reduce_function is maximum:
+            self.reduce_function_abbr = 'Max'
         self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
                 self.element_type_from_depth(self.reduce_depth).name)
 
@@ -70,6 +72,8 @@ class ComplexityIndex():
                 return el_type
 
     def element_to_abr(self, s) -> str:
+        if s == 'BLOCK':
+            return 'Par'
         return s[0].upper() + s[1:].lower()
 
     # overwritten by each index
@@ -78,7 +82,7 @@ class ComplexityIndex():
 
     # overwritten by each index 
     def __repr__(self):
-        return self.reduce_function_abbr + self.reduce_depth_abbr + self.abbr
+        return f"{self.reduce_function_abbr}({self.abbr} / {self.reduce_depth_abbr})"
 
     def __eq__(self, value):
         return repr(self) == repr(value)
