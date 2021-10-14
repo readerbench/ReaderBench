@@ -15,14 +15,14 @@ from rb.utils.rblogger import Logger
 logger = Logger.get_logger()
 
 
-class IntraCohesion(ComplexityIndex):
+class InterCohesion(ComplexityIndex):
 
-    """IntraCohesion between elements element_type"""
+    """InterCohesion between elements element_type"""
     def __init__(self, lang: Lang, element_type: TextElementType,
             reduce_depth: int, reduce_function: MeasureFunction, cna_graph: CnaGraph):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
-                                 abbr="IntraParCoh")
+                                 abbr="InterParCoh")
         self.element_type = element_type
         self.cna_graph = cna_graph    
         if element_type.value > reduce_depth:

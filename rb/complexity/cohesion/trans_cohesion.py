@@ -24,28 +24,21 @@ class TransCohesion(ComplexityIndex):
                                  abbr="TransCoh")
         self.cna_graph = cna_graph
         
-    def process(self, element: TextElement) -> float:
-        return self.compute(element)
-
-    def compute(self, element: TextElement) -> float:
-
-        blocks = element.get_blocks()
-        if len(blocks) < 2:
-            element.indices[self] = ComplexityIndex.IDENTITY
-            return ComplexityIndex.IDENTITY            
+    def _compute_value(self, element: TextElement) -> float:
+        i = element.index_in_container
+        if i == len(element.container.components) - 1:
+            return None
+        if len(element.components) < 2:
+            return None
+        current_block_sents = element.get_sentences()
+        next_block_sents = element.container.components[i+1].get_sentences()
+        if len(current_block_sents) == 0 or len(next_block_sents) == 0:
+            return None
+        cur_sent = current_block_sents[-1]
+        next_sent = next_block_sents[0]
+        sim_edge = self.cna_graph.edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
+                                        vector_model=None)
+        if sim_edge:
+            return sim_edge[0][2]
         else:
-            sim_values = []            
-            for i, _ in enumerate(blocks[:-1]):
-                current_block_sents = blocks[i].get_sentences()
-                next_block_sents = blocks[i+1].get_sentences()
-                if len(current_block_sents) == 0 or len(next_block_sents) == 0:
-                    continue
-                cur_sent = current_block_sents[-1]
-                next_sent = next_block_sents[0]
-                sim_edge = self.cna_graph.edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
-                                                vector_model=None)
-                if sim_edge:
-                    v = sim_edge[0][2]
-                    sim_values.append(v)
-            element.indices[self] = sum(sim_values) / len(sim_values) if len(sim_values) > 1 else ComplexityIndex.IDENTITY
-            return element.indices[self]
+            return None

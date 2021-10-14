@@ -25,24 +25,17 @@ class StartMiddleCohesion(ComplexityIndex):
                                  abbr="StartMidCoh")
         self.cna_graph = cna_graph
         
-    def process(self, element: TextElement) -> float:
-        return self.compute(element)
+    def _compute_value(self, element: TextElement) -> float:
+        if len(element.components) < 3:
+            return None
+        start = element.components[0]
+        scale_factor, weighted_sum = 0, 0
 
-    def compute(self, element: TextElement) -> float:
-
-        blocks = element.get_blocks()
-        if len(blocks) < 3:
-            element.indices[self] = ComplexityIndex.IDENTITY
-            return ComplexityIndex.IDENTITY            
-        else:
-            start_block = blocks[0]
-            scale_factor, weighted_sum = 0, 0
-            for i, _ in enumerate(blocks):
-                if i == 0:  continue
-                sim_edge = self.cna_graph.edges(node=(start_block, blocks[i]), edge_type=EdgeType.SEMANTIC, 
-                                                vector_model=None)
+        for i, elem in enumerate(element.components[1:]):
+            sim_edge = self.cna_graph.edges(node=(start, elem), edge_type=EdgeType.SEMANTIC,
+                                            vector_model=None)
+            if sim_edge:
                 v = sim_edge[0][2]
-                weighted_sum += v * (1.0 / i)
-                scale_factor += (1.0 / i)
-            element.indices[self] = weighted_sum / scale_factor 
-            return element.indices[self]
+                weighted_sum += v * (1.0 / (i + 1))
+                scale_factor += (1.0 / (i + 1))
+        return weighted_sum / scale_factor

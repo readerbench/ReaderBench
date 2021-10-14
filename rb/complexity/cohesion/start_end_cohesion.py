@@ -25,20 +25,11 @@ class StartEndCohesion(ComplexityIndex):
                                  abbr="StartEndCoh")
         self.cna_graph = cna_graph
         
-    def process(self, element: TextElement) -> float:
-        return self.compute(element)
-
-    def compute(self, element: TextElement) -> float:
-
-        doc = element.get_parent_document()
-        if len(doc.get_blocks()) < 2:
-            element.indices[self] = ComplexityIndex.IDENTITY
-            return ComplexityIndex.IDENTITY
-        else:
-            start_block = element.get_blocks()[0]
-            end_block = element.get_blocks()[-1]
-            sim_edge = self.cna_graph.edges(node=(start_block, end_block), edge_type=EdgeType.SEMANTIC, 
-                                            vector_model=None)
-            v = sim_edge[0][2]
-            element.indices[self] = v
-            return v
+    def _compute_value(self, element: TextElement) -> float:
+        if len(element.components) < 2:
+            return None
+        start = element.components[0]
+        end = element.components[-1]
+        sim_edge = self.cna_graph.edges(node=(start, end), edge_type=EdgeType.SEMANTIC, 
+                                        vector_model=None)
+        return sim_edge[0][2]

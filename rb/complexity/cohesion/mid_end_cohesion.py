@@ -25,27 +25,18 @@ class MiddleEndCohesion(ComplexityIndex):
                                  abbr="MidEndCoh")
         self.cna_graph = cna_graph
         
-    def process(self, element: TextElement) -> float:
-        return self.compute(element)
+    def _compute_value(self, element: TextElement) -> float:
+        if len(element.components) < 3:
+            return None
+        end = element.components[-1]
+        end_index = len(element.components) - 1
+        scale_factor, weighted_sum = 0, 0
 
-    def compute(self, element: TextElement) -> float:
-
-        blocks = element.get_blocks()
-        if len(blocks) < 3:
-            element.indices[self] = ComplexityIndex.IDENTITY
-            return ComplexityIndex.IDENTITY            
-        else:
-            end_block = blocks[-1]
-            end_index = len(blocks) - 1
-            scale_factor, weighted_sum = 0, 0
-
-            for i, _ in enumerate(blocks):
-                if i == end_index:  continue
-                sim_edge = self.cna_graph.edges(node=(end_block, blocks[i]), edge_type=EdgeType.SEMANTIC,
-                                                vector_model=None)
-                if sim_edge:
-                    v = sim_edge[0][2]
-                    weighted_sum += v * (1.0 / (end_index - i))
-                    scale_factor += (1.0 / (end_index -  i))
-            element.indices[self] = weighted_sum / scale_factor 
-            return element.indices[self]
+        for i, elem in enumerate(element.components[:-1]):
+            sim_edge = self.cna_graph.edges(node=(end, elem), edge_type=EdgeType.SEMANTIC,
+                                            vector_model=None)
+            if sim_edge:
+                v = sim_edge[0][2]
+                weighted_sum += v * (1.0 / (end_index - i))
+                scale_factor += (1.0 / (end_index -  i))
+        return weighted_sum / scale_factor
