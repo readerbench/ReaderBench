@@ -25,3 +25,4 @@ class MeasureFunction(Enum):
     AVG = average
     STDEV = standard_deviation
     MAX = maximum
+    IDENTITY = lambda x: x

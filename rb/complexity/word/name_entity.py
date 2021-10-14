@@ -23,33 +23,8 @@ class NoNamedEntity(ComplexityIndex):
                                  reduce_function=reduce_function)
         self.named_ent_type = named_ent_type
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-
-    def compute_below(self, element: TextElement) -> float:
-        if element.is_word() == True:
-            if element.ent_type_ != 0 and element.ent_type_ == self.named_ent_type.name:
-                return 1
-            else:
-                return 0
-        elif element.depth <= self.reduce_depth:
-            res = 0
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = [self.compute_below(element)]
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
-    
+    def _compute_value(self, element: TextElement) -> int:
+        return sum(1 for word in element.get_words() if word.ent_type_ != 0 and word.ent_type_ == self.named_ent_type.name)
+        
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.named_ent_type.name.lower()} / {self.reduce_depth_abbr})"

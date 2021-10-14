@@ -18,14 +18,6 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
     indices.append(ParseDepTree(lang, TextElementType.SENT.value, MeasureFunction.STDEV))
     indices.append(ParseDepTree(lang, TextElementType.SENT.value, MeasureFunction.MAX))
 
-    indices.append(ParseDepTree(lang, TextElementType.BLOCK.value, MeasureFunction.AVG))
-    indices.append(ParseDepTree(lang, TextElementType.BLOCK.value, MeasureFunction.STDEV))
-    indices.append(ParseDepTree(lang, TextElementType.BLOCK.value, MeasureFunction.MAX))
-    
-    indices.append(ParseDepTree(lang, TextElementType.DOC.value, MeasureFunction.AVG))
-    indices.append(ParseDepTree(lang, TextElementType.DOC.value, MeasureFunction.STDEV))
-    indices.append(ParseDepTree(lang, TextElementType.DOC.value, MeasureFunction.MAX))
-
     for dep_type in DepEnum:
         indices.append(DepIndex(lang, dep_type, TextElementType.SENT.value, MeasureFunction.AVG))
         indices.append(DepIndex(lang, dep_type, TextElementType.BLOCK.value, MeasureFunction.AVG))

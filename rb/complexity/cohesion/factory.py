@@ -21,30 +21,27 @@ def create(lang: Lang, cna_graph: CnaGraph) -> List["ComplexityIndex"]:
 
     indices = []
     if cna_graph:
-        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
-                                        cna_graph=cna_graph))
-        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.STDEV,
-                                        cna_graph=cna_graph))
-        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.DOC, 
-                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.MAX,
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.SENT, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.IDENTITY,
                                         cna_graph=cna_graph))
         indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+                                        reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.IDENTITY,
+                                        cna_graph=cna_graph))
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.SENT, 
                                         reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG,
                                         cna_graph=cna_graph))
-        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.SENT, 
                                         reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.STDEV,
                                         cna_graph=cna_graph))
-        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+        indices.append(AdjCohesion(lang=lang, element_type=TextElementType.SENT, 
                                         reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.MAX,
                                         cna_graph=cna_graph))
         if cna_graph.pairwise:
-            indices.append(IntraCohesion(lang=lang, element_type=TextElementType.BLOCK, 
-                                            reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG,
-                                            cna_graph=cna_graph))
             indices.append(IntraCohesion(lang=lang, element_type=TextElementType.DOC, 
                                             reduce_depth=TextElementType.DOC.value, reduce_function=MeasureFunction.AVG,
+                                            cna_graph=cna_graph))
+            indices.append(IntraCohesion(lang=lang, element_type=TextElementType.BLOCK, 
+                                            reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.AVG,
                                             cna_graph=cna_graph))
             indices.append(IntraCohesion(lang=lang, element_type=TextElementType.BLOCK, 
                                             reduce_depth=TextElementType.BLOCK.value, reduce_function=MeasureFunction.STDEV,

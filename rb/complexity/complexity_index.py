@@ -1,4 +1,5 @@
 
+import abc
 from typing import Callable, Iterable, List, Tuple
 
 from rb.cna.cna_graph import CnaGraph
@@ -63,6 +64,8 @@ class ComplexityIndex():
             self.reduce_function_abbr =  'SD'
         elif self.reduce_function is maximum:
             self.reduce_function_abbr = 'Max'
+        else:
+            self.reduce_function_abbr = ''
         self.reduce_depth_abbr = '' if self.reduce_depth is None else self.element_to_abr(
                 self.element_type_from_depth(self.reduce_depth).name)
 
@@ -76,9 +79,26 @@ class ComplexityIndex():
             return 'Par'
         return s[0].upper() + s[1:].lower()
 
-    # overwritten by each index
     def process(self, element: TextElement) -> float:
+        return self.reduce_function(self._compute(element))
+
+    @abc.abstractmethod
+    def _compute_value(self, element: TextElement) -> float:
         pass
+
+    def _compute(self, element: TextElement) -> List[float]:
+        if element.depth > self.reduce_depth:
+            values = []
+            for child in element.components:
+                values += self._compute(child)
+            element.indices[self] = self.reduce_function(values)
+        elif element.depth == self.reduce_depth:
+            values = [self._compute_value(element)]
+            element.indices[self] = self.reduce_function(values)
+        else:
+            logger.error('wrong reduce depth value.')
+            return []
+        return values
 
     # overwritten by each index 
     def __repr__(self):

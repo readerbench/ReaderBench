@@ -46,33 +46,8 @@ class Valence(ComplexityIndex):
                     if len(str(row[j])) > 0 and str(row[j + 1]) != '0':
                         Valence.valence_dict[vt][row[0]] = float(row[j + 1])
 
-    def process(self, element: TextElement) -> float:
-        return self.reduce_function(self.compute_above(element))
-
-    def compute_below(self, element: TextElement) -> List[float]:
-        if element.is_word() == True:
-            if element.text in Valence.valence_dict[self.valence_type]:
-                return [Valence.valence_dict[self.valence_type][element.text]]
-            else:
-                return []
-        elif element.depth <= self.reduce_depth:
-            res = []
-            for child in element.components:
-                res += self.compute_below(child)
-            return res
-    
-    def compute_above(self, element: TextElement) -> List[float]:
-        if element.depth > self.reduce_depth:
-            values = []
-            for child in element.components:
-                values += self.compute_above(child)
-            element.indices[self] = self.reduce_function(values)
-        elif element.depth == self.reduce_depth:
-            values = [len(self.compute_below(element))]
-            element.indices[self] = self.reduce_function(values)
-        else:
-            logger.error('wrong reduce depth value.')
-        return values
+    def _compute_value(self, element: TextElement) -> List[float]:
+        return sum(1 for word in element.get_words() if word.text in Valence.valence_dict[self.valence_type])
     
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.valence_type.name.lower()} / {self.reduce_depth_abbr})"
