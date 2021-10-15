@@ -164,8 +164,8 @@ LINKS = {
                 'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
             },
             'muse': {
-                'link': "https://nextcloud.readerbench.com/index.php/s/tmmkHmCnBYZncQj/download",
-                'version': "https://nextcloud.readerbench.com/index.php/s/2LMtn2mP9LHQsaY/download"
+                'link': "https://nextcloud.readerbench.com/index.php/s/f73eNfiWxjDzJx2/download",
+                'version': "https://nextcloud.readerbench.com/index.php/s/tmmkHmCnBYZncQj/download"
             },
         },
     },
