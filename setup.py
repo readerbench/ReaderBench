@@ -82,7 +82,7 @@ setuptools.setup(
         'murmurhash',
         'networkx',
         'neuralcoref',
-        'nltk==3.4.5',
+        'nltk==3.6.5',
         'plac<1.0.0',
         'preshed<2.1.0',
         'pymorphy2',
