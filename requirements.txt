@@ -51,6 +51,6 @@ wget==3.2
 sklearn
 pyLDAvis
 keras
-tensorflow==1.14
+tensorflow==2.5.1
 unidecode
 wheel
