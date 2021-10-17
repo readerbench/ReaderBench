@@ -7,7 +7,7 @@ If you only want to use the package do the following:
 2. `python3 -m venv rbenv` (create virutal environment named rbenv)
 3. `source rbenv/bin/activate` (activate virtual env)
 4. `pip3 uninstall setuptools && pip3 install setuptools && pip3 install --upgrade pip && pip3 install --no-cache-dir rbpy-rb`
-5. Use it as in: https://git.readerbench.com/ReaderBench/readerbenchpy/blob/master/usage.py  
+5. Use it as in: https://github.com/readerbench/ReaderBench/blob/master/usage.py  
 
 If you want to contribute to the code base of package:   
 1. `sudo apt-get install python3-pip, python3-venv, python3.6, python3-dev`    
@@ -29,9 +29,8 @@ If you want to install spellchecking (hunspell) also you need this non-python li
 
 ## Usage
 For usage (parsing, lemmatization, NER, wordnet, content words, indices etc.)  see file `usage.py` from 
-https://git.readerbench.com/ReaderBench/readerbenchpy    
+https://github.com/readerbench/ReaderBench    
 
-Check main.py (`python3 main.py --help`) to see main processings available.
 
 ## Tips
 You may also need some spacy models which are downloaded through spacy.     
