@@ -5,19 +5,9 @@ import spacy
 from nltk.tokenize import sent_tokenize
 from rb.core.lang import Lang
 from rb.core.pos import POS
-from rb.utils.downloader import check_spacy_version, download_spacy_model
 from rb.utils.rblogger import Logger
-from spacy.lang.ro import Romanian
 from spacy.language import Language
 from spacy.tokens import Doc, Span, Token
-
-from sentence_splitter import SentenceSplitter
-
-# JSON Example localhost:8081/spacy application/json
-# {
-#     "lang" : "en",
-#     "blocks" : ["După terminarea oficială a celui de-al doilea război mondial, în conformitate cu discursul lui W. Churchill (prim ministru al Regatului Unit la acea dată), de la Fulton, s-a declanșat Războiul rece și a apărut conceptul de cortină de fier. Urmare a politicii consecvente de apărare a sistemului economic și politic (implicit a intereslor economice ale marelui capital din lumea occidentală) trupele germane, în calitate de prizonieri, aflate pe teritoriul Germaniei de Vest au fost reînarmate și au constituit baza viitorului Bundeswehr - armata regulată a R.F.G."]
-# }
 
 logger = Logger.get_logger()
 
@@ -195,7 +185,7 @@ class SpacyParser:
                 self.loaded_models[lang] = spacy.load(models[lang])
                 self.loaded_models[lang].add_pipe("line_splitter", name='sentence_segmenter', before='parser')
             except:
-                logger.error("spaCy model not found. You can download it by running the following commmand:\nsudo python3 -m spacy download {}".format(models[lang]))
+                logger.error("spaCy model not found. You can download it by running the following commmand:\npython3 -m spacy download {}".format(models[lang]))
                 return None
         return self.loaded_models[lang]
 

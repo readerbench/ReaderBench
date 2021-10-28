@@ -57,8 +57,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.47',
-    python_requires='>=3.6,<3.9',
+    version='0.10.52',
+    python_requires='>=3.6,<3.10',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
     description='ReaderBench library written in python',
