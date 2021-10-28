@@ -13,7 +13,7 @@ decorator
 docopt
 docutils
 Flask
-gensim<4
+gensim
 idna
 itsdangerous
 Jinja2
@@ -23,7 +23,7 @@ MarkupSafe
 murmurhash
 networkx
 nltk
-numpy
+numpy~=1.19.2
 pymorphy2
 Pyphen
 requests
@@ -33,7 +33,7 @@ sentence-splitter
 six
 sklearn
 smart-open
-spacy
+spacy>=3
 srsly
 tensorflow>=2
 torch
