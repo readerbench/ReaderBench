@@ -20,7 +20,9 @@ class TransformersEncoder(VectorModel):
         from_pt = False
         if name is None:
             if lang is Lang.EN:
-                name = "roberta-base"
+                # name = "roberta-base"
+                name = "sentence-transformers/all-distilroberta-v1"
+                from_pt=True
                 self.SOW = "Ġ"
             elif lang is Lang.FR:
                 name = "camembert-base"
@@ -50,15 +52,19 @@ class TransformersEncoder(VectorModel):
             i += 1
         return word1[:i]
 
+    def clean_text(self, text: str) -> str:
+        return text.replace("’", "'")
+
     def _create_word_token_dict(self, block: Block, tokenized: List[str]) -> Dict[Word, List[int]]:
         i = 0
         result = {}
-        tokens = [token.replace(self.SOW, "") for token in tokenized]
+        words = [self.clean_text(word.text) for word in block.get_words()]
+        if getattr(self.tokenizer, "do_lower_case", False):
+            words = [word.lower() for word in words]
+        block_symbols = {s for word in words for s in word}
+        tokens = ["".join(s for s in token if s in block_symbols) for token in tokenized]
         current = ""
-        for word in block.get_words():
-            text = word.text
-            if getattr(self.tokenizer, "do_lower_case", False):
-                text = text.lower()
+        for text, word in zip(words, block.get_words()):
             while not tokens[i]:
                 i += 1
             current = self.common_prefix(text, tokens[i])
@@ -83,7 +89,7 @@ class TransformersEncoder(VectorModel):
         return result
 
     def _encode_block(self, block: Block):
-        tokenized = self.tokenizer.tokenize(block.text)
+        tokenized = self.tokenizer.tokenize(self.clean_text(block.text))
         token_index = self._create_word_token_dict(block, tokenized)
         start = 0
         n = len(tokenized)
@@ -94,13 +100,13 @@ class TransformersEncoder(VectorModel):
             input_ids = np.array([[self.bos] + token_ids[start:end] + [self.eos]])
             attention_mask = np.ones(input_ids.shape, dtype=np.int32)
             outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-            embeddings.append(outputs.hidden_states[-2][0, 1:-1, :].numpy())
+            embeddings.append(outputs.last_hidden_state[0, 1:-1, :].numpy())
             start = end
         embeddings = np.concatenate(embeddings, axis=0)
         for sentence in block.get_sentences():
             for word in sentence.get_words():
                 if word in token_index:
-                    word.vectors[self] = Vector(np.mean(embeddings[token_index[word]], axis=0))
+                    word.vectors[self] = Vector(np.mean(embeddings[token_index[word]], axis=0, dtype=np.float64))
             sentence_ids = [
                 i
                 for word in sentence.get_words() 
@@ -108,8 +114,8 @@ class TransformersEncoder(VectorModel):
                 for i in token_index[word]
             ]
             if sentence_ids:
-                sentence.vectors[self] = Vector(np.mean(embeddings[sentence_ids], axis=0))
-        block.vectors[self] = Vector(np.mean(embeddings, axis=0))
+                sentence.vectors[self] = Vector(np.mean(embeddings[sentence_ids], axis=0, dtype=np.float64))
+        block.vectors[self] = Vector(np.mean(embeddings, axis=0, dtype=np.float64))
 
     def encode(self, document: Document):
         vectors = []
