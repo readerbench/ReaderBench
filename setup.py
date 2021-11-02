@@ -12,7 +12,7 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 def do_post_install_tasks():
-    check_call([sys.executable, "-m", "pip", "install", "-U", "-r", "requirements.txt"])
+    check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
     # cwd = getcwd()
     # with TemporaryDirectory() as temp_folder:
     #     chdir(temp_folder)
@@ -57,7 +57,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.10.55',
+    version='0.10.57',
     python_requires='>=3.6,<3.10',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',

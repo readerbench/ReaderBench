@@ -53,7 +53,9 @@ class TransformersEncoder(VectorModel):
         return word1[:i]
 
     def clean_text(self, text: str) -> str:
-        return text.replace("’", "'")
+        return text.replace("’", "'") \
+            .replace("“", '"') \
+            .replace("”", '"')
 
     def _create_word_token_dict(self, block: Block, tokenized: List[str]) -> Dict[Word, List[int]]:
         i = 0
@@ -97,8 +99,8 @@ class TransformersEncoder(VectorModel):
         embeddings = []
         while start < n:
             end = min(n, start + self.max_seq_len - 2)
-            input_ids = np.array([[self.bos] + token_ids[start:end] + [self.eos]])
-            attention_mask = np.ones(input_ids.shape, dtype=np.int32)
+            input_ids = tf.constant([[self.bos] + token_ids[start:end] + [self.eos]])
+            attention_mask = tf.ones(input_ids.shape, dtype=np.int32)
             outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
             embeddings.append(outputs.last_hidden_state[0, 1:-1, :].numpy())
             start = end
