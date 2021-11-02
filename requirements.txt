@@ -35,7 +35,7 @@ sklearn
 smart-open
 spacy>=3
 srsly
-tensorflow>=2
+tensorflow<2.6.1
 torch
 transformers>=3
 tqdm
