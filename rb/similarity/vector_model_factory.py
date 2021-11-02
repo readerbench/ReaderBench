@@ -4,6 +4,7 @@ from rb.core.text_element import TextElement
 from rb.core.word import Word
 from rb.similarity.lda import LDA
 from rb.similarity.lsa import LSA
+from rb.similarity.transformers_encoder import TransformersEncoder
 from rb.similarity.vector import Vector
 from rb.similarity.vector_model import (CorporaEnum, VectorModel,
                                         VectorModelType)
@@ -109,19 +110,14 @@ def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: in
         try:
             if model == VectorModelType.LSA:
                 vector_model = LSA(corpus, lang, dim, check_updates=check_updates)
-                save_model(vector_model=vector_model, lang=lang, 
-                        model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             elif model == VectorModelType.LDA:
                 vector_model = LDA(corpus, lang, dim, check_updates=check_updates)
-                save_model(vector_model=vector_model, lang=lang, 
-                        model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             elif model == VectorModelType.WORD2VEC:
                 vector_model = Word2Vec(corpus, lang, dim, check_updates=check_updates)
-                save_model(vector_model=vector_model, lang=lang, 
-                        model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
-            else:
-                logger.error(f'Model {model_abbr} could not be instantiate.')
-                return None
+            elif model == VectorModelType.TRANSFORMER:
+                vector_model = TransformersEncoder(lang)
+            save_model(vector_model=vector_model, lang=lang, 
+                model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             return vector_model
         except:
             logger.error(f'Model {model_abbr} could not be instantiate.')
