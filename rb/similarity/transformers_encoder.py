@@ -92,6 +92,8 @@ class TransformersEncoder(VectorModel):
 
     def _encode_block(self, block: Block):
         tokenized = self.tokenizer.tokenize(self.clean_text(block.text))
+        if not tokenized:
+            return
         token_index = self._create_word_token_dict(block, tokenized)
         start = 0
         n = len(tokenized)
