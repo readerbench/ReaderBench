@@ -64,7 +64,7 @@ setuptools.setup(
     description='ReaderBench library written in python',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://git.readerbench.com/ReaderBench/Readerbench-python',
+    url='https://github.com/readerbench/ReaderBench',
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=required,
