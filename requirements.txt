@@ -23,7 +23,7 @@ MarkupSafe
 murmurhash
 networkx
 nltk
-numpy~=1.19.2
+numpy
 pymorphy2
 Pyphen
 requests
@@ -35,14 +35,13 @@ sklearn
 smart-open
 spacy>=3
 srsly
-tensorflow<2.6.1
+tensorflow
 torch
 transformers>=3
 tqdm
 urllib3
 wasabi
 Werkzeug
-wget
 pyLDAvis
 unidecode
 xlrd

@@ -1,10 +1,8 @@
-import json
 import os
-import sys
 import zipfile
 from typing import List, Union
+from urllib.request import urlopen
 
-import wget
 from rb.core.lang import Lang
 from rb.utils.rblogger import Logger
 
@@ -119,7 +117,7 @@ LINKS = {
         },
         'wordnet': "https://nextcloud.readerbench.com/index.php/s/7tDka2CSGYeJqgC/download",
         'wordlists': {
-            'link': "https://nextcloud.readerbench.com/index.php/s/oDkA8WfA3J9tzX2/download",
+            'link': "https://nextcloud.readerbench.com/index.php/s/RPMSmg9AB2NGdXe/download",
             'version':  'https://nextcloud.readerbench.com/index.php/s/ZWJ34FHy5Zwa65F/download'
         },
         'scoring': {
@@ -197,10 +195,17 @@ LINKS = {
 
 logger = Logger.get_logger()
 
-
+def download(link: str, destination: str) -> str:
+    with urlopen(link) as webpage:
+        filename = webpage.info().get_filename()
+        content = webpage.read()
+    with open(os.path.join(destination, filename), 'wb' ) as f:
+        f.write(content)
+    return os.path.join(destination, filename)
+    
 def download_folder(link: str, destination: str):
     os.makedirs(destination, exist_ok=True)     
-    filename = wget.download(link, out=destination, bar=wget.bar_thermometer)
+    filename = download(link, destination)
     logger.info('Downloaded {}'.format(filename))
     if zipfile.is_zipfile(filename):
         logger.info('Extracting files from {}'.format(filename))
@@ -211,7 +216,7 @@ def download_folder(link: str, destination: str):
 
 def download_file(link: str, destination: str):
     os.makedirs(destination, exist_ok=True)
-    filename = wget.download(link, out=destination, bar=wget.bar_thermometer)
+    filename = download(link, destination)
     logger.info('Downloaded {}'.format(filename))
 
 
@@ -379,7 +384,7 @@ def check_version(lang: Lang, name: Union[str, List[str]]) -> bool:
             return False
         root = root[key]
     if isinstance(root, dict):
-        filename = wget.download(root['version'], out="resources/")
+        filename = download(root['version'], "resources/")
         try:
             remote_version = read_version(filename)
         except FileNotFoundError:

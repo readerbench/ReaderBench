@@ -124,7 +124,10 @@ class TransformersEncoder(VectorModel):
     def encode(self, document: Document):
         vectors = []
         for block in document.get_blocks():
-            self._encode_block(block)
+            try:
+                self._encode_block(block)
+            except Exception as e:
+                logger.warning(f"Invalid characters:\n{block.text}")
             if self in block.vectors:
                 vectors.append(block.vectors[self].values)
         if vectors:
