@@ -134,7 +134,7 @@ class Connector(ComplexityIndex):
                         Connector.conn_dict[conn_type].append(line.strip())
 
     def _compute_value(self, element: TextElement) -> int:
-        return sum(1 for word in element.get_words() if element.text.lower() in Connector.conn_dict[self.conn_type])
+        return sum(1 for word in element.get_words() if word.text.lower() in Connector.conn_dict[self.conn_type])
     
     def __repr__(self):
         return f"{self.reduce_function_abbr}({self.abbr}_{self.conn_type.name.lower()} / {self.reduce_depth_abbr})"
