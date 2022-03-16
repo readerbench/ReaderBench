@@ -23,9 +23,11 @@ def maximum(elements: List[float]) -> float:
         return None
     return max(elements)
 
+def identity(elements: List[float]) -> float:
+    return elements[0]
 
 class MeasureFunction(Enum):
     AVG = average
     STDEV = standard_deviation
     MAX = maximum
-    IDENTITY = lambda x: x[0]
+    IDENTITY = identity
