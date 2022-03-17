@@ -14,14 +14,14 @@ class GraphMetrics:
 
     def build_networkx_graph(self):
         self.G = nx.Graph()
-
+        
         for node in self.cm_graph.node_list:
             if node.is_active():
                 self.G.add_node(node.word.lemma)
 
         for edge in self.cm_graph.edge_list:
             if edge.is_active():
-                self.G.add_edge(edge.node1, edge.node2, weight=1 - edge.score if edge.score < 1 else self.epsilon)
+                self.G.add_edge(edge.node1.word.lemma, edge.node2.word.lemma, weight=1 - edge.score if edge.score < 1 else self.epsilon)
 
     def degree_centrality(self):
         return nx.algorithms.centrality.degree_centrality(self.G)
@@ -39,5 +39,7 @@ class GraphMetrics:
         return nx.classes.function.density(self.G)
 
     def modularity(self):
+        if len(self.G.nodes()) <= 1:
+            return 0
         return len(list(nx.algorithms.community.modularity_max.greedy_modularity_communities(self.G)))
 
