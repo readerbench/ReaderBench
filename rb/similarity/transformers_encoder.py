@@ -1,11 +1,12 @@
 import os
 from rb.core.word import Word
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import tensorflow as tf
 from rb import Block, Document
 from rb.core.lang import Lang
+from rb.core.text_element import TextElement
 from rb.similarity.vector import Vector
 from rb.similarity.vector_model import VectorModel, VectorModelType
 from rb.utils.rblogger import Logger
@@ -132,3 +133,7 @@ class TransformersEncoder(VectorModel):
                 vectors.append(block.vectors[self].values)
         if vectors:
             document.vectors[self] = Vector(np.mean(vectors, axis=0))
+            
+    def most_similar(self, elem: Union[str, TextElement, Vector], 
+                    topN: int = 10, threshold: float = None):
+        return []
