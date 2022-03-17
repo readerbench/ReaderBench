@@ -10,7 +10,7 @@ import datetime
 
 class Article:
 
-    def __init__(self, title: str, abstract: str, source: str, authors: List[str], date: str, lang: Lang):
+    def __init__(self, title: str, abstract: str, source: str, authors: List[str], date: str, lang: Lang, additional_info: dict):
         self.title = title
         self.abstract = abstract
 
@@ -18,8 +18,10 @@ class Article:
         self.extract_authors(authors)
         
         self.source = source
-        self.date = datetime.datetime.strptime(date, "%d-%m-%Y")
+        self.date = datetime.datetime.strptime(date, "%d-%m-%Y") if date else None
         self.document = Document(lang, abstract)
+        
+        self.additional_info = additional_info
 
     def extract_authors(self, authors):
         for author_name in authors:
