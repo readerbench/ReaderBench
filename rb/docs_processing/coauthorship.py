@@ -11,7 +11,7 @@ class CoAuthorship:
         for article in graph.articles_set:
             self.create_co_authorship_for_article_authors(article, graph)
 
-        self.NO_OF_AUTHORS_TO_PRINT = 50
+        self.NO_OF_AUTHORS_TO_PRINT = 1000
 
     def create_co_authorship_for_article_authors(self, article, graph):
         for (author1_name, author2_name) in list(combinations(article.author_list, r=2)):

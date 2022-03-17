@@ -24,12 +24,12 @@ class GraphMetrics:
         distances_graph = build_distance_graph(self.semantic_distances_between_articles)
         return dict(nx.betweenness_centrality(distances_graph, weight='weight', normalized=True))
 
-    def compute_authors_closeness(self):
-        distances_graph = build_distance_graph(self.semantic_distances_between_authors)
+    def compute_authors_closeness(self, graph_type='bidirectional'):
+        distances_graph = build_distance_graph(self.semantic_distances_between_authors, graph_type)
         return dict(nx.closeness_centrality(distances_graph, distance='weight'))
 
-    def compute_authors_betweenness(self):
-        distances_graph = build_distance_graph(self.semantic_distances_between_authors)
+    def compute_authors_betweenness(self, graph_type='bidirectional'):
+        distances_graph = build_distance_graph(self.semantic_distances_between_authors, graph_type)
         return dict(nx.betweenness_centrality(distances_graph, weight='weight', normalized=True))
 
     def get_top_n_articles_by_closeness(self, n):
@@ -43,13 +43,13 @@ class GraphMetrics:
                                 for k, v in sorted(betweenness.items(), key=lambda item: item[1], reverse=True)][:n]
         return articles_betweenness
 
-    def get_top_n_authors_by_closeness(self, n):
-        closeness = self.compute_authors_closeness()
+    def get_top_n_authors_by_closeness(self, n, graph_type='bidirectional'):
+        closeness = self.compute_authors_closeness(graph_type)
         authors_closeness = [(k, v) for k, v in sorted(closeness.items(), key=lambda item: item[1], reverse=True)][:n]
         return authors_closeness
 
-    def get_top_n_authors_by_betweenness(self, n):
-        betweenness = self.compute_authors_betweenness()
+    def get_top_n_authors_by_betweenness(self, n, graph_type='bidirectional'):
+        betweenness = self.compute_authors_betweenness(graph_type)
         authors_betweenness = [(k, v)
                                for k, v in sorted(betweenness.items(), key=lambda item: item[1], reverse=True)][:n]
         return authors_betweenness
@@ -61,6 +61,7 @@ class GraphMetrics:
 
     def perform_authors_agglomerative_clustering(self):
         distance_threshold = self.graph.authors_mean - self.graph.authors_std
+        print(self.graph.authors_mean, self.graph.authors_std)
         return perform_agglomerative_clustering(self.graph.authors_set, self.semantic_distances_between_authors,
                                                 distance_threshold)
 
@@ -85,8 +86,11 @@ class GraphMetrics:
         return results
 
 
-def build_distance_graph(distances_pairs):
-    distance_graph = nx.Graph()
+def build_distance_graph(distances_pairs, graph_type='bidirectional'):
+    if graph_type == 'bidirectional':
+        distance_graph = nx.Graph()
+    else:
+        distance_graph = nx.DiGraph()
     for pair in distances_pairs:
         entity1 = pair[0]
         entity2 = pair[1]
@@ -127,7 +131,7 @@ def perform_agglomerative_clustering(entity_set, semantic_distances, distance_th
     side = len(entity_set)
     distance_matrix = build_distance_matrix(semantic_distances, side, position_dictionary)
     model = AgglomerativeClustering(affinity='precomputed', n_clusters=None,
-                                    distance_threshold=distance_threshold, linkage="average")
+                                    distance_threshold=distance_threshold, linkage="single")
     results = model.fit(distance_matrix)
     print(max(results.labels_))
     # plot_clustering_labels(results.labels_, side)
