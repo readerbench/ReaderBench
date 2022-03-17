@@ -108,7 +108,7 @@ class HistoryKeeper:
         return np.mean([len(gm.G.edges) for gm in self.graph_metrics_history])
 
     def compute_mean_active_nodes_percentage(self):
-        return np.mean([len(graph_metrics.G.nodes) / (len(self.activation_history[index]))
+        return np.mean([len(graph_metrics.G.nodes) / (len(self.activation_history[index]) + 0.000001)
                         for index, graph_metrics in enumerate(self.graph_metrics_history)])
 
     def compute_mean_metrics(self, metric_function):
