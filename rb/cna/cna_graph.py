@@ -147,12 +147,14 @@ class CnaGraph:
         return False
 
     def create_filtered_graph(self) -> nx.DiGraph:
-        similarities = [
-            value 
-            for a, b, value in self.edges(None, edge_type=EdgeType.SEMANTIC)
-            if a.depth == b.depth]
-        mean = np.mean(similarities)
-        stdev = np.std(similarities)
+        similarities = {}
+        for a, b, value in self.edges(None, edge_type=EdgeType.SEMANTIC):
+            if a.depth == b.depth:
+                if a.depth not in similarities:
+                    similarities[a.depth] = []
+                similarities[a.depth].append(value)
+        mean = {depth: np.mean(sims) for depth, sims in similarities.items()}
+        stdev = {depth: np.std(sims) for depth, sims in similarities.items()}
         filtered_graph = nx.DiGraph()
         for node in self.graph.nodes:
             filtered_graph.add_node(node)
@@ -170,7 +172,7 @@ class CnaGraph:
                     if len(values) == 0:
                         continue
                     value = np.mean(values)
-                    if special or value > mean + stdev:
+                    if special or value > mean[a.depth] + stdev[a.depth]:
                         filtered_graph.add_edge(a, b, weight=value)
         return filtered_graph
         
