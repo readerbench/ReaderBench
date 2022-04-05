@@ -7,7 +7,6 @@ import os
 from sklearn.utils import class_weight
 import numpy as np
 from collections import Counter
-from bert.tokenization.bert_tokenization import FullTokenizer
 
 # split train file in train and dev
 def splitDataset(filepath, train_ratio):
@@ -608,7 +607,7 @@ def evaluate_model(model, filepath, dataset, steps, model_type="BertCNN", write_
     return word_accuracy_dia, word_accuracy, char_accuracy_dia, char_accuracy, global_predicted_words
 
 
-def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper):
+def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, tokenizer):
     
     diacritics = "aăâiîsștț"
     id_to_char_dict = {v: k for k, v in char_to_id_dict.items()}
@@ -616,8 +615,13 @@ def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_
     sentence = string
 
     basic_sentence = ''.join([get_char_basic(char) for char in sentence])
-    tokens = bert_wrapper.tokenizer.tokenize(basic_sentence)
-    sentence_bert_input_ids, sentence_bert_segment_ids = bert_wrapper.process_text(basic_sentence)
+
+    tokens = tokenizer.tokenize(basic_sentence)
+    features = tokenizer(basic_sentence, return_tensors="tf", padding="max_length", max_length=512)
+
+    sentence_bert_input_ids = features["input_ids"].numpy().tolist()[0]
+    sentence_bert_segment_ids = features["token_type_ids"].numpy().tolist()[0]
+
     sentence_token_ids = []
     sentence_char_cnn_windows = []
     sentence_labels = []
@@ -662,11 +666,15 @@ def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_
     yield sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels
 
 
-def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper, max_sentences, max_windows):
+def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, tokenizer, max_sentences, max_windows):
 
     padding_window = [0] * window_size
     padding_labels = np.array([0, 0, 0, 0, 0])
-    padding_input_ids, padding_segment_ids = bert_wrapper.process_text("")
+
+    features = tokenizer("", return_tensors="tf", padding="max_length", max_length=512)
+
+    padding_input_ids = features["input_ids"].numpy().tolist()[0]
+    padding_segment_ids = features["token_type_ids"].numpy().tolist()[0]
 
     crt_sentences = 0
     crt_windows = 0
@@ -679,7 +687,7 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, ber
     char_windows = []
     labels = []
 
-    sentence_generator = generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, bert_wrapper)
+    sentence_generator = generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_size, tokenizer)
     for sentence_entry in sentence_generator:
         sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels = sentence_entry
         # print(sentence_bert_input_ids, sentence_bert_segment_ids, sentence_token_ids, sentence_char_cnn_windows, sentence_labels)
