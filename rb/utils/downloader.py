@@ -63,7 +63,7 @@ LINKS = {
                 },
                 'base': {
                     "link": "https://nextcloud.readerbench.com/index.php/s/FwWy9TWNHymJ5Hy/download",
-                    "version": "https://nextcloud.readerbench.com/index.php/s/RCp9bgRPF6X3QDq/download"
+                    "version": "https://nextcloud.readerbench.com/index.php/s/oBLaKLtDMfEaaxG/download"
                 },
                 'large': {
                     "link": "https://nextcloud.readerbench.com/index.php/s/pHXqLQ8HXar44WT/download",

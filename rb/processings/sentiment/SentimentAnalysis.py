@@ -26,10 +26,10 @@ class SentimentAnalysis(object):
 		self.lang = lang
 		self.max_seq_len = min(max_seq_len, 512)
 		if self.lang is Lang.RO:
-			if check_updates and check_version(Lang.RO, ["models", "sentiment", "base_new"]):
-				download_model(Lang.RO, ["models", "sentiment", "base_new"])
+			if check_updates and check_version(Lang.RO, ["models", "sentiment", "base"]):
+				download_model(Lang.RO, ["models", "sentiment", "base"])
 
-			self.model = tf.keras.models.load_model("resources/ro/models/sentiment/base_new")
+			self.model = tf.keras.models.load_model("resources/ro/models/sentiment/base")
 			self.tokenizer = AutoTokenizer.from_pretrained("readerbench/RoBERT-base")
 			self.max_seq_len = 512
 		else:
