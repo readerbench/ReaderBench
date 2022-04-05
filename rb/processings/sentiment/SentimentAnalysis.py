@@ -1,18 +1,9 @@
 #pylint: disable=import-error
-import os
-import pickle
-import sys
 
-import absl
 import numpy as np
-import rb.processings.sentiment.utils_new as utils
 import tensorflow as tf
-import tensorflow.keras as keras
 from rb.core.lang import Lang
-from rb.processings.encoders.bert import BertWrapper
-from rb.processings.sentiment.BertRegression import BertRegression
 from rb.utils.downloader import check_version, download_model
-from tensorflow.keras.models import load_model
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 
 
