@@ -21,25 +21,21 @@ class SentimentAnalysis(object):
 	Wrapper for Sentiment Analysis
     """
 
-	def __init__(self, lang: Lang, model_type="base", max_seq_len=128, check_updates = True):
+	def __init__(self, lang: Lang, max_seq_len=128, check_updates = True):
 		# load model
 		self.lang = lang
 		self.max_seq_len = min(max_seq_len, 512)
 		if self.lang is Lang.RO:
-			self._load_model(model_type, check_updates)
+			if check_updates and check_version(Lang.RO, ["models", "sentiment", "base_new"]):
+				download_model(Lang.RO, ["models", "sentiment", "base_new"])
+
+			self.model = tf.keras.models.load_model("resources/ro/models/sentiment/base_new")
+			self.tokenizer = AutoTokenizer.from_pretrained("readerbench/RoBERT-base")
+			self.max_seq_len = 512
 		else:
 			self.tokenizer = AutoTokenizer.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment") 
 			self.model = TFAutoModelForSequenceClassification.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment", from_pt=True)
 	
-	# loads best sentiment model
-	def _load_model(self, model_type, check_updates = True):
-		self.bert_wrapper = BertWrapper(self.lang, max_seq_len=self.max_seq_len, model_name=model_type, check_updates=check_updates, custom_model=True)
-		if check_updates and check_version(Lang.RO, ["models", "sentiment", model_type]):
-			download_model(Lang.RO, ["models", "sentiment", model_type])
-		model_path = f"resources/{self.lang.value}/models/sentiment/{model_type}/"
-		self.model = BertRegression(bert_wrapper=self.bert_wrapper, bert_trainable=False, bert_pooling_type="cls",
-					learning_rate=0, hidden_size=[128,64], restore_model="",
-					optimizer="adam", loss="mse", dropout_rate=0.1, models_path=model_path).model
 		
 	def process_text(self, text):
 
@@ -47,8 +43,9 @@ class SentimentAnalysis(object):
 			text = [text]
 
 		if self.lang is Lang.RO:
-			features = utils.processFeaturesRawText(text, self.bert_wrapper)
-			predictions = self.model.predict(features)
+			features = self.tokenizer(text, return_tensors="tf", padding="max_length", max_length=self.max_seq_len)
+			del features['attention_mask']
+			predictions = self.model(features).numpy()
 			return [x[0] / 5.0 for x in predictions]
 		else:
 			features = self.tokenizer(text)
