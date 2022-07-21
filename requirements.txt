@@ -34,9 +34,6 @@ sklearn
 smart-open
 spacy>=3
 srsly
-tensorflow
-torch
-transformers>=3
 tqdm
 urllib3
 wasabi

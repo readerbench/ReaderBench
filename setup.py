@@ -1,3 +1,4 @@
+import platform
 import sys
 from os import chdir, getcwd, makedirs, rmdir
 from shutil import rmtree
@@ -13,16 +14,33 @@ with open('requirements.txt') as f:
 
 def do_post_install_tasks():
     check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-    # cwd = getcwd()
-    # with TemporaryDirectory() as temp_folder:
-    #     chdir(temp_folder)
-    #     check_call(["git", "clone", "https://github.com/huggingface/neuralcoref.git"])
-    #     chdir("neuralcoref")
-    #     check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-    #     check_call([sys.executable, "setup.py", "build_ext", "--inplace"])      
-    #     check_call([sys.executable, "-m", "pip", "install", "-U", "."])
-    #     chdir(cwd)
-   # download nltk stuff
+
+    if platform.system() == "Darwin" and platform.processor() == "arm":
+        check_call([sys.executable, "-m", "pip", "install", 
+            "--pre", "torch", "-f", 
+            "https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"])
+        check_call([sys.executable, "-m", "pip", "install", "tensorflow-macos"]) 
+        check_call([sys.executable, "-m", "pip", "install", "tensorflow-metal"]) 
+        check_call(["brew", "install", "rust"]) 
+        cwd = getcwd()
+        try:
+            import tokenizers
+        except:
+            with TemporaryDirectory() as temp_folder:
+                chdir(temp_folder)
+                check_call(["git", "clone", "https://github.com/huggingface/tokenizers"])
+                chdir("tokenizers/bindings/python")
+                check_call([sys.executable, "-m", "pip", "install", "setuptools_rust"])
+                check_call([sys.executable, "setup.py", "install"])      
+                chdir(cwd)
+        try:
+            import transformers
+        except:
+            check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/huggingface/transformers"])
+    else:
+        check_call([sys.executable, "-m", "pip", "install", "tensorflow", "pytorch", "transformers"])
+
+    #  download nltk stuff
     from os import getenv, path
 
     import nltk
@@ -57,7 +75,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.11.0',
+    version='0.11.2',
     python_requires='>=3.6,<3.10',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',
