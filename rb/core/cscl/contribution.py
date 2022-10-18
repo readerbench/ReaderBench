@@ -18,11 +18,11 @@ SIGNIFICANT_LIMIT = 5
 
 class Contribution(TextElement):
 
-    def __init__(self, lang: Lang, text: str, participant: Participant,
+    def __init__(self, lang: Lang, text: str, participant: Participant, index_in_container: int,
                  parent_contribution: "Contribution", contribution_raw: Dict, index: int,
                  timestamp: datetime, depth: int = TextElementType.BLOCK.value,
                  container: TextElement = None):
-        super().__init__(lang=lang, text=text, depth=depth, container=container)
+        super().__init__(lang=lang, text=text, depth=depth, container=container, index_in_container=index_in_container)
         self.parent_contribution = parent_contribution
         self.participant = participant
         self.timestamp = timestamp

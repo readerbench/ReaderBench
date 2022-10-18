@@ -127,7 +127,8 @@ class CnaGraph:
         for node in self.graph.nodes:
             if isinstance(node, Contribution):
                 parent = node.get_parent()
-                explicit_links.append((node, parent))
+                if parent is not None:
+                    explicit_links.append((node, parent))
 
         for node, parent in explicit_links:
             self.graph.add_edge(node, parent, type=EdgeType.EXPLICIT)

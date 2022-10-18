@@ -24,13 +24,13 @@ class Sentence(TextElement):
                              index_in_container=index_in_container, depth=depth, container=container)
         if isinstance(text, str):
             text = SpacyParser.get_instance().parse(text, lang)
-
-        words = {token.i: Word(lang, token, i, container=self) for i, token in enumerate(text)}
-        for word, token in zip(words.values(), text):
+        tokens = [token for token in text if token.text.strip()]
+        words = {token.i: Word(lang, token, i, container=self) for i, token in enumerate(tokens)}
+        for word, token in zip(words.values(), tokens):
             word.head = words[token.head.i]
             if word.head is not word:
                 word.head.children.append(word)
-        self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent], index_in_container=ent.start)
+        self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent if token.text.strip()], index_in_container=ent.start)
                          for ent in text.ents]
         if isinstance(text, Doc):
             self.root = words[[sent for sent in text.sents][0].root.i]

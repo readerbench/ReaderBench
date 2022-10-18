@@ -21,7 +21,8 @@ class Block(TextElement):
                              depth=depth, container=container)
         sentences = SpacyParser.get_instance().parse_block(text, lang)
         for i, sentence in enumerate(sentences):
-            self.components.append(Sentence(lang, sentence, i, container=self))
+            if len(sentence.text) > 1: 
+                self.components.append(Sentence(lang, sentence, i, container=self))
         
         self.has_coref = False
         # if sentences:

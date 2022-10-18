@@ -46,7 +46,7 @@ class Conversation(TextElement):
                  start_date: datetime = None, end_date: datetime = None
                  ):
 
-        TextElement.__init__(self, lang=lang, text="",
+        TextElement.__init__(self, lang=lang, text="", index_in_container=0,
                              depth=depth, container=container)
 
         self.participant_map = dict()
@@ -171,6 +171,7 @@ class Conversation(TextElement):
 
             current_contribution = Contribution(self.lang, text, container=self,
                                                 participant=participant,
+                                                index_in_container=len(self.components),
                                                 parent_contribution=parent_contribution,
                                                 contribution_raw=contribution,
                                                 index=index,
@@ -197,7 +198,7 @@ class Conversation(TextElement):
 
 
     def parse_full_text(self, full_text: str) -> List[Sentence]:
-        parsed_document = Block(self.lang, full_text)
+        parsed_document = Block(self.lang, full_text, index_in_container=0)
         return parsed_document.get_sentences()
 
     def get_participants(self) -> List[Participant]:

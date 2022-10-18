@@ -38,7 +38,7 @@ def do_post_install_tasks():
         except:
             check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/huggingface/transformers"])
     else:
-        check_call([sys.executable, "-m", "pip", "install", "tensorflow", "pytorch", "transformers"])
+        check_call([sys.executable, "-m", "pip", "install", "tensorflow", "torch", "transformers"])
 
     #  download nltk stuff
     import nltk
@@ -64,7 +64,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.11.2',
+    version='0.11.4',
     python_requires='>=3.6,<3.10',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',

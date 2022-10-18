@@ -1,7 +1,8 @@
 import csv
+from io import TextIOBase
 import json
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import xmltodict
 from rb.cna.cna_graph import CnaGraph
@@ -38,6 +39,7 @@ FORMATS = [
     "%Y-%m-%d %H:%M:%S.%f", 
     "%Y-%m-%d %H:%M:%S", 
     "%Y-%m-%d %H:%M",
+    "%d/%m/%Y %H.%M.%S.%f",
     "%H.%M.%S",
     "%H:%M:%S",
 ]
@@ -126,28 +128,32 @@ def read_date(date) -> datetime:
             pass
     
 
-def load_from_xml(filename: str, diacritics_model: DiacriticsRestoration = None) -> Dict:
-	with open(filename, "rt", encoding="utf-8") as f:
-		my_dict=xmltodict.parse(f.read())
-		if "corpus" in my_dict:
-			my_dict = my_dict["corpus"]
-		turns = my_dict["Dialog"]["Body"]["Turn"]
-		if not isinstance(turns, List):
-			turns = [turns]
-		contributions = [
-			{
-				ID_KEY: int(utterance["@genid"]) - 1,
-				PARENT_ID_KEY: int(utterance["@ref"]) - 1 if utterance["@ref"] else -1,
-				TIMESTAMP_KEY: read_date(utterance["@time"]),
-				USER_KEY: turn["@nickname"],
-				TEXT_KEY: diacritics_model.process_string(utterance["#text"], mode="replace_missing") if diacritics_model else utterance["#text"],
-			}
-			for turn in turns
-			for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
-            if "#text" in utterance
-		]
+def load_from_xml(filename: Union[str, TextIOBase], diacritics_model: DiacriticsRestoration = None) -> Dict:
+    if isinstance(filename, str):
+        with open(filename, "rt", encoding="utf-8") as f:
+            content = f.read()
+    else:
+        content = filename.read()
+    my_dict = xmltodict.parse(content)
+    if "corpus" in my_dict:
+        my_dict = my_dict["corpus"]
+    turns = my_dict["Dialog"]["Body"]["Turn"]
+    if not isinstance(turns, List):
+        turns = [turns]
+    contributions = [
+        {
+            ID_KEY: int(utterance["@genid"]) - 1,
+            PARENT_ID_KEY: int(utterance["@ref"]) - 1 if utterance["@ref"] else -1,
+            TIMESTAMP_KEY: read_date(utterance["@time"]),
+            USER_KEY: turn["@nickname"],
+            TEXT_KEY: diacritics_model.process_string(utterance["#text"], mode="replace_missing") if diacritics_model else utterance["#text"],
+        }
+        for turn in turns
+        for utterance in (turn["Utterance"] if isinstance(turn["Utterance"], List) else [turn["Utterance"]])
+        if "#text" in utterance
+    ]
 
-		return {CONTRIBUTIONS_KEY: contributions, CONV_ID: my_dict["Dialog"]["@team"]}
+    return {CONTRIBUTIONS_KEY: contributions, CONV_ID: my_dict["Dialog"]["@team"]}
 
 
 def export_individual_statistics(participants: List[Participant], filename: str):

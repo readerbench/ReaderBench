@@ -124,7 +124,7 @@ class TransformersEncoder(VectorModel):
 
     def encode(self, document: Document):
         vectors = []
-        for block in document.get_blocks():
+        for block in document.components:
             try:
                 self._encode_block(block)
             except Exception as e:
