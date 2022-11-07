@@ -159,22 +159,30 @@ class CnaGraph:
         filtered_graph = nx.DiGraph()
         for node in self.graph.nodes:
             filtered_graph.add_node(node)
+        added = set()
         for a in filtered_graph.nodes():
             for b in filtered_graph.nodes():
-                if a != b:
+                if a != b and (a, b) not in added:
                     values = []
+                    part_of = False
                     special = False
                     edges = self.graph.get_edge_data(a, b)
                     for data in edges.values() if edges else []:
                         if data["type"] is EdgeType.SEMANTIC:
                             values.append(data["value"])
-                        elif data["type"] in [EdgeType.COREF, EdgeType.PART_OF, EdgeType.EXPLICIT]:
+                        elif data["type"] is EdgeType.PART_OF:
+                            part_of = True
+                        elif data["type"] in [EdgeType.COREF, EdgeType.EXPLICIT]:
                             special = True
                     if len(values) == 0:
                         continue
                     value = np.mean(values)
-                    if special or value > mean[a.depth] + stdev[a.depth]:
+                    if part_of or special or value > mean[a.depth] + stdev[a.depth]:
                         filtered_graph.add_edge(a, b, weight=value)
+                        added.add((a,b))
+                        if not part_of:
+                            filtered_graph.add_edge(b, a, weight=value)
+                            added.add((b, a))
         return filtered_graph
         
     def compute_importance(self) -> Dict[TextElement, float]:
