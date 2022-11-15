@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Dict, List
 
 import xmltodict
@@ -187,13 +188,25 @@ class Conversation(TextElement):
 
         self.text = full_text
 
-        sentences = self.parse_full_text(full_text)
+        pattern = r"^(\s|\.)+"
+        sentences = []
+        for sentence in self.parse_full_text(full_text):
+            sentence.text = re.sub(pattern, "", sentence.text, count=1)
+            if sentence.text:
+                sentences.append(sentence)
         i = 0
         for contribution in self.components:
-            left = len(contribution.text)
-            while i < len(sentences) and len(sentences[i].text) <= left:
+            left = contribution.text.lstrip()
+            while i < len(sentences) and left:
+                if not left.startswith(sentences[i].text):
+                    for j in range(1, 3):
+                        if left[j:].startswith(sentences[i].text):
+                            left = left[j:]
+                            break
+                    else:
+                        raise(Exception("Parsing error:\n" + contribution.text))
                 contribution.add_sentence(sentences[i])
-                left -= len(sentences[i].text)
+                left = re.sub(pattern, "", left[len(sentences[i].text):], count=1)
                 i += 1
 
 

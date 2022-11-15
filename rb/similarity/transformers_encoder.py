@@ -58,16 +58,16 @@ class TransformersEncoder(VectorModel):
             .replace("“", '"') \
             .replace("”", '"')
 
-    def _create_word_token_dict(self, block: Block, tokenized: List[str]) -> Dict[Word, List[int]]:
+    def _create_word_token_dict(self, blocks: List[Block], tokenized: List[str]) -> Dict[Word, List[int]]:
         i = 0
         result = {}
-        words = [self.clean_text(word.text) for word in block.get_words()]
+        words = [self.clean_text(word.text) for block in blocks for word in block.get_words()]
         if getattr(self.tokenizer, "do_lower_case", False):
             words = [word.lower() for word in words]
         block_symbols = {s for word in words for s in word}
         tokens = ["".join(s for s in token if s in block_symbols) for token in tokenized]
         current = ""
-        for text, word in zip(words, block.get_words()):
+        for text, word in zip(words, [word for block in blocks for word in block.get_words()]):
             while not tokens[i]:
                 i += 1
             current = self.common_prefix(text, tokens[i])
@@ -91,11 +91,12 @@ class TransformersEncoder(VectorModel):
             result[word] = ids
         return result
 
-    def _encode_block(self, block: Block):
-        tokenized = self.tokenizer.tokenize(self.clean_text(block.text))
+    def _encode_block(self, blocks: List[Block]):
+        text = "\n".join(block.text for block in blocks)
+        tokenized = self.tokenizer.tokenize(self.clean_text(text))
         if not tokenized:
             return
-        token_index = self._create_word_token_dict(block, tokenized)
+        token_index = self._create_word_token_dict(blocks, tokenized)
         start = 0
         n = len(tokenized)
         token_ids = self.tokenizer.convert_tokens_to_ids(tokenized)
@@ -108,29 +109,52 @@ class TransformersEncoder(VectorModel):
             embeddings.append(outputs.last_hidden_state[0, 1:-1, :].numpy())
             start = end
         embeddings = np.concatenate(embeddings, axis=0)
-        for sentence in block.get_sentences():
-            for word in sentence.get_words():
-                if word in token_index:
-                    word.vectors[self] = Vector(np.mean(embeddings[token_index[word]], axis=0, dtype=np.float64))
-            sentence_ids = [
+        for block in blocks:
+            for sentence in block.get_sentences():
+                for word in sentence.get_words():
+                    if word in token_index:
+                        word.vectors[self] = Vector(np.mean(embeddings[token_index[word]], axis=0, dtype=np.float64))
+                sentence_ids = [
+                    i
+                    for word in sentence.get_words() 
+                    if word in token_index 
+                    for i in token_index[word]
+                ]
+                if sentence_ids:
+                    sentence.vectors[self] = Vector(np.mean(embeddings[sentence_ids], axis=0, dtype=np.float64))
+            block_ids = [
                 i
-                for word in sentence.get_words() 
+                for word in block.get_words() 
                 if word in token_index 
                 for i in token_index[word]
             ]
-            if sentence_ids:
-                sentence.vectors[self] = Vector(np.mean(embeddings[sentence_ids], axis=0, dtype=np.float64))
-        block.vectors[self] = Vector(np.mean(embeddings, axis=0, dtype=np.float64))
-
+            if block_ids:
+                block.vectors[self] = Vector(np.mean(embeddings[block_ids], axis=0, dtype=np.float64))
+        
     def encode(self, document: Document):
         vectors = []
+        buffer = []
         for block in document.components:
+            if sum(len(x.text) for x in buffer) + len(block.text) < 1000:
+                buffer.append(block)
+                continue
             try:
-                self._encode_block(block)
+                self._encode_block(buffer)
             except Exception as e:
-                logger.warning(f"Invalid characters:\n{block.text}")
-            if self in block.vectors:
-                vectors.append(block.vectors[self].values)
+                text = '\n'.join(x.text for x in buffer)
+                logger.warning("Invalid characters:\n" + text)
+            for x in buffer:
+                if self in x.vectors:
+                    vectors.append(x.vectors[self].values)
+            buffer = [block]
+        try:
+            self._encode_block(buffer)
+        except Exception as e:
+            text = '\n'.join(x.text for x in buffer)
+            logger.warning("Invalid characters:\n" + text)
+        for x in buffer:
+            if self in x.vectors:
+                vectors.append(x.vectors[self].values)
         if vectors:
             document.vectors[self] = Vector(np.mean(vectors, axis=0))
             
