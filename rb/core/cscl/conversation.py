@@ -199,12 +199,14 @@ class Conversation(TextElement):
             left = contribution.text.lstrip()
             while i < len(sentences) and left:
                 if not left.startswith(sentences[i].text):
-                    for j in range(1, 3):
+                    for j in range(1, 4):
                         if left[j:].startswith(sentences[i].text):
                             left = left[j:]
                             break
                     else:
-                        raise(Exception("Parsing error:\n" + contribution.text))
+                        if len(left) > 3:
+                            raise(Exception("Parsing error:\n" + contribution.text))
+                        break
                 contribution.add_sentence(sentences[i])
                 left = re.sub(pattern, "", left[len(sentences[i].text):], count=1)
                 i += 1
