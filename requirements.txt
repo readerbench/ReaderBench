@@ -27,10 +27,10 @@ pymorphy2
 Pyphen
 requests
 s3transfer
+scikit-learn
 scipy
 sentence-splitter
 six
-sklearn
 smart-open
 spacy>=3
 srsly
