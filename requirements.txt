@@ -34,6 +34,7 @@ six
 smart-open
 spacy>=3
 srsly
+torch
 tqdm
 urllib3
 wasabi
