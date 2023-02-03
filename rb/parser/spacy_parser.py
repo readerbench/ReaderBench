@@ -12,7 +12,7 @@ from spacy.tokens import Doc, Span, Token
 logger = Logger.get_logger()
 
 models = {
-    Lang.EN: 'en_core_web_lg',
+    Lang.EN: 'en_core_web_trf',
     Lang.NL: 'nl_core_news_lg',
     Lang.FR: 'fr_core_news_lg',
     Lang.ES: 'es_core_news_lg',
