@@ -35,6 +35,9 @@ class TransformersEncoder(VectorModel):
                 name = "DeepPavlov/rubert-base-cased"
                 from_pt=True
                 self.SOW = "##"
+            elif lang is Lang.PT:
+                name = "neuralmind/bert-base-portuguese-cased"
+                self.SOW = "##"
         VectorModel.__init__(self, VectorModelType.TRANSFORMER, name=name, lang=lang, size=768)  
         config = AutoConfig.from_pretrained(self.name)
         config.output_hidden_states = True
