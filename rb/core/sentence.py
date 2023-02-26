@@ -27,7 +27,7 @@ class Sentence(TextElement):
         tokens = [token for token in text if token.text.strip()]
         words = {token.i: Word(lang, token, i, container=self) for i, token in enumerate(tokens)}
         for word, token in zip(words.values(), tokens):
-            word.head = words[token.head.i]
+            word.head = words.get(token.head.i, word)
             if word.head is not word:
                 word.head.children.append(word)
         self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent if token.text.strip()], index_in_container=ent.start)
