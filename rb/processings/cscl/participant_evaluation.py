@@ -20,7 +20,7 @@ def get_block_importance(graph: nx.DiGraph, a: Block, b: Block) -> float:
 
 
 def evaluate_interaction(conversation: Union[Conversation, Community]):
-    cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
+    cna_graph = conversation.get_container().graph if conversation.container is not None else conversation.graph
     
     participants = conversation.get_participants()
     if isinstance(conversation, Community):
@@ -43,7 +43,7 @@ def evaluate_interaction(conversation: Union[Conversation, Community]):
 
 
 def evaluate_involvement(conversation: Union[Conversation, Community]):
-    cna_graph = conversation.container.graph if conversation.container is not None else conversation.graph
+    cna_graph = conversation.get_container().graph if conversation.container is not None else conversation.graph
     participants = conversation.get_participants()
 
     if (len(participants) == 0):
@@ -58,7 +58,7 @@ def evaluate_involvement(conversation: Union[Conversation, Community]):
 
             current_value = p.get_index(CNAIndices.CONTRIBUTIONS_SCORE)
             p.set_index(CNAIndices.CONTRIBUTIONS_SCORE, current_value + cna_graph.importance[contribution])
-            original_conv = conversation.container.get_conversation(conv.conv_id) if conversation.container else conv
+            original_conv = conversation.get_container().get_conversation(conv.conv_id) if conversation.container else conv
             added_value = 0
             for prev in original_conv.get_contributions():
                 if contribution.index == prev.index:

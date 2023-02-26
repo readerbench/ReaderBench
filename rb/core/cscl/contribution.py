@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Dict
+import weakref
 
 from rb.core.block import Block
 from rb.core.lang import Lang
@@ -33,7 +34,7 @@ class Contribution(TextElement):
 
     def add_sentence(self, sentence: Sentence):
         self.components.append(sentence)
-        sentence.container = self
+        sentence.container = weakref.ref(self)
 
     def get_parent(self) -> "Contribution":
         return self.parent_contribution

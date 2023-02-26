@@ -13,15 +13,17 @@ class Span(TextElement):
 
     def __init__(self, lang: Lang, text: str, words: List[Word], index_in_container: int,
          depth: int = TextElementType.SPAN.value):
-        super().__init__(lang, text, index_in_container, depth, container=words[0].container)
+        super().__init__(lang, text, index_in_container, depth, container=words[0].get_container())
         self.components = words
 
     def get_root(self) -> Word:
-        return [word for word in self.components 
-                if word.head == word or 
-                   word.head.index_in_doc < self.components[0].index_in_doc or 
-                   word.head.index_in_doc > self.components[-1].index_in_doc
-            ][0]
+        return [
+            word 
+            for word in self.components 
+            if word.head() == word or 
+                word.head().index_in_doc < self.components[0].index_in_doc or 
+                word.head().index_in_doc > self.components[-1].index_in_doc
+        ][0]
     
     @classmethod
     def from_spacy_span(cls, lang: Lang, spacy_span: spacy.tokens.Span, words: Dict[int, Word]) -> "Word":

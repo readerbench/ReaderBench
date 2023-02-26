@@ -11,6 +11,7 @@ from rb.cna.cna_graph import CnaGraph
 from rb.cna.edge_type import EdgeType
 
 from rb.utils.rblogger import Logger
+import weakref
 
 logger = Logger.get_logger()
 
@@ -24,7 +25,7 @@ class AdjCohesion(ComplexityIndex):
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="AdjCoh")
         self.element_type = element_type
-        self.cna_graph = cna_graph
+        self.cna_graph = weakref.ref(cna_graph)
         if element_type.value > reduce_depth:
             logger.error('For index {} element_type has to be lower or equal than reduce_depth'.format(self))
 
@@ -37,7 +38,7 @@ class AdjCohesion(ComplexityIndex):
         if len(children) < 2:
             return 0
         for i, child in enumerate(children[:-1]): 
-            _, _, sim = self.cna_graph.edges(node=(child, children[i+1]), edge_type=EdgeType.SEMANTIC, vector_model=None)[0]
+            _, _, sim = self.cna_graph().edges(node=(child, children[i+1]), edge_type=EdgeType.SEMANTIC, vector_model=None)[0]
             sim_values.append(sim)
         return mean(sim_values)
     

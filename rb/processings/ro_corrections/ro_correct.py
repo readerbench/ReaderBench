@@ -471,7 +471,7 @@ def check_subject_and_predicate_relation(par_index, doc):
     for token in doc:
         if token.dep_ == "nsubj":
             S = token
-            P = token.head
+            P = token.head()
             if P not in predicates:
                 predicates.append(P)
             else:
@@ -524,7 +524,7 @@ def check_noun_and_numeral_relation(par_index, doc):
         if token.dep_ == "nummod":
             if token.tag_[:2] == "Mc" or token.tag_[:2] == "Mo":
                 Nr = token
-                N = token.head
+                N = token.head()
                 spnr = get_numeral(Nr.tag_)
                 spn = get_noun(N.tag_)
                 if spnr[1] == spn[1] and spnr[2] == spn[2]:
@@ -546,7 +546,7 @@ def check_noun_and_unstated_article_relation(par_index, doc):
         if token.dep_ == "det":
             if token.tag_[:2] == "Ti":
                 UA = token
-                N = token.head
+                N = token.head()
                 spar = get_unstated_article(UA.tag_)
                 spn = get_noun(N.tag_)
                 if spar[1] == spn[1] and spar[2] == spn[2]:
@@ -562,8 +562,8 @@ def check_noun_and_unstated_article_relation(par_index, doc):
                     }
                     corrections.append(mistake)
             elif token.tag_[:3] == "Di3":
-                UA = token.head
-                N = token.head
+                UA = token.head()
+                N = token.head()
                 spn = get_noun(N.tag_)
                 if spn[2] == "p":
                     continue

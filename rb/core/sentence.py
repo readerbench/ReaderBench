@@ -1,4 +1,5 @@
 from typing import List, Tuple, Union
+import weakref
 
 import spacy
 from rb.core.lang import Lang
@@ -27,9 +28,9 @@ class Sentence(TextElement):
         tokens = [token for token in text if token.text.strip()]
         words = {token.i: Word(lang, token, i, container=self) for i, token in enumerate(tokens)}
         for word, token in zip(words.values(), tokens):
-            word.head = words.get(token.head.i, word)
-            if word.head is not word:
-                word.head.children.append(word)
+            word._head = weakref.ref(words.get(token.head.i, word))
+            if word.head() is not word:
+                word.head().children.append(word)
         self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent if token.text.strip()], index_in_container=ent.start)
                          for ent in text.ents]
         if isinstance(text, Doc):
@@ -39,9 +40,9 @@ class Sentence(TextElement):
         self.components = [word for word in words.values()]
 
     def get_dependencies(self) -> Dependencies:
-        return [(word.head, word, word.dep) 
+        return [(word.head(), word, word.dep) 
                 for word in self.components 
-                if word.head != word]
+                if word.head() != word]
             
     def get_sentences(self) -> List["Sentence"]:
         return [self]

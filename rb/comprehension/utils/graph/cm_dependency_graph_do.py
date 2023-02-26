@@ -15,7 +15,7 @@ class CmDependencyGraf:
 
     def get_actual_word(self, word):
         if word.in_coref:
-            return word.coref_clusters[0].main.get_root()
+            return word.coref_clusters[0]().main.get_root()
         return word
 
     def build_graph(self, sentence: Sentence) -> None:

@@ -37,7 +37,7 @@ def has_own_subject(predicate):
 #adjectives that are linked with the other through conjunctions
 def is_in_adjective_noun_relation(adjective):
 	if adjective.dep_ == "amod":
-		return (True, adjective.head)
-	if adjective.head.dep_ == "amod" and adjective.head.head.tag_[:2] == "Nc":
-		return (True, adjective.head.head)
+		return (True, adjective.head())
+	if adjective.head().dep_ == "amod" and adjective.head().head().tag_[:2] == "Nc":
+		return (True, adjective.head().head())
 	return (False, None)

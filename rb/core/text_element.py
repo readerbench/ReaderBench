@@ -1,4 +1,5 @@
 
+import weakref
 from rb.core.lang import Lang
 from rb.core.text_element_type import TextElementType
 import numpy as np
@@ -37,7 +38,7 @@ class TextElement:
 
         self.index_in_container = index_in_container
         self.lang = lang
-        self.container = container
+        self.container = weakref.ref(container) if container is not None else None
         self.vectors = {}
         self.components: List[TextElement] = []
         self.vectors_initialized = False
@@ -69,7 +70,7 @@ class TextElement:
         if self.is_document():
             return self
         else:
-            return self.container.get_parent_document()
+            return self.get_container().get_parent_document()
 
     def get_vector(self, model: 'VectorModel') -> np.array:
         return self.vectors[model]
@@ -83,7 +84,7 @@ class TextElement:
         if self is other:
             return True
         if isinstance(other, type(self)):
-            return self.index_in_container == other.index_in_container and self.container == other.container
+            return self.index_in_container == other.index_in_container and self.get_container() == other.get_container()
         return NotImplemented
 
     def __hash__(self):
@@ -111,3 +112,9 @@ class TextElement:
             return [self]
 
         return  [sent for child in self.components for sent in child.get_sentences()]
+
+    def get_container(self):
+        if self.container is None:
+            return None
+        else:
+            return self.container()

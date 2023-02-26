@@ -166,9 +166,9 @@ class Conversation(TextElement):
                 participant = self.participant_map[participant_id]
 
             if self.container is not None:
-                if participant_id not in self.container.participant_map:
+                if participant_id not in self.get_container().participant_map:
                     global_participant = Participant(participant_id=participant_id)
-                    self.container.participant_map[participant_id] = global_participant		
+                    self.get_container().participant_map[participant_id] = global_participant		
 
             current_contribution = Contribution(self.lang, text, container=self,
                                                 participant=participant,

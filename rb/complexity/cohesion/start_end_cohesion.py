@@ -1,3 +1,4 @@
+import weakref
 from rb.complexity.complexity_index import ComplexityIndex
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -23,13 +24,13 @@ class StartEndCohesion(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="StartEndCoh")
-        self.cna_graph = cna_graph
+        self.cna_graph = weakref.ref(cna_graph)    
         
     def _compute_value(self, element: TextElement) -> float:
         if len(element.components) < 2:
             return None
         start = element.components[0]
         end = element.components[-1]
-        sim_edge = self.cna_graph.edges(node=(start, end), edge_type=EdgeType.SEMANTIC, 
+        sim_edge = self.cna_graph().edges(node=(start, end), edge_type=EdgeType.SEMANTIC, 
                                         vector_model=None)
         return sim_edge[0][2]

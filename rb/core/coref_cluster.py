@@ -1,3 +1,4 @@
+import weakref
 from rb.core.span import Span
 from rb.core.word import Word
 from rb.core.lang import Lang
@@ -18,4 +19,4 @@ class CorefCluster():
             m_words = [words[i] for i in range(mention.start, mention.end)]
             for word in m_words:
                 word.in_coref = True
-                word.coref_clusters.append(self)
+                word.coref_clusters.append(weakref.ref(self))

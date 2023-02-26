@@ -1,4 +1,5 @@
 from typing import List
+import weakref
 
 from rb.core.lang import Lang
 from rb.core.pos import POS
@@ -24,7 +25,6 @@ class Word(TextElement):
         self.lemma = token.lemma_
         self.pos = POS(token.pos_)
         self.detailed_pos = token.tag_
-        self.head: "Word"
         self.dep: str = token.dep_
         self.ent_type_: str  = token.ent_type_
         self.ent_type = token.ent_type
@@ -68,3 +68,6 @@ class Word(TextElement):
 
     def __hash__(self):
         return hash((self.lemma, self.pos, self.index_in_doc))
+
+    def head(self):
+        return self._head()

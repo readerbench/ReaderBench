@@ -1,3 +1,4 @@
+import weakref
 from rb.complexity.complexity_index import ComplexityIndex
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -23,7 +24,7 @@ class MiddleEndCohesion(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="MidEndCoh")
-        self.cna_graph = cna_graph
+        self.cna_graph = weakref.ref(cna_graph)    
         
     def _compute_value(self, element: TextElement) -> float:
         if len(element.components) < 3:
@@ -33,7 +34,7 @@ class MiddleEndCohesion(ComplexityIndex):
         scale_factor, weighted_sum = 0, 0
 
         for i, elem in enumerate(element.components[:-1]):
-            sim_edge = self.cna_graph.edges(node=(end, elem), edge_type=EdgeType.SEMANTIC,
+            sim_edge = self.cna_graph().edges(node=(end, elem), edge_type=EdgeType.SEMANTIC,
                                             vector_model=None)
             if sim_edge:
                 v = sim_edge[0][2]

@@ -28,7 +28,7 @@ class CoreTest(unittest.TestCase):
                 continue
             else:
                 self.assertEqual(True, word.in_coref, "Should be: True")
-                self.assertEqual("John", word.coref_clusters[0].main.get_root().text, "Should be: John")
+                self.assertEqual("John", word.coref_clusters[0]().main.get_root().text, "Should be: John")
         
 
 if __name__ == '__main__':

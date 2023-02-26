@@ -1,3 +1,4 @@
+import weakref
 from rb.complexity.complexity_index import ComplexityIndex
 from rb.core.lang import Lang
 from rb.core.text_element import TextElement
@@ -22,21 +23,21 @@ class TransCohesion(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  reduce_depth=reduce_depth, reduce_function=reduce_function,
                                  abbr="TransCoh")
-        self.cna_graph = cna_graph
+        self.cna_graph = weakref.ref(cna_graph)    
         
     def _compute_value(self, element: TextElement) -> float:
         i = element.index_in_container
-        if i == len(element.container.components) - 1:
+        if i == len(element.get_container().components) - 1:
             return None
         if len(element.components) < 2:
             return None
         current_block_sents = element.get_sentences()
-        next_block_sents = element.container.components[i+1].get_sentences()
+        next_block_sents = element.get_container().components[i+1].get_sentences()
         if len(current_block_sents) == 0 or len(next_block_sents) == 0:
             return None
         cur_sent = current_block_sents[-1]
         next_sent = next_block_sents[0]
-        sim_edge = self.cna_graph.edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
+        sim_edge = self.cna_graph().edges(node=(cur_sent, next_sent), edge_type=EdgeType.SEMANTIC,
                                         vector_model=None)
         if sim_edge:
             return sim_edge[0][2]

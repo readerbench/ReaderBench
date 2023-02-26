@@ -115,11 +115,12 @@ class CnaGraph:
             if isinstance(node, Block):
                 if node.has_coref:
                     for cluster in node.coref_clusters:
+                        cluster = cluster()
                         for mention in cluster.mentions:
-                            if mention != cluster.main and mention.container != cluster.main.container:
-                                edge = self.get_edge(mention.container, cluster.main.container, edge_type=EdgeType.COREF)
+                            if mention != cluster.main and mention.get_container() != cluster.main.get_container():
+                                edge = self.get_edge(mention.get_container(), cluster.main.get_container(), edge_type=EdgeType.COREF)
                                 if edge is None:
-                                    self.graph.add_edge(mention.container, cluster.main.container, type=EdgeType.COREF, details=[(mention.text, cluster.main.text)])
+                                    self.graph.add_edge(mention.get_container(), cluster.main.get_container(), type=EdgeType.COREF, details=[(mention.text, cluster.main.text)])
                                 else:
                                     edge["details"].append((mention.text, cluster.main.text))
 
