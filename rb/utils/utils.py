@@ -86,6 +86,8 @@ def str_to_lang(s: str) -> Lang:
         return Lang.IT
     elif s in ["nl", "nld", "dut", "dutch"]:
         return Lang.NL
+    elif s in ["pt", "por", "portuguese"]:
+        return Lang.PT
     return None
 
 def str_to_vmodel(s: str) -> VectorModelType:

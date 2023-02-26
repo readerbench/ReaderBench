@@ -20,6 +20,7 @@ models = {
     Lang.IT: 'it_core_news_lg',
     Lang.RO: 'ro_core_news_lg',
     Lang.RU: 'ru_core_news_lg',
+    Lang.PT: 'pt_core_news_lg',
 }
 
 normalization = {

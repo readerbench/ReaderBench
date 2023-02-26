@@ -11,6 +11,7 @@ class Lang(Enum):
     RU = 'ru'
     IT = 'it'
     NL = 'nl'
+    PT = "pt"
 
     @classmethod
     def has_value(cls, value):
