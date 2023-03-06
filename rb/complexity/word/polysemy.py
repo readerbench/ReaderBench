@@ -3,9 +3,7 @@ from rb.core.lang import Lang
 from rb.core.text_element import TextElement
 from rb.complexity.index_category import IndexCategory
 from rb.complexity.measure_function import MeasureFunction
-from rb.core.text_element_type import TextElementType
-from rb.similarity.wordnet import get_synonyms
-from typing import List, Callable
+from rb.similarity.wordnet import WordNet
 from rb.utils.rblogger import Logger
 
 logger = Logger.get_logger()
@@ -22,6 +20,6 @@ class Polysemy(ComplexityIndex):
 
     def _compute_value(self, element: TextElement) -> int:
         if element.is_content_word():
-            return len(get_synonyms(element))
+            return len(WordNet.get_instance().get_synonyms(element))
         else:
             return 0

@@ -50,7 +50,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='rbpy-rb',
-    version='0.12.1',
+    version='0.12.3',
     python_requires='>=3.6',
     author='Woodcarver',
     author_email='batpepastrama@gmail.com',

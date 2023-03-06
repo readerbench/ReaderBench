@@ -59,18 +59,22 @@ class TransformersEncoder(VectorModel):
     def clean_text(self, text: str) -> str:
         return text.replace("’", "'") \
             .replace("“", '"') \
-            .replace("”", '"')
+            .replace("”", '"') \
+            .replace("\u200b", " ")
+    
 
     def _create_word_token_dict(self, blocks: List[Block], tokenized: List[str]) -> Dict[Word, List[int]]:
         i = 0
         result = {}
-        words = [self.clean_text(word.text) for block in blocks for word in block.get_words()]
+        words = [self.clean_text(word.text).strip() for block in blocks for word in block.get_words()]
         if getattr(self.tokenizer, "do_lower_case", False):
             words = [word.lower() for word in words]
         block_symbols = {s for word in words for s in word}
         tokens = ["".join(s for s in token if s in block_symbols) for token in tokenized]
         current = ""
         for text, word in zip(words, [word for block in blocks for word in block.get_words()]):
+            if not text.strip():
+                continue
             while not tokens[i]:
                 i += 1
             current = self.common_prefix(text, tokens[i])

@@ -2,7 +2,7 @@ from rb.core.lang import Lang
 from rb.similarity.vector_model import VectorModel, VectorModelType
 from rb.similarity.vector_model_factory import create_vector_model
 from rb.core.word import Word
-import rb.similarity.wordnet as wordnet
+from rb.similarity.wordnet import WordNet
 from typing import List
 from typing import Dict
 
@@ -46,8 +46,8 @@ def get_similar_concepts(raw_word: str, lang: Lang) -> List[str]:
         return []
     
     word = Word.from_str(lang, raw_word)
-    synonyms = wordnet.get_synonyms(word)
-    hypernyms = wordnet.get_hypernyms(word)
+    synonyms = WordNet.get_instance().get_synonyms(word)
+    hypernyms = WordNet.get_instance().get_hypernyms(word)
     similar_concepts = []
     similar_concepts.extend(synonyms)
     similar_concepts.extend(hypernyms)

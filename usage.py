@@ -3,7 +3,7 @@ from rb.core.document import Document
 from rb.complexity.complexity_index import ComplexityIndex, compute_indices
 from rb.core.text_element_type import TextElementType
 from rb.core.pos import POS
-from rb.similarity.wordnet import path_similarity, get_hypernyms, get_all_paths_lengths_to_root, lang_dict
+from rb.similarity.wordnet import WordNet
 from rb.core.pos_features.pos_feature_extractor import POSFeatureExtractor
 from rb.complexity.word.name_entity_enum import NamedEntityONEnum
 from rb.similarity.vector_model import VectorModelType, CorporaEnum, VectorModel
@@ -52,12 +52,12 @@ if __name__ == "__main__":
     if args.wordnet_ro:
         print('wordnet for ro: ', file=log)
         print(POS.NOUN.to_wordnet(), file=log)
-        print('hypernyms (for om) ro', get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
-        print('paths lengths for om', get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
+        print('hypernyms (for om) ro', WordNet.get_instance().get_hypernyms('om', lang=Lang.RO, pos=POS.NOUN.to_wordnet()), file=log)
+        print('paths lengths for om', WordNet.get_instance().get_all_paths_lengths_to_root('om', lang=Lang.RO), file=log)
 
     if args.wordnet_en:
         print('wordnet for en: ', file=log)
-        print('hypernyms eng for human', get_hypernyms('human', lang=Lang.EN), file=log)
+        print('hypernyms eng for human', WordNet.get_instance().get_hypernyms('human', lang=Lang.EN), file=log)
 
     if args.indices_en:
         doc = Document(lang=Lang.EN, text=txt_eng)

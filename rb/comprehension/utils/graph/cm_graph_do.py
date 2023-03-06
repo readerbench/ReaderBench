@@ -11,7 +11,7 @@ from rb.similarity.word_vector_model import WordVectorModel
 from rb.similarity.aoa import AgeOfAcquisition
 from copy import deepcopy
 from typing import List, Dict
-import rb.similarity.wordnet as wordnet
+from rb.similarity.wordnet import WordNet
 import numpy as np
 
 Nodes = List[CmNodeDO]
@@ -166,8 +166,8 @@ class CmGraphDO:
             if node.get_word().pos != POS.NOUN and node.get_word().pos != POS.VERB:
                 continue
 
-            synonyms = wordnet.get_synonyms(node.get_word())
-            hypernyms = wordnet.get_hypernyms(node.get_word())
+            synonyms = WordNet.get_instance().get_synonyms(node.get_word())
+            hypernyms = WordNet.get_instance().get_hypernyms(node.get_word())
             # print("Wordnet {}".format(int(t_wn_e - t_wn_s)))
             similar_concepts = []
             similar_concepts.extend(synonyms)

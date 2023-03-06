@@ -31,12 +31,14 @@ class Sentence(TextElement):
             word._head = weakref.ref(words.get(token.head.i, word))
             if word.head() is not word:
                 word.head().children.append(word)
+            else:
+                self.root = word
         self.entities = [Span(lang, text=ent.text, words=[words[token.i] for token in ent if token.text.strip()], index_in_container=ent.start)
                          for ent in text.ents]
-        if isinstance(text, Doc):
-            self.root = words[[sent for sent in text.sents][0].root.i]
-        else:
-            self.root = words[text.root.i]
+        # if isinstance(text, Doc):
+        #     self.root = words[[sent for sent in text.sents][0].root.i]
+        # else:
+        #     self.root = words[text.root.i]
         self.components = [word for word in words.values()]
 
     def get_dependencies(self) -> Dependencies:

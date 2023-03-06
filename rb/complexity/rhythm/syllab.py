@@ -21,22 +21,8 @@ class Syllab(ComplexityIndex):
         ComplexityIndex.__init__(self, lang=lang, category=IndexCategory.COHESION,
                                  abbr="Syll", reduce_depth=reduce_depth,
                                  reduce_function=reduce_function)
-        if lang is lang.RO:
-            self.pyphen = pyphen.Pyphen(lang='ro')
-        elif lang is lang.EN:
-            self.pyphen = pyphen.Pyphen(lang='en')
-        elif lang is lang.ES:
-            self.pyphen = pyphen.Pyphen(lang='es')
-        elif lang is lang.FR:
-            self.pyphen = pyphen.Pyphen(lang='fr')
-        elif lang is lang.DE:
-             self.pyphen = pyphen.Pyphen(lang='de')
-        elif lang is lang.IT:
-             self.pyphen = pyphen.Pyphen(lang='it')
-        elif lang is lang.NL:
-             self.pyphen = pyphen.Pyphen(lang='nl')
-        elif lang is lang.RU:
-             self.pyphen = pyphen.Pyphen(lang='ru')
+        self.pyphen = pyphen.Pyphen(lang=lang.name.lower())
+        
     
     def process(self, element: TextElement) -> float:
         return self.reduce_function(self.compute_above(element))
