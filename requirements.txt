@@ -34,7 +34,10 @@ six
 smart-open
 spacy>=3
 srsly
+tensorflow
+tf-keras
 torch
+transformers
 tqdm
 urllib3
 wasabi
