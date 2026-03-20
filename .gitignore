@@ -179,3 +179,4 @@ rb/processings/diacritics/rotransformers/uncased-v1/*
 rb/processings/sentiment/corpus/*
 rb/processings/sentiment/models/*
 rbenv/
+scripts
