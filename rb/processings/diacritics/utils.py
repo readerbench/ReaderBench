@@ -2,7 +2,6 @@ import statistics
 import random
 import sys
 import pickle
-import tensorflow as tf
 import os
 from sklearn.utils import class_weight
 import numpy as np
@@ -617,10 +616,10 @@ def generator_sentence_bert_cnn_features_string(string, char_to_id_dict, window_
     basic_sentence = ''.join([get_char_basic(char) for char in sentence])
 
     tokens = tokenizer.tokenize(basic_sentence)
-    features = tokenizer(basic_sentence, return_tensors="tf", padding="max_length", max_length=512)
+    features = tokenizer(basic_sentence, return_tensors="pt", padding="max_length", max_length=512)
 
-    sentence_bert_input_ids = features["input_ids"].numpy().tolist()[0]
-    sentence_bert_segment_ids = features["token_type_ids"].numpy().tolist()[0]
+    sentence_bert_input_ids = features["input_ids"].tolist()[0]
+    sentence_bert_segment_ids = features["token_type_ids"].tolist()[0]
 
     sentence_token_ids = []
     sentence_char_cnn_windows = []
@@ -671,10 +670,10 @@ def generator_bert_cnn_features_string(string, char_to_id_dict, window_size, tok
     padding_window = [0] * window_size
     padding_labels = np.array([0, 0, 0, 0, 0])
 
-    features = tokenizer("", return_tensors="tf", padding="max_length", max_length=512)
+    features = tokenizer("", return_tensors="pt", padding="max_length", max_length=512)
 
-    padding_input_ids = features["input_ids"].numpy().tolist()[0]
-    padding_segment_ids = features["token_type_ids"].numpy().tolist()[0]
+    padding_input_ids = features["input_ids"].tolist()[0]
+    padding_segment_ids = features["token_type_ids"].tolist()[0]
 
     crt_sentences = 0
     crt_windows = 0

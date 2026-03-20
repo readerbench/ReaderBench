@@ -48,11 +48,11 @@ LINKS = {
         'models': {
             'diacritice': {
                 'small': {
-                    "link": "https://nextcloud.readerbench.com/index.php/s/HbNRckT5LHa4cc4/download",
+                    "link": "https://nextcloud.readerbench.com/index.php/s/jroJ59nZ4oPcZsB/download",
                     "version": "https://nextcloud.readerbench.com/index.php/s/wtcqmsb6CmpnwdN/download"
                 },
                 'base': {
-                    "link": "https://nextcloud.readerbench.com/index.php/s/Y56BLDLtYZ6WRRa/download",
+                    "link": "https://nextcloud.readerbench.com/index.php/s/9658NCW77yx9BRS/download",
                     "version": "https://nextcloud.readerbench.com/index.php/s/GRsJP7yFreeicaR/download"
                 }
             },

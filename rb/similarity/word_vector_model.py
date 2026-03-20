@@ -95,8 +95,10 @@ class WordVectorModel(VectorModel):
 
             for line in f:
                 line_split = line.split()
+                if len(line_split) != no_of_dimensions + 1:
+                    continue
                 word = line_split[0]
-                self.vectors[word] = Vector(np.array(line_split[1:], dtype=np.float))
+                self.vectors[word] = Vector(np.array(line_split[1:], dtype=np.float64))
             
     def compute_hash(self, v: Vector) -> int:
         result = 0

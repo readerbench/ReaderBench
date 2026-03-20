@@ -29,11 +29,11 @@ normalization = {
         (re.compile("Ş"), "Ș"),
         (re.compile("ţ"), "ț"),
         (re.compile("Ţ"), "Ț"),
-        (re.compile("(\w)î(\w)"), "\g<1>â\g<2>")
+        (re.compile(r"(\w)î(\w)"), r"\g<1>â\g<2>")
     ]
 }
 
-re_missing_space = re.compile("([a-z]+)\.([A-Z][a-z]+)")
+re_missing_space = re.compile(r"([a-z]+)\.([A-Z][a-z]+)")
 
 def convertToPenn(pos: str, lang: Lang) -> str:
     if lang == Lang.FR:
