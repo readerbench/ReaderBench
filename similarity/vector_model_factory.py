@@ -119,6 +119,6 @@ def create_vector_model(lang: Lang, model: VectorModelType, corpus: str, dim: in
             save_model(vector_model=vector_model, lang=lang, 
                 model_type=model, corpus=corpus, dim=dim, model_abbr=model_abbr)
             return vector_model
-        except:
-            logger.error(f'Model {model_abbr} could not be instantiate.')
+        except Exception as e:
+            logger.error(f'Model {model_abbr} could not be instantiate.\n{e}', exc_info=True)
         return None
