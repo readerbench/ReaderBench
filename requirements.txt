@@ -13,5 +13,5 @@ spacy==3.8.11
 srsly==2.5.2
 torch==2.10.0
 tqdm==4.67.3
-transformers==5.3.0
+transformers==5.5.0
 xmltodict==1.0.4
