@@ -1,6 +1,6 @@
 gensim==4.4.0
 networkx==3.6.1
-nltk==3.9.3
+nltk==3.10.0
 numpy==2.4.3
 pyphen==0.17.2
 unidecode==1.4.0
